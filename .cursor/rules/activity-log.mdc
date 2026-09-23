@@ -1,28 +1,35 @@
 ---
-description: Record completed project work in docs/activity_log.md
+description: Append completed project work to docs/activity_log.md
 alwaysApply: true
 ---
 
 # Activity log
 
-After a task that changes the project or produces a durable result, add one entry to `docs/activity_log.md` before you finish.
+After a task that changes the project or produces a durable result, append one entry to `docs/activity_log.md` before you finish.
 
 Log code, configuration, documentation, and investigation that leaves files or findings behind. Unpacking an artifact or finishing an analysis step counts. A chat reply that changes nothing does not.
 
-Do not add an entry whose only change is editing `docs/activity_log.md` or `docs/pemahaman.md`.
+Do not add an entry when the only changes are in `docs/activity_log.md`, `docs/pemahaman.md`, Cursor rules (`.cursor/rules/`), or skills (`SKILL.md`, including `.cursor/skills/` and `.agents/skills/`). If the task also changes project code, artifacts, or findings, still log that work.
 
-## How to write
+## Append only
 
-- One entry per task, not per file.
+The file only grows. Existing entries are a permanent record.
+
+- Add one new entry per task, not per file.
+- Never edit, delete, reorder, or redate an existing entry.
+- A later task does not revise an earlier entry, including to fix a mistake. Write the correction as a new entry and leave the old one unchanged.
 - Insert the new entry at the top, directly under `# Activity Log`.
 - Write the entry in Indonesian.
-- Keep history. Do not rewrite older entries.
-- Put lasting facts in `docs/pemahaman.md`. Repeat a fact here only when it is part of what that task found.
+- Put lasting facts in `docs/pemahaman.md` as a new timestamped record. Repeat a fact here only when it is part of what that task found.
 
 ## Format
 
+The heading timestamp is the recording time in Western Indonesian Time (WIB, UTC+7), 24-hour clock, minute precision. Set it once, when the entry is written. Do not backdate it, and do not change it later.
+
+Clock times recovered for entries written before this format existed are final. Do not change them again. If a future entry has a date and no clock time, leave it; do not invent a time.
+
 ```markdown
-## YYYY-MM-DD — Judul singkat
+## YYYY-MM-DD HH:mm WIB — Judul singkat
 
 ### Tujuan
 Apa yang dikerjakan dan mengapa.
