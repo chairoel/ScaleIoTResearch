@@ -1,0 +1,25 @@
+---
+description: Record lasting project facts in docs/pemahaman.md
+alwaysApply: true
+---
+
+# Project understanding
+
+When work reveals a fact that later tasks must remember, update `docs/pemahaman.md` before you finish.
+
+Record facts such as:
+
+- What a file, package, or artifact actually is
+- Where important logic lives
+- Constraints and distinctions that are easy to mix up
+
+Do not record a timeline of work. That belongs in `docs/activity_log.md`. Do not record secrets, tokens, or credentials.
+
+## How to write
+
+- Write in Indonesian.
+- Update the section that already covers the topic. Add a section only for a new topic.
+- Do not append a duplicate of a fact that is already there.
+- State the fact. Do not narrate the steps that uncovered it.
+
+If one task both changes the project and reveals a lasting fact, update `docs/activity_log.md` and `docs/pemahaman.md`.

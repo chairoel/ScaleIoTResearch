@@ -1,0 +1,37 @@
+---
+description: Record completed project work in docs/activity_log.md
+alwaysApply: true
+---
+
+# Activity log
+
+After a task that changes the project or produces a durable result, add one entry to `docs/activity_log.md` before you finish.
+
+Log code, configuration, documentation, and investigation that leaves files or findings behind. Unpacking an artifact or finishing an analysis step counts. A chat reply that changes nothing does not.
+
+Do not add an entry whose only change is editing `docs/activity_log.md` or `docs/pemahaman.md`.
+
+## How to write
+
+- One entry per task, not per file.
+- Insert the new entry at the top, directly under `# Activity Log`.
+- Write the entry in Indonesian.
+- Keep history. Do not rewrite older entries.
+- Put lasting facts in `docs/pemahaman.md`. Repeat a fact here only when it is part of what that task found.
+
+## Format
+
+```markdown
+## YYYY-MM-DD — Judul singkat
+
+### Tujuan
+Apa yang dikerjakan dan mengapa.
+
+### Perubahan
+- `path/file`: apa yang ditambah, dihapus, atau diubah.
+
+### Status
+Selesai, sebagian, atau diblokir. Sebutkan sisa kerja jika ada.
+```
+
+Add `### Temuan` only when the task discovered something worth keeping in the history.
