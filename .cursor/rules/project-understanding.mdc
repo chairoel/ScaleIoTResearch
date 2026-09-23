@@ -15,6 +15,8 @@ Record facts such as:
 
 Also record the next engineering recommendation: the concrete step that should be done next, why that step is next, and what it depends on. Name the files, classes, or protocols involved. Say what should not be done yet when that boundary matters.
 
+When a record names a class, method, field, or other symbol from reverse-engineered code, follow `.cursor/rules/docs-sumber-kode.mdc`: link the workspace file and include a short snippet. A name alone is not enough. Put that citation in the new record. Do not edit an older record to add it.
+
 Do not record a timeline of work. That belongs in `docs/activity_log.md`. Do not record secrets, tokens, or credentials. A recommendation states the next action. It does not retell work already finished.
 
 Do not append a record when the only change is to Cursor rules (`.cursor/rules/`) or skills (`SKILL.md`, including `.cursor/skills/` and `.agents/skills/`). Those files are agent instructions, not project facts.

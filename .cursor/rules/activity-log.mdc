@@ -42,3 +42,5 @@ Selesai, sebagian, atau diblokir. Sebutkan sisa kerja jika ada.
 ```
 
 Add `### Temuan` only when the task discovered something worth keeping in the history.
+
+When an entry names a class, method, field, or other symbol from reverse-engineered code, follow `.cursor/rules/docs-sumber-kode.mdc`: link the workspace file and include a short snippet in the new entry. A name alone is not enough. Do not edit an older entry to add that citation.

@@ -1,0 +1,16 @@
+---
+description: Cite reverse-engineered symbols in project docs with a file link and a short snippet
+alwaysApply: true
+---
+
+# Kutipan sumber di docs
+
+When a file under `docs/` names a class, method, field, or other symbol from reverse-engineered code, do not leave the name alone.
+
+- Add a markdown link to the workspace file, relative to that doc. Decompiled Java is under `ScaleHealtSource/jadx-protocol/sources/`.
+- Add a short snippet of the lines that support the claim. Quote the method or the few lines that show the offset, branch, or call. Do not paste the whole file.
+- If the symbol is not decompiled, link the call site that names it and name the binary (`classesN.dex` or the `.so`). Do not invent a Java path.
+- The snippet must be the real lines from that file. Do not shorten, rewrite, or join non-contiguous lines inside one cited range.
+- Append-only files (`docs/activity_log.md`, `docs/pemahaman.md`): put the link and snippet in the new entry. Do not edit an older entry to add them.
+
+Example: link [`ScaleEncryptedKeyUtils.getScaleEncryptedKey`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java), then a fence `10:12:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java` containing those lines unchanged.
