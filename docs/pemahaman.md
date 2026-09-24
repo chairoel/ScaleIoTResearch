@@ -6,6 +6,123 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-24 21:06 WIB — Rumus komposisi wajib dibongkar
+
+Syarat 3 di `docs/definisi-selesai.md` mewajibkan rumus komposisi ditulis ulang dari native. Memanggil library aslinya tidak memenuhi syarat selesai cakupan timbangan.
+
+Rumus utama dimuat [`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) dari `libBodyFatScaleAlg.so`. Koreksi bias dimuat [`chipsea.bias.v235.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) dan [`chipsea.bias.vA019.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java).
+
+```73:75:ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java
+    static {
+        System.loadLibrary("BodyFatScaleAlg");
+    }
+```
+
+```6:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
+    static {
+        System.loadLibrary("chipsea_bias_v235");
+    }
+```
+
+```9:11:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
+    static {
+        System.loadLibrary("chipsea_bias_vA019");
+    }
+```
+
+Bagian “Yang belum tertutup peta ini” di `protokol-frame-okok.md` diselaraskan dengan catatan 23 September 2026 pukul 22:43 WIB: kelas kunci sudah Java. Yang belum ada adalah nilai hex-nya.
+
+Rekomendasi berikut tetap contoh nilai kunci siaran `0xC0`. Itu syarat 2. Pembongkaran rumus adalah syarat 3 dan tidak mengganti langkah itu.
+
+## 2026-09-24 08:55 WIB — Arah proyek: timbangan dulu, lalu aplikasi sendiri
+
+Definisi selesai ada di `docs/definisi-selesai.md`.
+
+Cakupan awal adalah timbangan OKOK. Aplikasi sendiri dimulai setelah cakupan itu selesai dan bisa mengukur. Fitur lain menyusul satu per satu. Membaca seluruh OKOK International bukan syarat untuk mulai membangun.
+
+Rekomendasi berikut tetap contoh nilai kunci siaran `0xC0`. Itu syarat kedua pada cakupan timbangan, dan langkah engineering-nya tidak berubah.
+
+## 2026-09-23 22:43 WIB — Rekomendasi berikut: contoh nilai kunci dari bind
+
+Langkah berikut: ambil satu nilai nyata field `data` pada respons bind, atau entri SharedPreferences `okok_scale_encrypted_key_` ditambah MAC. Itu satu-satunya cara mengetahui bentuk hex yang disimpan.
+
+Kelas kunci sudah didekompilasi. Tidak ada rumus 4 byte di APK. Tanpa contoh nilai itu, siaran `0xC0` terenkripsi tetap menghasilkan berat 0. `libprotocol.so` tetap ditunda sampai targetnya perangkat Xiangshan atau `KAYOFIT_CS8`.
+
+## 2026-09-23 22:43 WIB — Kunci siaran 0xC0 datang dari server
+
+[`OkokScaleEncryptedKeyUtils`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) ada di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). [`classes3.dex`](../ScaleHealtSource/base/classes3.dex) hanya memuat pemanggilnya, [`BoundDeviceActivity`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java).
+
+`getOkokScaleEncryptedKeySync` tidak menghitung kunci. Ia membaca SharedPreferences `chipsea`, entri `okok_scale_encrypted_key_` ditambah MAC.
+
+```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+    public static String getOkokScaleEncryptedKeySync(String str) {
+        Context contexts = MyAplication.getContexts();
+        if (contexts != null && !TextUtils.isEmpty(str)) {
+            try {
+                return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
+```
+
+```1680:1684:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/PrefsUtil.java
+    public String getOkokScaleEncryptedKey(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return null;
+        }
+        return getValue("okok_scale_encrypted_key_" + str, (String) null);
+```
+
+Pengisian terjadi saat ikat perangkat, hanya jika timbangan terenkripsi. Bind tetap jalan walaupun pengambilan kunci gagal.
+
+```551:556:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+        ScaleInfo scaleInfo = this.mScaleInfo;
+        if (scaleInfo != null && scaleInfo.isEncrypted()) {
+            ThreadUtil.executeThread(new Runnable() { // from class: com.chipsea.btcontrol.activity.setting.BoundDeviceActivity$$ExternalSyntheticLambda5
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$toBindCloud$6(runnable);
+```
+
+```592:593:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+    public /* synthetic */ void lambda$toBindCloud$6(final Runnable runnable) {
+        com.chipsea.btlib.util.LogUtil.i(TAG, "encryptedKeyGetSuccess : " + OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeyFromServerSync(this.mScaleInfo.getMac()));
+```
+
+Permintaan GET memakai [`Api.SCALE_ENCRYPTED_KEY_GET`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java) ditambah MAC tanpa titik dua, huruf kecil. Host rilis adalah `https://intl.chips-cloud.com/v3`. Yang ditulis ke prefs adalah `toString()` dari [`JsonCommonInfo.getData`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/mode/json/JsonCommonInfo.java), dengan MAC asli (bertitik dua). `ApiCallFailInfo` tidak disimpan. `data` null atau string kosong tidak menulis prefs.
+
+```18:18:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+        Object scaleEncryptedKey = new ApiImpl(contexts.getApplicationContext()).getScaleEncryptedKey(str.replace(":", "").toLowerCase(Locale.ENGLISH));
+```
+
+```32:32:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+            PrefsUtil.getInstance(contexts.getApplicationContext()).setOkokScaleEncryptedKey(str, string);
+```
+
+```155:155:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java
+    public static final String SCALE_ENCRYPTED_KEY_GET = "/device/scale/sn?mac=";
+```
+
+```1177:1178:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/ApiImpl.java
+    public Object getScaleEncryptedKey(String str) {
+        return get(Api.SCALE_ENCRYPTED_KEY_GET + str, null, Api.METHOD_GET);
+```
+
+```60:61:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/engine/HttpsEngine.java
+            IS_HTTPS = true;
+            WEB_IP = "https://intl.chips-cloud.com/v3";
+```
+
+```25:26:ScaleHealtSource/jadx-protocol/sources/com/chipsea/mode/json/JsonCommonInfo.java
+    public Object getData() {
+        return this.data;
+```
+
+MAC baca pada frame terenkripsi huruf besar dan bertitik dua, dari [`BytesUtil.bytesToMac`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java). String prefs harus sama persis dengan `chipseaBroadcastFrame.mac`.
+
+```271:271:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+        return !TextUtils.isEmpty(string) ? string.toUpperCase(Locale.ENGLISH) : string;
+```
+
+Peta lengkap ada di `docs/protokol-frame-okok.md`.
+
 ## 2026-09-23 22:18 WIB — Berkas untuk nama class yang sudah disebut
 
 Cuplikan layout frame OKOK ada di `docs/protokol-frame-okok.md`. Tiap parser di sana menaut ke berkas Java dan mengutip barisnya.

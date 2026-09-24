@@ -1,5 +1,58 @@
 # Activity Log
 
+## 2026-09-24 21:06 WIB — Syarat rumus komposisi pada definisi selesai
+
+### Tujuan
+Menyelaraskan definisi selesai dengan keputusan bahwa rumus komposisi native ikut dibongkar pada cakupan timbangan, dan mengoreksi peta frame yang masih menyebut kelas kunci belum didekompilasi.
+
+### Perubahan
+- `docs/definisi-selesai.md`: syarat 3 mewajibkan rumus `libBodyFatScaleAlg.so` plus koreksi bias `libchipsea_bias_v235.so` dan `libchipsea_bias_vA019.so` ditulis ulang. Syarat 4 menguji komposisi dari rumus itu.
+- `docs/protokol-frame-okok.md`: bagian “Yang belum tertutup peta ini” sekarang menyatakan kelas kunci sudah Java, nilai hex belum ada, dan rumus native belum dibongkar.
+- `docs/pemahaman.md`: catatan syarat rumus. Rekomendasi berikut tetap contoh nilai kunci siaran `0xC0`.
+
+### Status
+Selesai untuk penyelarasan dokumen. Langkah engineering berikut tidak berubah: satu contoh nilai `data` dari bind, atau entri prefs `okok_scale_encrypted_key_` + MAC.
+
+## 2026-09-24 08:55 WIB — Definisi selesai proyek
+
+### Tujuan
+Menetapkan kapan cakupan boleh disebut selesai, supaya pembangunan aplikasi sendiri punya urutan yang tetap.
+
+### Perubahan
+- `docs/definisi-selesai.md`: arah proyek, syarat selesai cakupan timbangan, batas tahap pertama aplikasi sendiri, dan pola cakupan kemudian.
+- `docs/pemahaman.md`: catatan arah. Rekomendasi berikut tetap contoh nilai kunci siaran `0xC0`.
+
+### Status
+Selesai untuk dokumen arah. Langkah engineering berikut tidak berubah: satu contoh nilai `data` dari bind, atau entri prefs `okok_scale_encrypted_key_` + MAC.
+
+## 2026-09-23 22:43 WIB — Dekompilasi kunci siaran OKOK terenkripsi
+
+### Tujuan
+Mendapatkan isi `OkokScaleEncryptedKeyUtils`, kelas yang memasok kunci 4 byte untuk siaran header `0xC0`.
+
+### Perubahan
+- `ScaleHealtSource/jadx-protocol`: Java baru untuk [`OkokScaleEncryptedKeyUtils`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java), [`PrefsUtil`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/PrefsUtil.java), [`Api`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java), [`ApiImpl`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/ApiImpl.java), [`HttpsEngine`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/engine/HttpsEngine.java), [`JsonCommonInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/mode/json/JsonCommonInfo.java), dan [`BoundDeviceActivity`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java).
+- `docs/protokol-frame-okok.md`: bagian siaran `0xC0` sekarang menjelaskan sumber kunci. Kalimat "kelas belum didekompilasi" diganti.
+- `docs/pemahaman.md`: fakta sumber kunci, plus rekomendasi berikut berpindah ke contoh nilai `data` dari bind.
+
+### Temuan
+Kelas didefinisikan di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). [`classes3.dex`](../ScaleHealtSource/base/classes3.dex) hanya memanggilnya dari `BoundDeviceActivity`. Kunci tidak dihitung di perangkat. `getOkokScaleEncryptedKeySync` membaca prefs. Pengisian lewat GET `/device/scale/sn?mac=` saat ikat timbangan terenkripsi.
+
+```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+    public static String getOkokScaleEncryptedKeySync(String str) {
+        Context contexts = MyAplication.getContexts();
+        if (contexts != null && !TextUtils.isEmpty(str)) {
+            try {
+                return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
+```
+
+```155:155:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java
+    public static final String SCALE_ENCRYPTED_KEY_GET = "/device/scale/sn?mac=";
+```
+
+### Status
+Selesai untuk isi kelas kunci. Empat byte kunci tidak ada di APK. Langkah berikut: satu contoh nilai `data` dari respons bind, atau entri prefs `okok_scale_encrypted_key_` + MAC. `libprotocol.so` tetap ditunda.
+
 ## 2026-09-23 22:18 WIB — Tautan berkas pada dokumentasi hasil bongkaran
 
 ### Tujuan

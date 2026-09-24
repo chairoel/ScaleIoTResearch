@@ -231,7 +231,119 @@ Impedansi setelah dekripsi di-mask `0x7FFF` lalu dibagi 10.
         this.r1 = BytesUtil.bytesToInt(bArrSubBytes2) / 10.0f;
 ```
 
-Jika bit enkripsi menyala, berat dan impedansi didekripsi dengan kunci 4 byte. Kunci itu hex string dari `com.chipsea.code.util.OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync(mac)`, dipanggil lewat refleksi di [`ScaleEncryptedKeyUtils.getScaleEncryptedKey`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java). Kelas kunci itu sendiri belum didekompilasi. String namanya ada di [`classes3.dex`](../ScaleHealtSource/base/classes3.dex) dan [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). Kalau kunci tidak ada, berat dan impedansi dipaksa 0.
+Jika bit enkripsi menyala, berat dan impedansi didekripsi dengan kunci 4 byte. Kunci itu hex string dari [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java), dipanggil lewat refleksi di [`ScaleEncryptedKeyUtils.getScaleEncryptedKey`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java). Definisi kelas ada di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). [`classes3.dex`](../ScaleHealtSource/base/classes3.dex) hanya memuat pemanggilnya. Kalau kunci tidak ada, berat dan impedansi dipaksa 0.
+
+Method itu tidak menghitung kunci. Ia membaca SharedPreferences bernama `chipsea`, entri `okok_scale_encrypted_key_` ditambah MAC.
+
+```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+    public static String getOkokScaleEncryptedKeySync(String str) {
+        Context contexts = MyAplication.getContexts();
+        if (contexts != null && !TextUtils.isEmpty(str)) {
+            try {
+                return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
+```
+
+```62:62:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/PrefsUtil.java
+    public static final String SP_NAME = "chipsea";
+```
+
+```1680:1684:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/PrefsUtil.java
+    public String getOkokScaleEncryptedKey(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return null;
+        }
+        return getValue("okok_scale_encrypted_key_" + str, (String) null);
+```
+
+Kunci diisi saat ikat perangkat, hanya jika `ScaleInfo.isEncrypted()`, dari [`BoundDeviceActivity.toBindCloud`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java). Bind tetap dilanjutkan walaupun pengambilan kunci gagal.
+
+```551:560:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+        ScaleInfo scaleInfo = this.mScaleInfo;
+        if (scaleInfo != null && scaleInfo.isEncrypted()) {
+            ThreadUtil.executeThread(new Runnable() { // from class: com.chipsea.btcontrol.activity.setting.BoundDeviceActivity$$ExternalSyntheticLambda5
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$toBindCloud$6(runnable);
+                }
+            });
+        } else {
+            runnable.run();
+```
+
+```592:593:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+    public /* synthetic */ void lambda$toBindCloud$6(final Runnable runnable) {
+        com.chipsea.btlib.util.LogUtil.i(TAG, "encryptedKeyGetSuccess : " + OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeyFromServerSync(this.mScaleInfo.getMac()));
+```
+
+Permintaan itu GET ke `HttpsEngine.WEB_IP` ditambah [`Api.SCALE_ENCRYPTED_KEY_GET`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java) ditambah MAC tanpa titik dua dan huruf kecil. Pada build rilis, host-nya `https://intl.chips-cloud.com/v3`. Yang disimpan adalah `toString()` dari [`JsonCommonInfo.getData`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/mode/json/JsonCommonInfo.java), di bawah MAC asli yang dikembalikan `getMac()` pada cuplikan di atas (titik dua tidak dihapus). `ApiCallFailInfo` tidak disimpan. `data` null atau string kosong dianggap sukses, tetapi tidak menulis prefs.
+
+```13:32:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+    public static boolean getOkokScaleEncryptedKeyFromServerSync(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return false;
+        }
+        Context contexts = MyAplication.getContexts();
+        Object scaleEncryptedKey = new ApiImpl(contexts.getApplicationContext()).getScaleEncryptedKey(str.replace(":", "").toLowerCase(Locale.ENGLISH));
+        LogUtil.i(TAG, "getScaleEncryptedKey : " + scaleEncryptedKey);
+        if (scaleEncryptedKey instanceof ApiImpl.ApiCallFailInfo) {
+            return false;
+        }
+        if (scaleEncryptedKey == null) {
+            return true;
+        }
+        String string = scaleEncryptedKey.toString();
+        if (TextUtils.isEmpty(string)) {
+            return true;
+        }
+        try {
+            LogUtil.i(TAG, "getScaleEncryptedKey keyFromServer : " + string);
+            PrefsUtil.getInstance(contexts.getApplicationContext()).setOkokScaleEncryptedKey(str, string);
+```
+
+```155:155:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/Api.java
+    public static final String SCALE_ENCRYPTED_KEY_GET = "/device/scale/sn?mac=";
+```
+
+```1177:1178:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/ApiImpl.java
+    public Object getScaleEncryptedKey(String str) {
+        return get(Api.SCALE_ENCRYPTED_KEY_GET + str, null, Api.METHOD_GET);
+```
+
+```1207:1211:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/business/ApiImpl.java
+    private Object get(String str, Type type, String str2) throws Throwable {
+        LogUtil.i("get", "action : " + str);
+        JsonCommonInfo handle = this.httpsEngine.getHandle(str, str2);
+        if (handle != null && handle.getCode() == 200) {
+            return handle.getData();
+```
+
+```25:26:ScaleHealtSource/jadx-protocol/sources/com/chipsea/mode/json/JsonCommonInfo.java
+    public Object getData() {
+        return this.data;
+```
+
+```55:62:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/engine/HttpsEngine.java
+    static {
+        if (MyAplication.isDebug()) {
+            WEB_IP = "http://172.31.10.160/v3";
+            IS_HTTPS = false;
+        } else {
+            IS_HTTPS = true;
+            WEB_IP = "https://intl.chips-cloud.com/v3";
+        }
+```
+
+```1265:1266:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/engine/HttpsEngine.java
+                LogUtil.i(str, "recive: " + stringBuffer.toString());
+                JsonCommonInfo jsonCommonInfo = (JsonCommonInfo) new Gson().fromJson(stringBuffer.toString(), JsonCommonInfo.class);
+```
+
+MAC yang dipakai parser untuk membaca kunci, pada frame terenkripsi, huruf besar dan bertitik dua. Itu hasil [`BytesUtil.bytesToMac`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java). String prefs harus sama persis dengan `chipseaBroadcastFrame.mac`.
+
+```270:271:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+        String string = sb.toString();
+        return !TextUtils.isEmpty(string) ? string.toUpperCase(Locale.ENGLISH) : string;
+```
 
 ```10:16:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java
     public static String getScaleEncryptedKey(String str) {
@@ -689,6 +801,34 @@ Pemeriksaan XOR ada di [`com.chipsea.btlib.model.Frame`](../ScaleHealtSource/jad
 
 ## Yang belum tertutup peta ini
 
-Kunci siaran `0xC0` belum terbaca karena [`OkokScaleEncryptedKeyUtils`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ScaleEncryptedKeyUtils.java) hanya muncul sebagai nama string pada panggilan refleksi. Isi kelasnya ada di `classes3.dex` dan `classes4.dex`, belum menjadi Java.
+Kelas kunci sudah didekompilasi. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) hanya membaca prefs. Nilai 4 byte tidak ada di APK. Bentuk hex-nya baru diketahui dari satu nilai `data` pada respons bind, atau dari entri `okok_scale_encrypted_key_` ditambah MAC.
+
+```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
+    public static String getOkokScaleEncryptedKeySync(String str) {
+        Context contexts = MyAplication.getContexts();
+        if (contexts != null && !TextUtils.isEmpty(str)) {
+            try {
+                return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
+```
+
+Rumus komposisi belum dibongkar. Rumus utama dimuat [`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) dari `libBodyFatScaleAlg.so`. Koreksi bias dimuat [`chipsea.bias.v235.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) dari `libchipsea_bias_v235.so` dan [`chipsea.bias.vA019.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) dari `libchipsea_bias_vA019.so`.
+
+```73:75:ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java
+    static {
+        System.loadLibrary("BodyFatScaleAlg");
+    }
+```
+
+```6:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
+    static {
+        System.loadLibrary("chipsea_bias_v235");
+    }
+```
+
+```9:11:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
+    static {
+        System.loadLibrary("chipsea_bias_vA019");
+    }
+```
 
 Parser XS tetap di [`libprotocol.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libprotocol.so). Pembungkus Java-nya [`com.xshq.sdk.Protocol`](../ScaleHealtSource/jadx-protocol/sources/com/xshq/sdk/Protocol.java) memuat library itu dan menyatakan `parseScan`, `parseData`, serta `getFuncBuffer` sebagai method native. Di hasil dekompilasi ini, `parseScan` dipanggil dari [`XsBluetoothManager`](../ScaleHealtSource/jadx-protocol/sources/com/ss/bluetooth/sscore/XsBluetoothManager.java). `parseData` dan `getFuncBuffer` belum punya pemanggil Java di folder itu.
