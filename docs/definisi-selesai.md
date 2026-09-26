@@ -75,7 +75,7 @@ Keputusan rilis pertama: timbangan terenkripsi tidak masuk rilis pertama. Bit en
     public native DeviceInfo parseScan(byte[] bArr, String str);
 ```
 
-Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Tulis ulang `cs_bias_vA019` ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Parser siaran tidak terenkripsi ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Parser GATT versi 16, perintah 0 dan 1, serta rakitan perintah 18 dan 19 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Perintah 20 belum diurai. Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tertutup oleh keputusan di atas. Syarat 4 masih menunggu satu sesi ukur pada timbangan nyata.
+Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Tulis ulang `cs_bias_vA019` ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Parser siaran tidak terenkripsi ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Parser GATT versi 16, perintah 0 dan 1, rakitan perintah 18 dan 19, serta perintah 20 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tertutup oleh keputusan di atas. Syarat 4 masih menunggu satu sesi ukur pada timbangan nyata.
 
 ## Aplikasi sendiri, tahap pertama
 

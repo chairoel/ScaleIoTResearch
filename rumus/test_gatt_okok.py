@@ -1,9 +1,16 @@
-"""GATT OKOK versi 16, perintah 0 dan 1, serta rakitan perintah 18 dan 19."""
+"""GATT OKOK versi 16, perintah 0 dan 1, rakitan perintah 18 dan 19, serta perintah 20."""
 
 import unittest
 from datetime import datetime, timezone
 
-from rumus.gatt_okok import FrameFormatError, GattBelumDidukung, GattMenunggu, GattParser, parse_gatt
+from rumus.gatt_okok import (
+    FrameFormatError,
+    GattBelumDidukung,
+    GattKonfirmasi,
+    GattMenunggu,
+    GattParser,
+    parse_gatt,
+)
 
 
 def _prop(lock=1, digit="10", unit="kg"):
@@ -172,7 +179,7 @@ class GattDitolakTest(unittest.TestCase):
         with self.assertRaises(GattBelumDidukung):
             parse_gatt(bytes((0xCA, 32, 0)))
         with self.assertRaises(GattBelumDidukung):
-            parse_gatt(_v17(20, _prop()))
+            parse_gatt(_v17(21, _prop()))
 
     def test_muatan_perintah_18_tidak_valid(self):
         with self.assertRaises(FrameFormatError):
@@ -329,6 +336,129 @@ class GattRakitanTest(unittest.TestCase):
         frame = bytes((0xCA, 17, 6, 18, 0x11, 1, 2, 3, 4))
         with self.assertRaises(FrameFormatError):
             parse_gatt(frame)
+
+
+def _role_frame(index: int, payload: bytes) -> bytes:
+    return bytes((0xCA, 17, len(payload) + 2, 20, index)) + payload
+
+
+class GattPeranTest(unittest.TestCase):
+    def test_satu_paket_daftar_peran(self):
+        prop = _prop()
+        payload = bytes((0x02, 0xC1, prop, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02))
+        parsed = parse_gatt(_role_frame(0x11, payload))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.version, 17)
+        self.assertEqual(parsed.command, 20)
+        self.assertEqual(parsed.property, prop)
+        self.assertEqual(parsed.weight_kg, 70.5)
+        self.assertEqual(parsed.scale_weight, "70.5")
+        self.assertEqual(parsed.matched_roles, (1, 2))
+
+    def test_dua_paket_sesuai_urutan_datang(self):
+        prop = _prop(unit="jin")
+        body = bytes((0x00, 0x8C, prop)) + (7).to_bytes(4, "big") + (9).to_bytes(4, "big")
+        frames = _packets(20, body, (7, 4))
+        parser = GattParser()
+        self.assertIsNone(parser.parse(frames[0]))
+        parsed = parser.parse(frames[1])
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.weight_kg, 7.0)
+        self.assertEqual(parsed.scale_weight, "14.0")
+        self.assertEqual(parsed.matched_roles, (7, 9))
+
+    def test_paket_1_tidak_mengosongkan_buffer(self):
+        prop = _prop()
+        parser = GattParser()
+        self.assertIsNone(parser.parse(_role_frame(0x12, bytes((0x02, 0xC1, prop, 0, 0, 0, 1)))))
+        parsed = parser.parse(_role_frame(0x11, bytes((0, 0, 0, 2))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (1, 2))
+        self.assertEqual(parsed.weight_kg, 70.5)
+
+    def test_paket_terakhir_datang_lebih_dulu_tetap_menyelesaikan(self):
+        prop = _prop()
+        parser = GattParser()
+        parsed = parser.parse(_role_frame(0x22, bytes((0x02, 0xC1, prop, 0, 0, 0, 4))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (4,))
+
+    def test_indeks_nol_dan_nibble_8_selesai(self):
+        prop = _prop()
+        payload = bytes((0x02, 0xC1, prop, 0, 0, 0, 3))
+        for index in (0x00, 0x88):
+            with self.subTest(index=index):
+                parsed = parse_gatt(_role_frame(index, payload))
+                self.assertIsInstance(parsed, GattKonfirmasi)
+                assert isinstance(parsed, GattKonfirmasi)
+                self.assertEqual(parsed.matched_roles, (3,))
+
+    def test_id_tidak_muat_dan_di_atas_int(self):
+        prop = _prop()
+        payload = bytes((0x02, 0xC1, prop)) + (0x7FFFFFFF).to_bytes(4, "big")
+        payload += (0x80000000).to_bytes(4, "big") + bytes((1, 2, 3))
+        parsed = parse_gatt(_role_frame(0x11, payload))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (0x7FFFFFFF, 0, 0))
+
+    def test_tanpa_id_peran(self):
+        prop = _prop()
+        parsed = parse_gatt(_role_frame(0x11, bytes((0x02, 0xC1, prop))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, ())
+
+    def test_rakitan_pendek_menyisakan_buffer(self):
+        prop = _prop()
+        parser = GattParser()
+        with self.assertRaises(FrameFormatError):
+            parser.parse(_role_frame(0x11, bytes((0x02, 0xC1))))
+        parsed = parser.parse(_role_frame(0x11, bytes((prop, 0, 0, 0, 5))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.weight_kg, 70.5)
+        self.assertEqual(parsed.matched_roles, (5,))
+
+    def test_frame_pendek_tidak_masuk_buffer(self):
+        prop = _prop()
+        parser = GattParser()
+        with self.assertRaises(FrameFormatError):
+            parser.parse(bytes((0xCA, 17, 10, 20, 0x12, 1, 2)))
+        parsed = parser.parse(_role_frame(0x11, bytes((0x02, 0xC1, prop, 0, 0, 0, 4))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (4,))
+
+    def test_buffer_peran_terpisah_dari_pengukuran(self):
+        prop = _prop()
+        parser = GattParser()
+        self.assertIsNone(parser.parse(_role_frame(0x12, bytes((0x02, 0xC1, prop, 0, 0, 0, 8)))))
+        live = parser.parse(_packets(18, _body(_prop(lock=0), role=7), (23,))[0])
+        self.assertIsNotNone(live)
+        assert live is not None
+        self.assertEqual(live.role_id, 7)
+        parsed = parser.parse(_role_frame(0x22, bytes((0, 0, 0, 6))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (8, 6))
+
+    def test_setelah_selesai_buffer_kosong(self):
+        prop = _prop()
+        parser = GattParser()
+        parser.parse(_role_frame(0x11, bytes((0x02, 0xC1, prop, 0, 0, 0, 1))))
+        parsed = parser.parse(_role_frame(0x11, bytes((0x02, 0xC1, prop, 0, 0, 0, 2))))
+        self.assertIsInstance(parsed, GattKonfirmasi)
+        assert isinstance(parsed, GattKonfirmasi)
+        self.assertEqual(parsed.matched_roles, (2,))
+
+    def test_panjang_nol_pada_buffer_kosong(self):
+        with self.assertRaises(FrameFormatError):
+            parse_gatt(bytes((0xCA, 17, 0, 20, 0x11)))
 
 
 if __name__ == "__main__":

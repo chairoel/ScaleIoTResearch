@@ -6,6 +6,44 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 13:52 WIB — Rakitan GATT perintah 20
+
+Perintah 20 di [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menambah byte muatan ke `lstRoleBuffer` sesuai urutan datang. Paket nomor 1 tidak mengosongkan buffer itu. Rakitan selesai bila kedua nibble bertanda sama, tanpa memeriksa ukuran buffer. Indeks `0x00` dan `0x88` ikut selesai. Setelah berhasil, buffer dikosongkan lalu diisi null. Hasilnya [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java): berat di offset 0–1, properti di offset 2, id peran 4 byte dari offset 3. [`setWeight`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java) membagi 10 lagi. Id yang tidak muat 4 byte, dan id di atas 2147483647, menjadi 0. Parser ada di [`GattParser`](../rumus/gatt_okok.py). Frame yang tidak memuat byte muatan yang diumumkan ditolak sebelum byte itu masuk buffer.
+
+```162:172:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                case 20:
+                    byte[] bArrSplitPackInfo = splitPackInfo(bArr[4]);
+                    int i2 = b2 - 2;
+                    if (this.lstRoleBuffer == null) {
+                        this.lstRoleBuffer = new ArrayList<>();
+                    }
+                    for (int i3 = 0; i3 < i2; i3++) {
+                        this.lstRoleBuffer.add(Byte.valueOf(bArr[i3 + 5]));
+                    }
+                    if (bArrSplitPackInfo[0] == bArrSplitPackInfo[1]) {
+```
+
+```16:18:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java
+    public void setWeight(double d) {
+        this.weight = d / 10.0d;
+    }
+```
+
+[`CsBtUtil_v11`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java) meneruskan objek itu lewat `matchUserMsg`. Di hasil dekompilasi ini, [`BoundDeviceActivity.matchUserMsg`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java) kosong.
+
+```1024:1028:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java
+            if (enumprocessresultProcess == enumProcessResult.Match_User_Msg && (straightframefactory instanceof chipseaStraightFrame)) {
+                chipseaStraightFrame chipseastraightframe = (chipseaStraightFrame) straightframefactory;
+                OnBluetoothListener onBluetoothListener5 = bluetoothListener;
+                if (onBluetoothListener5 != null) {
+                    onBluetoothListener5.matchUserMsg(chipseastraightframe.getFatConfirm());
+```
+
+```104:106:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+    public void matchUserMsg(CsFatConfirm csFatConfirm) {
+    }
+```
+
 ## 2026-09-26 13:30 WIB — Rekomendasi berikut: aplikasi satu sesi ukur
 
 Langkah berikut: bangun aplikasi tahap pertama untuk satu sesi ukur. Siaran lewat [`parse_broadcast`](../rumus/siaran_okok.py), berat GATT lewat [`GattParser`](../rumus/gatt_okok.py), laporan lewat [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Impedansi laporan datang dari siaran, bukan dari angka lemak paket. Aplikasi menyimpan hasil ukur dan data tubuh yang rumus butuhkan. Perintah 20, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini. Syarat 4 baru tertutup setelah satu sesi pada timbangan nyata.

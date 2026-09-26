@@ -1,7 +1,7 @@
 """Parser GATT OKOK untuk sesi yang tersambung.
 
 Mengikuti [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java)
-untuk versi 16, perintah 0 dan 1 pada versi 17, serta rakitan perintah 18 dan 19.
+untuk versi 16, perintah 0 dan 1 pada versi 17, rakitan perintah 18 dan 19, serta perintah 20.
 Berat memakai [`WeightUnitUtil.Parser`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/WeightUnitUtil.java)
 lewat [`parse_weight`](siaran_okok.py). Angka multi-byte big-endian, lewat hex seperti
 [`BytesUtil.bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java).
@@ -10,7 +10,8 @@ Angka lemak, air, otot, BMR, lemak visceral, dan tulang adalah isi paket timbang
 penyempitan [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java).
 Itu bukan laporan komposisi. Laporan tetap `cs_bias_v235` atau `cs_bias_vA019`.
 
-Perintah 20 tidak diurai di sini. Beberapa paket perintah 18 dan 19 butuh satu [`GattParser`](gatt_okok.py).
+Perintah 20 menghasilkan [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java),
+bukan pengukuran. Beberapa paket butuh satu [`GattParser`](gatt_okok.py).
 """
 
 from __future__ import annotations
@@ -27,7 +28,19 @@ class GattBelumDidukung(FrameFormatError):
 
 
 class GattMenunggu(Exception):
-    """Rakitan perintah 18 atau 19 belum lengkap."""
+    """Rakitan perintah 18, 19, atau 20 belum lengkap."""
+
+
+@dataclass(frozen=True)
+class GattKonfirmasi:
+    """Daftar peran yang cocok. Bukan laporan komposisi."""
+
+    version: int
+    command: int
+    property: int
+    weight_kg: float
+    scale_weight: str
+    matched_roles: tuple[int, ...]
 
 
 @dataclass(frozen=True)
@@ -264,6 +277,26 @@ def _parse_v16(frame: bytes) -> GattOkok:
     )
 
 
+def _parse_roles(body: bytes) -> GattKonfirmasi:
+    if len(body) < 3:
+        raise FrameFormatError("rakitan peran GATT tidak cukup")
+    prop = body[2]
+    weight_kg, scale_weight = parse_weight(body[0], body[1], prop, cloud=False)
+    roles: list[int] = []
+    index = 3
+    while index < len(body):
+        roles.append(_slice_int(body, index, 4))
+        index += 4
+    return GattKonfirmasi(
+        version=17,
+        command=20,
+        property=prop & 0xFF,
+        weight_kg=_stored_weight(weight_kg),
+        scale_weight=scale_weight,
+        matched_roles=tuple(roles),
+    )
+
+
 def _parse_v17_weight(frame: bytes, command: int) -> GattOkok:
     _need(frame, 12)
     prop = frame[11]
@@ -280,13 +313,14 @@ def _parse_v17_weight(frame: bytes, command: int) -> GattOkok:
 
 
 class GattParser:
-    """Satu sambungan. Perintah 18 dan 19 punya buffer masing-masing."""
+    """Satu sambungan. Perintah 18, 19, dan 20 punya buffer masing-masing."""
 
     def __init__(self) -> None:
         self._live: dict[int, bytes] | None = {}
         self._history: dict[int, bytes] | None = {}
+        self._roles: bytearray | None = bytearray()
 
-    def parse(self, frame: bytes) -> GattOkok | None:
+    def parse(self, frame: bytes) -> GattOkok | GattKonfirmasi | None:
         """`None` berarti rakitan belum lengkap, sama dengan `Wait_Scale_Data`."""
         if not frame:
             raise FrameFormatError("GATT kosong")
@@ -304,6 +338,8 @@ class GattParser:
             return _parse_v17_weight(frame, command)
         if command in (18, 19):
             return self._absorb(frame, command)
+        if command == 20:
+            return self._absorb_roles(frame)
         raise GattBelumDidukung("perintah GATT versi 17 di luar parser ini")
 
     def _absorb(self, frame: bytes, command: int) -> GattOkok | None:
@@ -338,8 +374,29 @@ class GattParser:
             self._history = None
         return parsed
 
+    def _absorb_roles(self, frame: bytes) -> GattKonfirmasi | None:
+        _need(frame, 5)
+        payload_len = _java_byte(frame[2]) - 2
+        if payload_len > 0:
+            _need(frame, 5 + payload_len)
+            payload = bytes(frame[5 : 5 + payload_len])
+        else:
+            payload = b""
+        total, number = _split_pack(frame[4])
+        if self._roles is None:
+            self._roles = bytearray()
+        self._roles.extend(payload)
+        if total != number:
+            return None
+        body = bytes(self._roles)
+        if len(body) < 3:
+            raise FrameFormatError("rakitan peran GATT tidak cukup")
+        parsed = _parse_roles(body)
+        self._roles = None
+        return parsed
 
-def parse_gatt(frame: bytes) -> GattOkok:
+
+def parse_gatt(frame: bytes) -> GattOkok | GattKonfirmasi:
     """Satu notifikasi yang sudah lengkap. Rakitan yang belum selesai melempar [`GattMenunggu`]."""
     parsed = GattParser().parse(frame)
     if parsed is None:

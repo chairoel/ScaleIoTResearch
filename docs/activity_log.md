@@ -1,5 +1,46 @@
 # Activity Log
 
+## 2026-09-26 13:52 WIB — Parser GATT perintah 20
+
+### Tujuan
+Membaca daftar peran yang cocok dari GATT versi 17, perintah 20.
+
+### Perubahan
+- `rumus/gatt_okok.py`: `GattParser` merakit perintah 20 menjadi `GattKonfirmasi`.
+- `rumus/test_gatt_okok.py`: vektor satu paket, dua paket, buffer yang tidak direset, dan batas int 32 bit.
+- `docs/protokol-frame-okok.md`: beda rakitan perintah 20 dari perintah 18 dan 19.
+- `docs/definisi-selesai.md`: perintah 20 sudah diurai.
+- `docs/pemahaman.md`: aturan buffer peran dan penerusan `matchUserMsg`.
+
+### Temuan
+[`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menambah byte perintah 20 sesuai urutan datang. Paket nomor 1 tidak mengosongkan `lstRoleBuffer`. Rakitan selesai bila kedua nibble bertanda sama.
+
+```168:172:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                    for (int i3 = 0; i3 < i2; i3++) {
+                        this.lstRoleBuffer.add(Byte.valueOf(bArr[i3 + 5]));
+                    }
+                    if (bArrSplitPackInfo[0] == bArrSplitPackInfo[1]) {
+```
+
+[`CsBtUtil_v11`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java) meneruskan [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java). [`BoundDeviceActivity.matchUserMsg`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java) kosong.
+
+```104:106:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btcontrol/activity/setting/BoundDeviceActivity.java
+    public void matchUserMsg(CsFatConfirm csFatConfirm) {
+    }
+```
+
+### Status
+Selesai untuk perintah 20. Langkah berikut tetap aplikasi tahap pertama untuk satu sesi ukur. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
 ## 2026-09-26 13:30 WIB — Rakitan GATT perintah 18 dan 19
 
 ### Tujuan

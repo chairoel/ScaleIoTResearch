@@ -528,7 +528,7 @@ Perintah ada di offset 3, bukan di byte properti. Cabang perintah ada di `proces
                 return enumProcessResult.Received_Scale_Data;
 ```
 
-Paket perintah 18, 19, dan 20: panjang muatan = byte panjang minus 2, muatan mulai di offset 5. Offset 4 adalah indeks paket. Nibble tinggi = nomor paket mulai dari 1. Nibble rendah = jumlah paket. Itu di [`splitPackInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) dan [`packageProcess`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java). Geser itu memakai byte bertanda. Nibble 8 sampai 15 menjadi negatif, jadi jumlah paket 8 atau lebih tidak lolos pemeriksaan ukuran buffer. Paket nomor 1 mengosongkan buffer. Rakitan selesai ketika nomor paket sama dengan jumlah paket dan isi buffer sama dengan jumlah itu. Parser perintah 18 dan 19 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Perintah 20 belum diurai.
+Paket perintah 18, 19, dan 20: panjang muatan = byte panjang minus 2, muatan mulai di offset 5. Offset 4 adalah indeks paket. Nibble tinggi = nomor paket. Nibble rendah = jumlah paket. Itu di [`splitPackInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java). Geser itu memakai byte bertanda. Pada perintah 18 dan 19, nibble 8 sampai 15 menjadi negatif, jadi jumlah paket 8 atau lebih tidak lolos pemeriksaan ukuran buffer di [`packageProcess`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java). Paket nomor 1 mengosongkan buffer perintah itu. Rakitan selesai ketika nomor paket sama dengan jumlah paket dan isi buffer sama dengan jumlah itu. Parser perintah 18 dan 19 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Perintah 20 tidak lewat `packageProcess`. Uraiannya ada di bagian rakitan perintah 20 di bawah.
 
 ```22:24:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
     private byte[] splitPackInfo(byte b) {
@@ -627,7 +627,26 @@ Sesudah itu otot dihitung ulang: `(otot / berat) * 100`. Jika hasilnya di bawah 
         }
 ```
 
-Rakitan perintah 20: offset 0–1 berat, offset 2 byte properti, lalu id peran 4 byte berulang.
+Perintah 20 menambahkan byte muatan ke `lstRoleBuffer` sesuai urutan datang. Paket nomor 1 tidak mengosongkan buffer itu. Rakitan selesai hanya bila kedua nibble bertanda sama. Ukuran buffer tidak dibandingkan, jadi indeks `0x00` dan `0x88` juga selesai. Setelah berhasil, buffer dikosongkan lalu diisi null. Hasilnya [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java): offset 0–1 berat, offset 2 byte properti, lalu id peran 4 byte berulang dari offset 3. [`setWeight`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java) membagi 10 lagi. Potongan id yang tidak muat 4 byte menjadi 0, sama dengan [`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) pada null. Empat byte di atas 2147483647 menjadi 0. Parser ada di [`GattParser`](../rumus/gatt_okok.py).
+
+```162:172:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                case 20:
+                    byte[] bArrSplitPackInfo = splitPackInfo(bArr[4]);
+                    int i2 = b2 - 2;
+                    if (this.lstRoleBuffer == null) {
+                        this.lstRoleBuffer = new ArrayList<>();
+                    }
+                    for (int i3 = 0; i3 < i2; i3++) {
+                        this.lstRoleBuffer.add(Byte.valueOf(bArr[i3 + 5]));
+                    }
+                    if (bArrSplitPackInfo[0] == bArrSplitPackInfo[1]) {
+```
+
+```16:18:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java
+    public void setWeight(double d) {
+        this.weight = d / 10.0d;
+    }
+```
 
 ```173:184:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
                         this.fatConfirm = new CsFatConfirm();
@@ -818,7 +837,7 @@ Pemeriksaan XOR ada di [`com.chipsea.btlib.model.Frame`](../ScaleHealtSource/jad
 
 Keputusan rilis pertama mengeluarkan siaran `0xC0` yang bit enkripsinya menyala. Nilai 4 byte tetap tidak ada di APK. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) hanya membaca prefs. Parser siaran `0xCA`, `0xC0` tanpa bit itu, dan `0xFF` ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Parser itu menolak siaran terenkripsi. Java mengisi berat 0 bila kunci kosong. Parser itu juga menolak frame yang lebih pendek dari field yang dibaca. Pada `0xC0` lebih pendek dari 9 byte, Java kembali lebih awal dan berat tetap 0.
 
-Parser GATT versi 16 serta perintah 0 dan 1 pada versi 17 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Pada perintah 0 dan 1, tanda kunci adalah byte perintah di offset 3. Properti ada di offset 11. Tidak ada komposisi. Pada versi 16, komposisi paket hanya diisi bila bit kunci properti = 1, lalu disempitkan seperti [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java). Angka itu bukan laporan. Potongan yang tidak muat menjadi 0, sama dengan [`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) bila [`subBytes`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) mengembalikan null. Rakitan perintah 18 dan 19 ada di [`GattParser`](../rumus/gatt_okok.py). Perintah 20 belum diurai.
+Parser GATT versi 16 serta perintah 0 dan 1 pada versi 17 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Pada perintah 0 dan 1, tanda kunci adalah byte perintah di offset 3. Properti ada di offset 11. Tidak ada komposisi. Pada versi 16, komposisi paket hanya diisi bila bit kunci properti = 1, lalu disempitkan seperti [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java). Angka itu bukan laporan. Potongan yang tidak muat menjadi 0, sama dengan [`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) bila [`subBytes`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) mengembalikan null. Rakitan perintah 18 dan 19 serta perintah 20 ada di [`GattParser`](../rumus/gatt_okok.py). Perintah 20 mengembalikan daftar id peran di [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java), bukan `CsFatScale`. Paket nomor 1 tidak mengosongkan buffer peran. Rakitan selesai bila kedua nibble bertanda sama, tanpa memeriksa ukuran buffer.
 
 ```106:110:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
                 this.fatScale.setLockFlag(b4);
