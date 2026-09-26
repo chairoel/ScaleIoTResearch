@@ -1,5 +1,30 @@
 # Activity Log
 
+## 2026-09-26 08:42 WIB — Tulis ulang cs_bias_v235
+
+### Tujuan
+Menulis ulang rumus komposisi laporan timbangan satu frekuensi dari `libchipsea_bias_v235.so`, supaya hasilnya tidak bergantung pada pemanggilan library asli.
+
+### Perubahan
+- `rumus/cs_bias_v235.py`: tulis ulang `cs_bias_v235` dan penyempitan laporan `parseDefaultZ`.
+- `rumus/test_cs_bias_v235.py`: vektor yang dicocokkan dengan `bia_calc`.
+- `docs/protokol-frame-okok.md`: peta frame menunjuk tulis ulang v235. `cs_bias_vA019` masih terbuka.
+- `docs/definisi-selesai.md`: langkah yang berlaku mengikuti rekomendasi terbaru.
+- `docs/pemahaman.md`: rentang masukan, kode gagal, dan rekomendasi berikut berpindah ke `cs_bias_vA019`.
+
+### Temuan
+[`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) mengisi laporan lewat `bia_calc`. Jenis kelamin 0 perempuan dan 1 laki-laki. Berat di luar 20–250 kg gagal lebih dulu, kode -2.
+
+```5:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
+    public static native CSBiasV235Resp cs_bias_v235(int i, int i2, int i3, int i4, int i5);
+
+    static {
+        System.loadLibrary("chipsea_bias_v235");
+```
+
+### Status
+Selesai untuk `cs_bias_v235`. Langkah berikut: tulis ulang `cs_bias_vA019`. `getVFR` belum terdekompilasi. Syarat 2, contoh nilai kunci siaran `0xC0`, tetap terbuka.
+
 ## 2026-09-26 07:36 WIB — Jalur rumus laporan OKOK
 
 ### Tujuan

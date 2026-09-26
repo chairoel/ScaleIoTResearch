@@ -6,6 +6,46 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 08:42 WIB — Rekomendasi berikut: bongkar cs_bias_vA019
+
+Langkah berikut: tulis ulang `cs_bias_vA019` di [`libchipsea_bias_vA019.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libchipsea_bias_vA019.so). Pada frekuensi ganda dan multi, [`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan `getBfp()`, dan nilai itu diisi dari native ini.
+
+```700:702:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+        try {
+            CSBiasAPI.CSBiasVA019Resp cSBiasVA019RespCs_bias_vA019 = CSBiasAPI.cs_bias_vA019(cSBiasPersonalInfoVA019);
+            if (cSBiasVA019RespCs_bias_vA019.result == 0) {
+```
+
+Timbangan satu frekuensi yang bukan 8 elektroda sudah tertutup [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Syarat langkah ini adalah kelas pemanggil yang sudah didekompilasi. Aplikasi sendiri belum dimulai. Library asli tidak dipanggil dari aplikasi. Syarat 2, satu nilai `data` dari bind atau entri `okok_scale_encrypted_key_` ditambah MAC, tetap terbuka.
+
+## 2026-09-26 08:42 WIB — cs_bias_v235 ditulis ulang
+
+Tulis ulang ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). [`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) menerima jenis kelamin, umur, tinggi dalam cm, berat kali 100, dan impedansi kali 10. Jenis kelamin 0 perempuan, 1 laki-laki.
+
+```5:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
+    public static native CSBiasV235Resp cs_bias_v235(int i, int i2, int i3, int i4, int i5);
+
+    static {
+        System.loadLibrary("chipsea_bias_v235");
+```
+
+Rentang yang menghasilkan `result == 0`: berat 20–250 kg, tinggi 90–220 cm, umur 18–99, impedansi 200–1500 ohm. Kode gagal: -2 berat, -3 tinggi, -4 umur, -5 jenis kelamin, -6 impedansi. Pemeriksaan berjalan dalam urutan itu.
+
+`parse_default_z` di modul yang sama memotong masukan seperti [`parseDefaultZ`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), menyimpan hasil sebagai float, dan menyimpan BMR sebagai int. SLP dihitung di Java: SLM dibagi berat, kali 100. Itu tidak ada di dalam `.so`.
+
+Lemak viseral yang disimpan laporan adalah field `vfl`. [`getVfl`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan field itu. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi. Pemanggilnya [`getScoreWithAge`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java).
+
+```306:307:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVfl() {
+        return this.vfl;
+```
+
+```1389:1389:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+            float scoreWithAge = getScoreWithAge(this.H, this.Wt, this.Sex, this.Age, getBFR(), getSLM(), getVFR());
+```
+
+Inti JNI adalah ekspor `bia_calc` di [`libchipsea_bias_v235.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libchipsea_bias_v235.so). Library yang sama juga mengekspor `bia_bmc`, `bia_bmi`, dan `bia_round_off`. `bia_calc` tidak memanggil ketiganya. String versi di library itu `BIA_V2355`.
+
 ## 2026-09-26 07:36 WIB — Rekomendasi berikut: bongkar cs_bias_v235
 
 Langkah berikut: tulis ulang native `cs_bias_v235` di `libchipsea_bias_v235.so`. Pada timbangan yang bukan 8 elektroda, [`CsAlgoBuilder.getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan hasil itu ketika `result == 0`. Rumus Java [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) hanya cadangan.
