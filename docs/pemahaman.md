@@ -6,6 +6,64 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 13:30 WIB — Rekomendasi berikut: aplikasi satu sesi ukur
+
+Langkah berikut: bangun aplikasi tahap pertama untuk satu sesi ukur. Siaran lewat [`parse_broadcast`](../rumus/siaran_okok.py), berat GATT lewat [`GattParser`](../rumus/gatt_okok.py), laporan lewat [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Impedansi laporan datang dari siaran, bukan dari angka lemak paket. Aplikasi menyimpan hasil ukur dan data tubuh yang rumus butuhkan. Perintah 20, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini. Syarat 4 baru tertutup setelah satu sesi pada timbangan nyata.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
+## 2026-09-26 13:30 WIB — Rakitan GATT perintah 18 dan 19
+
+Rakitan ada di [`GattParser`](../rumus/gatt_okok.py). Perintah 18 dan 19 punya buffer sendiri. Paket nomor 1 mengosongkan buffer. Rakitan selesai bila nomor paket sama dengan jumlah paket dan isi buffer sama dengan jumlah itu. Paket terakhir yang datang sebelum jumlahnya lengkap mengosongkan buffer. Setelah berhasil, buffer diisi null; paket berikutnya yang bukan nomor 1 ditolak.
+
+[`splitPackInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menggeser byte bertanda. Nibble 8 sampai 15 menjadi negatif, jadi jumlah paket 8 atau lebih tidak lolos pemeriksaan ukuran buffer.
+
+```22:24:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+    private byte[] splitPackInfo(byte b) {
+        return new byte[]{(byte) (((byte) (b << 4)) >> 4), (byte) (b >> 4)};
+    }
+```
+
+```226:231:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+            if (bArrSplitPackInfo[0] == bArrSplitPackInfo[1]) {
+                if (this.lstBuffer.size() == bArrSplitPackInfo[0]) {
+                    return true;
+                }
+                this.lstBuffer.clear();
+                return false;
+```
+
+Pada hasil rakitan, tanda kunci dipaksa 1. Perintah 19 menyimpan waktu Unix detik dari offset 0–3 sebagai tanggal, dan menandai riwayat. Perintah 18 tidak memakai waktu itu. Otot dihitung ulang dari otot dibagi berat, hanya di jalur ini. Hasil di bawah 50 disimpan sebagai persen. Hasil 50 atau lebih memakai nilai otot yang sudah tersimpan dan dibatasi 50. Angka itu lalu dikali 10, dipotong ke int, dan [`setMuscle`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java) membagi 10 lagi. Angka lemak paket tetap bukan laporan.
+
+```143:150:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                        double muscle = (this.fatScale.getMuscle() / this.fatScale.getWeight()) * 100.0d;
+                        if (muscle >= 50.0d) {
+                            muscle = this.fatScale.getMuscle();
+                            if (muscle >= 50.0d) {
+                                muscle = 50.0d;
+                            }
+                        }
+                        this.fatScale.setMuscle((int) (muscle * 10.0d));
+```
+
+[`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) memakai `Integer.parseInt`. Empat byte di atas 2147483647 menjadi 0. Id peran dan waktu Unix setelah 2038-01-19 03:14:07 UTC ikut aturan itu.
+
+```75:80:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+    public static int bytesToInt(byte[] bArr) {
+        try {
+            return Integer.parseInt(bytesToHexString(bArr), 16);
+        } catch (NumberFormatException unused) {
+            return 0;
+        }
+```
+
 ## 2026-09-26 13:22 WIB — Rekomendasi berikut: parser GATT perintah 18 dan 19
 
 Langkah berikut: rakitan beberapa paket untuk perintah 18 dan 19 di [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java), di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Berat sesi versi 16 serta perintah 0 dan 1 pada versi 17 sudah ada di berkas itu. Perintah 20 adalah daftar peran, bukan berat. Setelah rakitan, otot dihitung ulang dari otot dibagi berat. Angka lemak paket tetap bukan laporan. Laporan tetap [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Antarmuka aplikasi, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini.

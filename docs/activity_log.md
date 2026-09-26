@@ -1,5 +1,46 @@
 # Activity Log
 
+## 2026-09-26 13:30 WIB — Rakitan GATT perintah 18 dan 19
+
+### Tujuan
+Membaca pengukuran dan riwayat GATT yang terpecah beberapa paket, termasuk penghitungan ulang otot.
+
+### Perubahan
+- `rumus/gatt_okok.py`: `GattParser` merakit perintah 18 dan 19, lalu menghitung ulang otot.
+- `rumus/test_gatt_okok.py`: vektor satu paket, dua paket, buffer terpisah, dan batas int 32 bit.
+- `docs/protokol-frame-okok.md`: nibble bertanda, potongan otot, dan batas `bytesToInt`.
+- `docs/definisi-selesai.md`: perintah 18 dan 19 sudah diurai. Perintah 20 belum.
+- `docs/pemahaman.md`: aturan rakitan dan rekomendasi berikut ke aplikasi satu sesi ukur.
+
+### Temuan
+[`splitPackInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menggeser byte bertanda. Nibble 8 sampai 15 menjadi negatif, jadi jumlah paket 8 atau lebih gagal pada pemeriksaan ukuran buffer.
+
+```22:24:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+    private byte[] splitPackInfo(byte b) {
+        return new byte[]{(byte) (((byte) (b << 4)) >> 4), (byte) (b >> 4)};
+    }
+```
+
+Otot pada perintah 18 dan 19 dihitung ulang, lalu dipotong lewat `(int)` sebelum [`setMuscle`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java) membagi 10.
+
+```148:150:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                            }
+                        }
+                        this.fatScale.setMuscle((int) (muscle * 10.0d));
+```
+
+### Status
+Selesai untuk perintah 18 dan 19. Perintah 20 belum. Langkah berikut: aplikasi tahap pertama untuk satu sesi ukur. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
 ## 2026-09-26 13:22 WIB — Parser GATT versi 16 dan perintah 0 serta 1
 
 ### Tujuan

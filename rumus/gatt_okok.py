@@ -1,27 +1,33 @@
 """Parser GATT OKOK untuk sesi yang tersambung.
 
 Mengikuti [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java)
-untuk versi 16 dan perintah 0 serta 1 pada versi 17. Berat memakai
-[`WeightUnitUtil.Parser`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/WeightUnitUtil.java)
+untuk versi 16, perintah 0 dan 1 pada versi 17, serta rakitan perintah 18 dan 19.
+Berat memakai [`WeightUnitUtil.Parser`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/WeightUnitUtil.java)
 lewat [`parse_weight`](siaran_okok.py). Angka multi-byte big-endian, lewat hex seperti
 [`BytesUtil.bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java).
 
-Angka lemak, air, otot, BMR, lemak visceral, dan tulang pada versi 16 adalah isi paket
-timbangan setelah penyempitan [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java).
+Angka lemak, air, otot, BMR, lemak visceral, dan tulang adalah isi paket timbangan setelah
+penyempitan [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java).
 Itu bukan laporan komposisi. Laporan tetap `cs_bias_v235` atau `cs_bias_vA019`.
 
-Perintah 18, 19, dan 20 tidak diurai di sini.
+Perintah 20 tidak diurai di sini. Beberapa paket perintah 18 dan 19 butuh satu [`GattParser`](gatt_okok.py).
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from rumus.siaran_okok import FrameFormatError, parse_weight
 
 
 class GattBelumDidukung(FrameFormatError):
     """Versi atau perintah di luar cakupan parser ini."""
+
+
+class GattMenunggu(Exception):
+    """Rakitan perintah 18 atau 19 belum lengkap."""
 
 
 @dataclass(frozen=True)
@@ -40,6 +46,8 @@ class GattOkok:
     visceral_fat: float
     ori_visceral_fat: float
     bone: float
+    role_id: int = 0
+    weighing_date: datetime | None = None
 
 
 def _need(frame: bytes, size: int) -> None:
@@ -47,11 +55,35 @@ def _need(frame: bytes, size: int) -> None:
         raise FrameFormatError("panjang GATT tidak cukup")
 
 
+def _java_byte(value: int) -> int:
+    value &= 0xFF
+    return value - 256 if value >= 128 else value
+
+
+def _bytes_to_int(raw: bytes) -> int:
+    """`Integer.parseInt(hex, 16)`. Nilai di atas int bertanda 32 bit menjadi 0."""
+    if not raw:
+        return 0
+    value = int(raw.hex(), 16)
+    if value > 0x7FFFFFFF:
+        return 0
+    return value
+
+
 def _slice_int(frame: bytes, start: int, size: int) -> int:
     """`bytesToInt(subBytes(...))`. Potongan yang tidak muat menjadi 0."""
     if size <= 0 or len(frame) < start + size:
         return 0
-    return int(frame[start : start + size].hex(), 16)
+    return _bytes_to_int(frame[start : start + size])
+
+
+def _split_pack(raw: int) -> tuple[int, int]:
+    """Nibble rendah = jumlah paket, nibble tinggi = nomor paket. Geser byte bertanda."""
+    signed = _java_byte(raw)
+    low = _java_byte((signed << 4) & 0xFF)
+    total = _java_byte(low >> 4)
+    number = _java_byte(signed >> 4)
+    return total, number
 
 
 def _stored_weight(kg: float) -> float:
@@ -108,6 +140,22 @@ def _set_bone(raw: int) -> float:
     return 0.0
 
 
+def _recalculate_muscle(muscle: float, weight_kg: float) -> float:
+    """Persen otot dari otot dibagi berat. Di atas atau sama dengan 50, nilai otot dipakai dan dibatasi 50."""
+    if weight_kg == 0.0 and muscle == 0.0:
+        ratio = float("nan")
+    elif weight_kg == 0.0:
+        ratio = float("inf") if muscle > 0.0 else float("-inf")
+    else:
+        ratio = (muscle / weight_kg) * 100.0
+    if ratio >= 50.0:
+        value = 50.0 if muscle >= 50.0 else muscle
+    else:
+        value = ratio
+    raw = 0 if math.isnan(value) else int(value * 10.0)
+    return _set_muscle(raw)
+
+
 def _composition(frame: bytes) -> tuple[float, float, float, float, float, float, float]:
     axunge = _set_axunge(_slice_int(frame, 7, 2))
     water = _set_water(_slice_int(frame, 9, 2))
@@ -127,6 +175,9 @@ def _result(
     weight_kg: float,
     scale_weight: str,
     composition: tuple[float, float, float, float, float, float, float] | None,
+    history: bool = False,
+    role_id: int = 0,
+    weighing_date: datetime | None = None,
 ) -> GattOkok:
     if composition is None:
         axunge = water = muscle = bmr = visceral = ori = bone = 0.0
@@ -139,7 +190,7 @@ def _result(
         property=prop & 0xFF,
         weight_kg=weight_kg,
         scale_weight=scale_weight,
-        history=False,
+        history=history,
         axunge=axunge,
         water=water,
         muscle=muscle,
@@ -147,6 +198,52 @@ def _result(
         visceral_fat=visceral,
         ori_visceral_fat=ori,
         bone=bone,
+        role_id=role_id,
+        weighing_date=weighing_date,
+    )
+
+
+def _concat_packets(store: dict[int, bytes]) -> bytes:
+    parts: list[bytes] = []
+    for index in range(1, len(store) + 1):
+        key = index if index < 128 else index - 256
+        piece = store.get(key)
+        if piece is None:
+            raise FrameFormatError("paket GATT hilang")
+        parts.append(piece)
+    return b"".join(parts)
+
+
+def _parse_assembled(body: bytes, command: int) -> GattOkok:
+    if len(body) < 12:
+        raise FrameFormatError("rakitan GATT tidak cukup")
+    prop = body[4]
+    weight_kg, scale_weight = parse_weight(body[10], body[11], prop, cloud=False)
+    weight_kg = _stored_weight(weight_kg)
+    muscle = _recalculate_muscle(_set_muscle(_slice_int(body, 16, 2)), weight_kg)
+    visceral, ori = _set_visceral(_slice_int(body, 20, 2))
+    weighing_date = None
+    if command == 19:
+        weighing_date = datetime.fromtimestamp(_slice_int(body, 0, 4), timezone.utc)
+    return _result(
+        version=17,
+        command=command,
+        lock_flag=1,
+        prop=prop,
+        weight_kg=weight_kg,
+        scale_weight=scale_weight,
+        composition=(
+            _set_axunge(_slice_int(body, 12, 2)),
+            _set_water(_slice_int(body, 14, 2)),
+            muscle,
+            _set_bmr(_slice_int(body, 18, 2)),
+            visceral,
+            ori,
+            _set_bone(_slice_int(body, 22, 1)),
+        ),
+        history=command == 19,
+        role_id=_slice_int(body, 6, 4),
+        weighing_date=weighing_date,
     )
 
 
@@ -182,20 +279,69 @@ def _parse_v17_weight(frame: bytes, command: int) -> GattOkok:
     )
 
 
-def parse_gatt(frame: bytes) -> GattOkok:
-    """Satu notifikasi GATT header `0xCA`, versi 16 atau versi 17 perintah 0 dan 1."""
-    if not frame:
-        raise FrameFormatError("GATT kosong")
-    if frame[0] != 0xCA:
-        raise FrameFormatError("header GATT bukan 0xCA")
-    _need(frame, 3)
-    version = frame[1]
-    if version == 16:
-        return _parse_v16(frame)
-    if version == 17:
+class GattParser:
+    """Satu sambungan. Perintah 18 dan 19 punya buffer masing-masing."""
+
+    def __init__(self) -> None:
+        self._live: dict[int, bytes] | None = {}
+        self._history: dict[int, bytes] | None = {}
+
+    def parse(self, frame: bytes) -> GattOkok | None:
+        """`None` berarti rakitan belum lengkap, sama dengan `Wait_Scale_Data`."""
+        if not frame:
+            raise FrameFormatError("GATT kosong")
+        if frame[0] != 0xCA:
+            raise FrameFormatError("header GATT bukan 0xCA")
+        _need(frame, 3)
+        version = frame[1]
+        if version == 16:
+            return _parse_v16(frame)
+        if version != 17:
+            raise GattBelumDidukung("versi GATT di luar parser ini")
         _need(frame, 4)
         command = frame[3]
         if command in (0, 1):
             return _parse_v17_weight(frame, command)
+        if command in (18, 19):
+            return self._absorb(frame, command)
         raise GattBelumDidukung("perintah GATT versi 17 di luar parser ini")
-    raise GattBelumDidukung("versi GATT di luar parser ini")
+
+    def _absorb(self, frame: bytes, command: int) -> GattOkok | None:
+        _need(frame, 5)
+        payload_len = _java_byte(frame[2]) - 2
+        if payload_len < 0:
+            raise FrameFormatError("panjang muatan GATT tidak valid")
+        _need(frame, 5 + payload_len)
+        payload = bytes(frame[5 : 5 + payload_len])
+        total, number = _split_pack(frame[4])
+        store = self._live if command == 18 else self._history
+        if number == 1:
+            store = {} if store is None else store
+            store.clear()
+        elif store is None:
+            raise FrameFormatError("buffer GATT kosong")
+        store.pop(number, None)
+        store[number] = payload
+        if command == 18:
+            self._live = store
+        else:
+            self._history = store
+        if total != number:
+            return None
+        if len(store) != total:
+            store.clear()
+            return None
+        parsed = _parse_assembled(_concat_packets(store), command)
+        if command == 18:
+            self._live = None
+        else:
+            self._history = None
+        return parsed
+
+
+def parse_gatt(frame: bytes) -> GattOkok:
+    """Satu notifikasi yang sudah lengkap. Rakitan yang belum selesai melempar [`GattMenunggu`]."""
+    parsed = GattParser().parse(frame)
+    if parsed is None:
+        raise GattMenunggu("paket GATT belum lengkap")
+    return parsed
