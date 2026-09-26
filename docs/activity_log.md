@@ -1,6 +1,48 @@
 # Activity Log
 
-## 2026-09-24 21:06 WIB — Syarat rumus komposisi pada definisi selesai
+## 2026-09-26 07:36 WIB — Jalur rumus laporan OKOK
+
+### Tujuan
+Menemukan method yang benar-benar menghitung komposisi pada laporan OKOK, supaya pembongkaran rumus tidak mulai dari library yang salah.
+
+### Perubahan
+- `ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java`: hasil dekompilasi dari `classes4.dex`.
+- `ScaleHealtSource/jadx-protocol/sources/n/e.java`: `FormulasHelper` dari `classes9.dex`, pemanggil `Myndk` pada data XS.
+- `docs/definisi-selesai.md`: syarat 3 sekarang menunjuk `CsAlgoBuilder` dan `cs_bias_v235`, bukan `Myndk`.
+- `docs/protokol-frame-okok.md`: bagian yang belum tertutup memisahkan rumus laporan OKOK dari jalur XS.
+- `docs/pemahaman.md`: catatan jalur rumus, plus rekomendasi berikut berpindah ke penulisan ulang `cs_bias_v235`.
+
+### Temuan
+Pada timbangan yang bukan 8 elektroda, [`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) memakai hasil native bila bias berhasil. Rumus Java hanya cadangan. [`Myndk.getResultFourEleAlg`](../ScaleHealtSource/jadx-protocol/sources/n/e.java) dipakai `FormulasHelper` untuk `XsUserInfo`.
+
+```943:960:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getBFR() {
+        if (getType() == Type.DualFrequency || getType() == Type.MultiFrequency) {
+            LogUtil.i(TAG, "getBfp:" + getBfp());
+            return getBfp();
+        }
+        float bFR_Raw = getBFR_Raw();
+        if (bFR_Raw < 5.0f) {
+            bFR_Raw = 5.0f;
+        }
+        if (bFR_Raw > 45.0f) {
+            bFR_Raw = 45.0f;
+        }
+        float fFloatValue = new BigDecimal(bFR_Raw).setScale(2, 4).floatValue();
+        if (this.isEightR) {
+            return fFloatValue;
+        }
+        LogUtil.i(TAG, "本地算法和算法库对比 体脂率 : " + fFloatValue + " " + getBfp() + " mBIASV235Success : " + this.mBIASV235Success);
+        return this.mBIASV235Success ? getBfp() : fFloatValue;
+    }
+```
+
+```174:174:ScaleHealtSource/jadx-protocol/sources/n/e.java
+        FourElectrodeResult resultFourEleAlg = Myndk.getResultFourEleAlg(infoA, i2, i3, algType);
+```
+
+### Status
+Selesai untuk letak rumus laporan OKOK dan cadangan Java lemak. Langkah berikut: tulis ulang `cs_bias_v235`. `getVFR` belum terdekompilasi utuh. Syarat 2, contoh nilai kunci siaran `0xC0`, tetap terbuka.
 
 ### Tujuan
 Menyelaraskan definisi selesai dengan keputusan bahwa rumus komposisi native ikut dibongkar pada cakupan timbangan, dan mengoreksi peta frame yang masih menyebut kelas kunci belum didekompilasi.

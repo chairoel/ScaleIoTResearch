@@ -6,6 +6,73 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 07:36 WIB — Rekomendasi berikut: bongkar cs_bias_v235
+
+Langkah berikut: tulis ulang native `cs_bias_v235` di `libchipsea_bias_v235.so`. Pada timbangan yang bukan 8 elektroda, [`CsAlgoBuilder.getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan hasil itu ketika `result == 0`. Rumus Java [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) hanya cadangan.
+
+Syarat 2 tetap butuh satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC. Nilai itu tidak ada di repositori. `libBodyFatScaleAlg.so` dan `libprotocol.so` bukan jalur laporan OKOK ini.
+
+## 2026-09-26 07:36 WIB — Laporan OKOK memakai CsAlgoBuilder
+
+Komposisi pada laporan OKOK dihitung [`CsAlgoBuilder`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). Konstruktor menerima tinggi, berat, byte jenis kelamin, umur, impedansi `Z`, dan string `rn8`.
+
+Timbangan biasa memanggil [`parseDefaultZ`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), yang mengisi hasil dari [`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java). Argumennya: jenis kelamin, umur, tinggi dipotong ke int, berat kali 100 dipotong ke int, impedansi kali 10 dipotong ke int. `mBIASV235Success` menyala hanya jika `result == 0` dan `data` tidak null.
+
+```833:841:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    private void parseDefaultZ() {
+        LogUtil.i(TAG, "单电阻算法BIASV235");
+        float f = this.H;
+        int i = this.Age;
+        float f2 = this.Wt;
+        int i2 = (int) (this.Z * 10.0f);
+        byte b = this.Sex;
+        LogUtil.i(TAG, "z : " + this.Z + " Age : " + i + " Wt : " + this.Wt + " H : " + this.H + " Sex : " + ((int) this.Sex));
+        CSBiasAPI.CSBiasV235Resp cSBiasV235RespCs_bias_v235 = chipsea.bias.v235.CSBiasAPI.cs_bias_v235(b, i, (int) f, (int) (100.0f * f2), i2);
+```
+
+[`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) pada tipe frekuensi ganda atau multi mengembalikan field `bfp` dari [`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java). Pada 8 elektroda ia mengembalikan rumus Java. Pada timbangan lain ia mengembalikan `bfp` native bila bias berhasil, dan rumus Java bila tidak.
+
+```943:960:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getBFR() {
+        if (getType() == Type.DualFrequency || getType() == Type.MultiFrequency) {
+            LogUtil.i(TAG, "getBfp:" + getBfp());
+            return getBfp();
+        }
+        float bFR_Raw = getBFR_Raw();
+        if (bFR_Raw < 5.0f) {
+            bFR_Raw = 5.0f;
+        }
+        if (bFR_Raw > 45.0f) {
+            bFR_Raw = 45.0f;
+        }
+        float fFloatValue = new BigDecimal(bFR_Raw).setScale(2, 4).floatValue();
+        if (this.isEightR) {
+            return fFloatValue;
+        }
+        LogUtil.i(TAG, "本地算法和算法库对比 体脂率 : " + fFloatValue + " " + getBfp() + " mBIASV235Success : " + this.mBIASV235Success);
+        return this.mBIASV235Success ? getBfp() : fFloatValue;
+    }
+```
+
+Cadangan Java di [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), untuk `isEightR == false`:
+
+- `Sex == 1`: `((-0.3315 * H + 0.6216 * Wt + 0.0183 * Age + 0.0085 * Z + 22.554) / Wt) * 100`
+- selain itu: `((-0.3332 * H + 0.7509 * Wt + 0.0196 * Age + 0.0072 * Z + 22.7193) / Wt) * 100`
+
+[`getBMI`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) adalah `(Wt / (H * H)) * 100 * 100`. [`getFM`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) adalah `(getBFR() * Wt) / 100`. [`getTFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) memakai pola penggantian yang sama: native bila bias berhasil, rumus Java bila tidak. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi utuh.
+
+[`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) tidak dipanggil dari `CsAlgoBuilder`. Pemanggilnya adalah [`n.e`](../ScaleHealtSource/jadx-protocol/sources/n/e.java) (`FormulasHelper`, [`classes9.dex`](../ScaleHealtSource/base/classes9.dex)), pada data `XsUserInfo`. Itu jalur XS.
+
+```168:174:ScaleHealtSource/jadx-protocol/sources/n/e.java
+    @Deprecated
+    public int a(String str, int i2, int i3, XsBodyInfo xsBodyInfo, XsUserInfo xsUserInfo) throws IllegalAccessException, NoSuchFieldException, IllegalArgumentException {
+        Info infoA = a(xsUserInfo);
+        AlgType algType = new AlgType();
+        algType.type = 1;
+        algType.algVersion = xsUserInfo.getAlgVersion() == null ? "" : xsUserInfo.getAlgVersion();
+        FourElectrodeResult resultFourEleAlg = Myndk.getResultFourEleAlg(infoA, i2, i3, algType);
+```
+
 ## 2026-09-24 21:06 WIB — Rumus komposisi wajib dibongkar
 
 Syarat 3 di `docs/definisi-selesai.md` mewajibkan rumus komposisi ditulis ulang dari native. Memanggil library aslinya tidak memenuhi syarat selesai cakupan timbangan.

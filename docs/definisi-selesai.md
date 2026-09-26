@@ -31,25 +31,31 @@ Selesai ketika empat syarat ini terpenuhi.
                 return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
 ```
 
-3. Rumus komposisi sudah terbaca dari native dan bisa ditulis ulang. Rumus utama ada di [`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java), yang memuat `libBodyFatScaleAlg.so`. Koreksi bias ada di [`chipsea.bias.v235.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) (`libchipsea_bias_v235.so`) dan [`chipsea.bias.vA019.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) (`libchipsea_bias_vA019.so`). Memanggil ketiga library itu dari aplikasi sendiri tidak memenuhi syarat ini.
+3. Rumus komposisi laporan OKOK sudah ditulis ulang. Jalur itu [`CsAlgoBuilder`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). Pada timbangan yang bukan 8 elektroda, [`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan hasil [`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) bila `result == 0`, dan rumus Java [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) bila tidak. Frekuensi ganda dan multi memakai [`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java). Memanggil library bias dari aplikasi sendiri tidak memenuhi syarat ini.
 
-```73:75:ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java
-    static {
-        System.loadLibrary("BodyFatScaleAlg");
+```943:960:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getBFR() {
+        if (getType() == Type.DualFrequency || getType() == Type.MultiFrequency) {
+            LogUtil.i(TAG, "getBfp:" + getBfp());
+            return getBfp();
+        }
+        float bFR_Raw = getBFR_Raw();
+        if (bFR_Raw < 5.0f) {
+            bFR_Raw = 5.0f;
+        }
+        if (bFR_Raw > 45.0f) {
+            bFR_Raw = 45.0f;
+        }
+        float fFloatValue = new BigDecimal(bFR_Raw).setScale(2, 4).floatValue();
+        if (this.isEightR) {
+            return fFloatValue;
+        }
+        LogUtil.i(TAG, "本地算法和算法库对比 体脂率 : " + fFloatValue + " " + getBfp() + " mBIASV235Success : " + this.mBIASV235Success);
+        return this.mBIASV235Success ? getBfp() : fFloatValue;
     }
 ```
 
-```6:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
-    static {
-        System.loadLibrary("chipsea_bias_v235");
-    }
-```
-
-```9:11:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
-    static {
-        System.loadLibrary("chipsea_bias_vA019");
-    }
-```
+[`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) dan `libBodyFatScaleAlg.so` dipanggil [`n.e`](../ScaleHealtSource/jadx-protocol/sources/n/e.java) (`FormulasHelper`) untuk data `XsUserInfo`. Itu jalur XS, bukan syarat laporan OKOK.
 
 4. Satu sesi ukur di perangkat nyata. Keluaran aplikasi sendiri cocok dengan aplikasi sumber pada timbangan yang sama, untuk berat dan untuk komposisi dari rumus yang ditulis ulang.
 
@@ -67,7 +73,7 @@ Selesai ketika empat syarat ini terpenuhi.
     public native DeviceInfo parseScan(byte[] bArr, String str);
 ```
 
-Langkah engineering yang masih berlaku untuk syarat 2 ada di rekomendasi terbaru `pemahaman.md`: satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC.
+Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`: tulis ulang `cs_bias_v235`. Syarat 2 tetap butuh satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC.
 
 ## Aplikasi sendiri, tahap pertama
 

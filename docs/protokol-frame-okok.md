@@ -811,24 +811,20 @@ Kelas kunci sudah didekompilasi. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryp
                 return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
 ```
 
-Rumus komposisi belum dibongkar. Rumus utama dimuat [`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) dari `libBodyFatScaleAlg.so`. Koreksi bias dimuat [`chipsea.bias.v235.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) dari `libchipsea_bias_v235.so` dan [`chipsea.bias.vA019.CSBiasAPI`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) dari `libchipsea_bias_vA019.so`.
+Rumus laporan OKOK ada di [`CsAlgoBuilder`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). Pada timbangan yang bukan 8 elektroda, hasil yang dipakai adalah native [`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) bila pemanggilan berhasil. Rumus Java [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) adalah cadangan. Isi `libchipsea_bias_v235.so` belum ditulis ulang. Frekuensi ganda dan multi memakai [`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) di `libchipsea_bias_vA019.so`, juga belum ditulis ulang.
 
-```73:75:ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java
-    static {
-        System.loadLibrary("BodyFatScaleAlg");
-    }
+```833:841:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    private void parseDefaultZ() {
+        LogUtil.i(TAG, "单电阻算法BIASV235");
+        float f = this.H;
+        int i = this.Age;
+        float f2 = this.Wt;
+        int i2 = (int) (this.Z * 10.0f);
+        byte b = this.Sex;
+        LogUtil.i(TAG, "z : " + this.Z + " Age : " + i + " Wt : " + this.Wt + " H : " + this.H + " Sex : " + ((int) this.Sex));
+        CSBiasAPI.CSBiasV235Resp cSBiasV235RespCs_bias_v235 = chipsea.bias.v235.CSBiasAPI.cs_bias_v235(b, i, (int) f, (int) (100.0f * f2), i2);
 ```
 
-```6:8:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java
-    static {
-        System.loadLibrary("chipsea_bias_v235");
-    }
-```
-
-```9:11:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
-    static {
-        System.loadLibrary("chipsea_bias_vA019");
-    }
-```
+[`Myndk`](../ScaleHealtSource/jadx-protocol/sources/com/example/jnipack/Myndk.java) memuat `libBodyFatScaleAlg.so` untuk jalur XS, lewat [`n.e`](../ScaleHealtSource/jadx-protocol/sources/n/e.java) (`FormulasHelper`). Kelas itu tidak dipanggil `CsAlgoBuilder`.
 
 Parser XS tetap di [`libprotocol.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libprotocol.so). Pembungkus Java-nya [`com.xshq.sdk.Protocol`](../ScaleHealtSource/jadx-protocol/sources/com/xshq/sdk/Protocol.java) memuat library itu dan menyatakan `parseScan`, `parseData`, serta `getFuncBuffer` sebagai method native. Di hasil dekompilasi ini, `parseScan` dipanggil dari [`XsBluetoothManager`](../ScaleHealtSource/jadx-protocol/sources/com/ss/bluetooth/sscore/XsBluetoothManager.java). `parseData` dan `getFuncBuffer` belum punya pemanggil Java di folder itu.
