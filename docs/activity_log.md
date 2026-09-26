@@ -1,5 +1,35 @@
 # Activity Log
 
+## 2026-09-26 14:10 WIB — Tulis ulang getVFR
+
+### Tujuan
+Membaca tingkat lemak viseral yang masuk ke skor, dari method yang jadx tidak jadi Java.
+
+### Perubahan
+- `rumus/vfr_okok.py`: `get_vfr` mengikuti `getVFR` di `classes4.dex`.
+- `rumus/test_vfr_okok.py`: cabang jenis timbangan, 8 elektroda, setengah langkah, dan batas 1 sampai 59.
+- `rumus/cs_bias_v235.py`: catatan bahwa `vfl` laporan bukan hasil `getVFR`.
+- `docs/pemahaman.md`: beda `getVFR` dan field `vfl`.
+
+### Temuan
+[`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) dipanggil skor. Badan method ada di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). `DualFrequency` dan `MultiFrequency` mengembalikan `vfl`. Pada 8 elektroda perempuan, konstanta dikurangi. Hasil di bawah 1 menjadi 1, di atas 59 menjadi 59.
+
+```1389:1389:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+            float scoreWithAge = getScoreWithAge(this.H, this.Wt, this.Sex, this.Age, getBFR(), getSLM(), getVFR());
+```
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
+### Status
+Selesai untuk `getVFR`. Langkah berikut tetap aplikasi tahap pertama untuk satu sesi ukur.
+
 ## 2026-09-26 13:52 WIB — Parser GATT perintah 20
 
 ### Tujuan

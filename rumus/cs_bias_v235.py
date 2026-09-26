@@ -398,8 +398,7 @@ def parse_default_z(
 ) -> OkokReportResult:
     """Jalan yang sama dengan `parseDefaultZ` sampai field laporan terisi.
 
-    Lemak viseral yang disimpan adalah `vfl`. Method `getVFR` belum terdekompilasi
-    dan tidak dipakai di sini.
+    Lemak viseral yang disimpan adalah `vfl`, dari field native `VFR`. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) adalah rumus Java untuk skor, di [`rumus/vfr_okok.py`](vfr_okok.py), dan tidak dipakai di sini.
     """
     height_f = _f32(height_cm)
     weight_f = _f32(weight_kg)

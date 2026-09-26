@@ -6,6 +6,26 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 14:10 WIB — getVFR dari classes4.dex
+
+[`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) di Java hanya sisa `throw`. Badan method ada di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). Tulis ulang ada di [`rumus/vfr_okok.py`](../rumus/vfr_okok.py).
+
+Method ini yang masuk skor lewat [`getScoreWithAge`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). Field laporan `vfl` tetap angka native. Pada `cs_bias_v235`, angka itu field `VFR` yang disimpan [`setVfl`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java).
+
+```1389:1389:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+            float scoreWithAge = getScoreWithAge(this.H, this.Wt, this.Sex, this.Age, getBFR(), getSLM(), getVFR());
+```
+
+```851:851:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+            setVfl((float) cSBiasV235RespCs_bias_v235.data.VFR);
+```
+
+`DualFrequency` dan `MultiFrequency` mengembalikan `vfl`. Selain itu, umur 17 atau kurang menghasilkan 0 sebelum pilihan bias. Rumus umur di atas 17 memakai float32: tinggi, berat, umur, impedansi, lalu konstanta. Jenis kelamin 1 laki-laki. Pada 8 elektroda perempuan, konstanta dikurangi. Jalur lain menambahkan konstanta. Jalur yang bukan 8 elektroda mengalikan umur dengan `1.0f` dulu.
+
+Bagian pecahan di bawah 0,5 tetap bilangan bulat. Selain itu ditambah 0,5, tanpa naik ke bilangan berikutnya. Hasil di bawah 1 menjadi 1. Hasil di atas 59 menjadi 59. Pada 8 elektroda, angka itu yang dikembalikan. Pada timbangan lain, `mBIASV235Success` mengembalikan `vfl`, termasuk bila umur 17 atau kurang.
+
+Koefisien yang bukan 8 elektroda sama dengan baris viseral [`_COEFFICIENT`](../rumus/cs_bias_v235.py) dibagi 10000. Perkaliannya tetap pada field float, bukan jalur int berskala di dalam `.so`.
+
 ## 2026-09-26 13:52 WIB — Rakitan GATT perintah 20
 
 Perintah 20 di [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menambah byte muatan ke `lstRoleBuffer` sesuai urutan datang. Paket nomor 1 tidak mengosongkan buffer itu. Rakitan selesai bila kedua nibble bertanda sama, tanpa memeriksa ukuran buffer. Indeks `0x00` dan `0x88` ikut selesai. Setelah berhasil, buffer dikosongkan lalu diisi null. Hasilnya [`CsFatConfirm`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java): berat di offset 0–1, properti di offset 2, id peran 4 byte dari offset 3. [`setWeight`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatConfirm.java) membagi 10 lagi. Id yang tidak muat 4 byte, dan id di atas 2147483647, menjadi 0. Parser ada di [`GattParser`](../rumus/gatt_okok.py). Frame yang tidak memuat byte muatan yang diumumkan ditolak sebelum byte itu masuk buffer.
