@@ -6,6 +6,14 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 14:29 WIB — Rekomendasi berikut: sesi pada timbangan nyata
+
+Langkah berikut: jalankan satu sesi pada timbangan nyata, lalu bandingkan berat dan komposisi [`SesiUkur`](../aplikasi/sesi_ukur.py) dengan aplikasi sumber pada timbangan yang sama. Syaratnya siaran tidak terenkripsi yang membawa impedansi (`0xCA` versi 32 atau `0xC0`) dan berat GATT terkunci. Profil tinggi, umur, dan jenis kelamin sudah tersimpan lewat [`Penyimpan`](../aplikasi/simpan.py). `libprotocol.so` dan fitur di luar satu sesi ukur menunggu hasil sesi nyata itu.
+
+## 2026-09-26 14:29 WIB — Aplikasi satu sesi ukur
+
+Sesi tahap pertama ada di [`SesiUkur`](../aplikasi/sesi_ukur.py). Berat yang disimpan adalah berat GATT dengan `lock_flag == 1` dan `history == False`. Impedansi yang masuk rumus adalah `impedance_ohm` pada siaran terkunci. Satu nilai memakai [`parse_default_z`](../rumus/cs_bias_v235.py). Sepuluh nilai memakai [`parse_multi_frequency`](../rumus/cs_bias_vA019.py). Angka komposisi paket GATT tetap di parser dan tidak mengisi laporan. Data tubuh serta hasil ukur ada di [`Penyimpan`](../aplikasi/simpan.py). Perintahnya `python -m aplikasi`. Syarat 4 belum tertutup.
+
 ## 2026-09-26 14:10 WIB — getVFR dari classes4.dex
 
 [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) di Java hanya sisa `throw`. Badan method ada di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex). Tulis ulang ada di [`rumus/vfr_okok.py`](../rumus/vfr_okok.py).

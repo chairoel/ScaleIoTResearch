@@ -1,5 +1,23 @@
 # Activity Log
 
+## 2026-09-26 14:29 WIB — Aplikasi satu sesi ukur
+
+### Tujuan
+Membangun aplikasi tahap pertama untuk satu sesi ukur: membaca siaran dan berat GATT, menghitung laporan dari rumus yang sudah ditulis ulang, lalu menyimpan data tubuh dan hasil.
+
+### Perubahan
+- `aplikasi/sesi_ukur.py`: `SesiUkur` menutup sesi dari impedansi siaran terkunci dan berat GATT terkunci.
+- `aplikasi/simpan.py`: `Penyimpan` menyimpan profil tubuh dan hasil ukur di sqlite.
+- `aplikasi/__main__.py`: perintah `tubuh`, `profil`, `ukur`, dan `daftar`.
+- `aplikasi/test_sesi_ukur.py`: uji sesi, penyimpanan, dan perintah.
+- `.gitignore`: `data/` dan `__pycache__/`.
+
+### Temuan
+Berat laporan adalah berat GATT dengan `lock_flag == 1` dan `history == False`. Impedansi laporan adalah `impedance_ohm` pada siaran terkunci. Satu ohm memakai [`parse_default_z`](../rumus/cs_bias_v235.py). Sepuluh ohm memakai [`parse_multi_frequency`](../rumus/cs_bias_vA019.py).
+
+### Status
+Selesai untuk aplikasi pada frame. Syarat 4 masih menunggu satu sesi pada timbangan nyata.
+
 ## 2026-09-26 14:10 WIB — Tulis ulang getVFR
 
 ### Tujuan
