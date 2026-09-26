@@ -803,6 +803,44 @@ Pemeriksaan XOR ada di [`com.chipsea.btlib.model.Frame`](../ScaleHealtSource/jad
 
 Keputusan rilis pertama mengeluarkan siaran `0xC0` yang bit enkripsinya menyala. Nilai 4 byte tetap tidak ada di APK. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) hanya membaca prefs. Parser siaran `0xCA`, `0xC0` tanpa bit itu, dan `0xFF` ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Parser itu menolak siaran terenkripsi. Java mengisi berat 0 bila kunci kosong. Parser itu juga menolak frame yang lebih pendek dari field yang dibaca. Pada `0xC0` lebih pendek dari 9 byte, Java kembali lebih awal dan berat tetap 0.
 
+Parser GATT versi 16 serta perintah 0 dan 1 pada versi 17 ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Pada perintah 0 dan 1, tanda kunci adalah byte perintah di offset 3. Properti ada di offset 11. Tidak ada komposisi. Pada versi 16, komposisi paket hanya diisi bila bit kunci properti = 1, lalu disempitkan seperti [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java). Angka itu bukan laporan. Potongan yang tidak muat menjadi 0, sama dengan [`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) bila [`subBytes`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) mengembalikan null. Perintah 18, 19, dan 20 belum diurai.
+
+```106:110:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                this.fatScale.setLockFlag(b4);
+                this.fatScale.setScaleProperty(bArr[11]);
+                WeightParserReturn weightParserReturnParser2 = WeightUnitUtil.Parser(bArrSubBytes7[0], bArrSubBytes7[1], this.fatScale.getScaleProperty(), false);
+                this.fatScale.setWeight(weightParserReturnParser2.kgWeight * 10.0d);
+                this.fatScale.setScaleWeight(weightParserReturnParser2.scaleWeight);
+```
+
+```19:22:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+    public static byte[] subBytes(byte[] bArr, int i, int i2) {
+        int i3;
+        if (i2 <= 0 || bArr.length < (i3 = i + i2)) {
+            return null;
+```
+
+```75:80:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+    public static int bytesToInt(byte[] bArr) {
+        try {
+            return Integer.parseInt(bytesToHexString(bArr), 16);
+        } catch (NumberFormatException unused) {
+            return 0;
+        }
+```
+
+```152:160:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java
+    public void setAxunge(double d) {
+        double d2 = 0.0d;
+        if (d >= 65535.0d) {
+            this.axunge = 0.0d;
+            return;
+        }
+        double d3 = d / 10.0d;
+        if (d3 >= 5.0d && d3 <= 45.0d) {
+            d2 = d3;
+```
+
 ```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
     public static String getOkokScaleEncryptedKeySync(String str) {
         Context contexts = MyAplication.getContexts();

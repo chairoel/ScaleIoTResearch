@@ -1,5 +1,53 @@
 # Activity Log
 
+## 2026-09-26 13:22 WIB — Parser GATT versi 16 dan perintah 0 serta 1
+
+### Tujuan
+Membaca berat sesi yang tersambung dari GATT OKOK, untuk versi 16 dan perintah 0 serta 1 pada versi 17.
+
+### Perubahan
+- `rumus/gatt_okok.py`: parser versi 16 dan perintah 0 serta 1 pada versi 17, termasuk penyempitan angka paket.
+- `rumus/test_gatt_okok.py`: vektor berat, batas penyempitan, dan penolakan perintah di luar cakupan.
+- `docs/protokol-frame-okok.md`: bagian yang belum tertutup menunjuk parser ini.
+- `docs/definisi-selesai.md`: lokasi parser GATT. Perintah 18 dan 19 belum.
+- `docs/pemahaman.md`: tanda kunci, angka paket yang bukan laporan, dan rekomendasi berikut ke perintah 18 dan 19.
+
+### Temuan
+Pada versi 17 perintah 0 dan 1, [`setLockFlag`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) menerima byte perintah, bukan bit kunci properti. Properti ada di offset 11. Komposisi tidak diisi.
+
+```106:110:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                this.fatScale.setLockFlag(b4);
+                this.fatScale.setScaleProperty(bArr[11]);
+                WeightParserReturn weightParserReturnParser2 = WeightUnitUtil.Parser(bArrSubBytes7[0], bArrSubBytes7[1], this.fatScale.getScaleProperty(), false);
+                this.fatScale.setWeight(weightParserReturnParser2.kgWeight * 10.0d);
+                this.fatScale.setScaleWeight(weightParserReturnParser2.scaleWeight);
+```
+
+Pada versi 16, komposisi paket hanya diisi bila bit kunci = 1. Otot tidak dihitung ulang dari berat. Penghitungan ulang itu ada di perintah 18 dan 19.
+
+```89:96:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+            if (cmdId > 0) {
+                this.fatScale.setAxunge(BytesUtil.bytesToInt(bArrSubBytes));
+                this.fatScale.setWater(BytesUtil.bytesToInt(bArrSubBytes2));
+                this.fatScale.setMuscle(BytesUtil.bytesToInt(bArrSubBytes3));
+                this.fatScale.setBmr(BytesUtil.bytesToInt(bArrSubBytes4));
+                this.fatScale.setVisceral_fat(BytesUtil.bytesToInt(bArrSubBytes5));
+                this.fatScale.setBone(BytesUtil.bytesToInt(bArrSubBytes6));
+            }
+```
+
+### Status
+Selesai untuk versi 16 dan perintah 0 serta 1 pada versi 17. Langkah berikut: rakitan perintah 18 dan 19. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
 ## 2026-09-26 13:15 WIB — Keputusan kunci siaran dan parser siaran
 
 ### Tujuan

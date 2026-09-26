@@ -6,6 +6,95 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 13:22 WIB — Rekomendasi berikut: parser GATT perintah 18 dan 19
+
+Langkah berikut: rakitan beberapa paket untuk perintah 18 dan 19 di [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java), di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Berat sesi versi 16 serta perintah 0 dan 1 pada versi 17 sudah ada di berkas itu. Perintah 20 adalah daftar peran, bukan berat. Setelah rakitan, otot dihitung ulang dari otot dibagi berat. Angka lemak paket tetap bukan laporan. Laporan tetap [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Antarmuka aplikasi, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini.
+
+```113:121:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+            switch (b4) {
+                case BtStatus.CHARACTER_NOTIFI_SUCCESS /* 18 */:
+                case 19:
+                    if (packageProcess(bArr)) {
+                        if (b4 == 18) {
+                            bArrConvertMap2ByteArray = ConvertMap2ByteArray(false);
+                        } else {
+                            bArrConvertMap2ByteArray = ConvertMap2ByteArray(true);
+                        }
+```
+
+```143:150:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+                        double muscle = (this.fatScale.getMuscle() / this.fatScale.getWeight()) * 100.0d;
+                        if (muscle >= 50.0d) {
+                            muscle = this.fatScale.getMuscle();
+                            if (muscle >= 50.0d) {
+                                muscle = 50.0d;
+                            }
+                        }
+                        this.fatScale.setMuscle((int) (muscle * 10.0d));
+```
+
+## 2026-09-26 13:22 WIB — Parser GATT versi 16 dan perintah 0 serta 1
+
+Parser ada di [`rumus/gatt_okok.py`](../rumus/gatt_okok.py). Versi 16 membaca berat dari offset 5–6 dan properti dari offset 4. Tanda kunci adalah bit 0 properti itu. Komposisi paket hanya diisi bila bit itu 1, lalu disempitkan [`CsFatScale`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java). Angka itu bukan laporan `cs_bias`. Pada versi 16 otot tidak dihitung ulang dari berat.
+
+```86:96:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+            byte cmdId = BytesUtil.getCmdId(b3);
+            this.fatScale.setLockFlag(cmdId);
+            WeightParserReturn weightParserReturnParser = WeightUnitUtil.Parser(bArr[5], bArr[6], b3, false);
+            this.fatScale.setWeight(weightParserReturnParser.kgWeight * 10.0d);
+            this.fatScale.setScaleWeight(weightParserReturnParser.scaleWeight);
+            this.fatScale.setScaleProperty(b3);
+            if (cmdId > 0) {
+                this.fatScale.setAxunge(BytesUtil.bytesToInt(bArrSubBytes));
+                this.fatScale.setWater(BytesUtil.bytesToInt(bArrSubBytes2));
+                this.fatScale.setMuscle(BytesUtil.bytesToInt(bArrSubBytes3));
+```
+
+Pada versi 17 perintah 0 dan 1, tanda kunci adalah byte perintah di offset 3, bukan bit kunci properti. Properti ada di offset 11. Tidak ada komposisi. [`setWeight`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java) membagi 10 lagi, jadi kilogram yang tersimpan sama dengan `kgWeight`.
+
+```101:110:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+            if (b4 == 0 || b4 == 1) {
+                byte[] bArrSubBytes7 = BytesUtil.subBytes(bArr, 5, 2);
+                CsFatScale csFatScale2 = new CsFatScale();
+                this.fatScale = csFatScale2;
+                csFatScale2.setHistoryData(false);
+                this.fatScale.setLockFlag(b4);
+                this.fatScale.setScaleProperty(bArr[11]);
+                WeightParserReturn weightParserReturnParser2 = WeightUnitUtil.Parser(bArrSubBytes7[0], bArrSubBytes7[1], this.fatScale.getScaleProperty(), false);
+                this.fatScale.setWeight(weightParserReturnParser2.kgWeight * 10.0d);
+                this.fatScale.setScaleWeight(weightParserReturnParser2.scaleWeight);
+```
+
+[`subBytes`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) mengembalikan null bila potongan tidak muat. [`bytesToInt`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) pada null menjadi 0. Parser mengisi komposisi 0 untuk potongan yang tidak muat pada versi 16 yang terkunci. Frame yang tidak memuat byte yang diindeks langsung ditolak. Perintah 18, 19, 20, dan versi lain ditolak, bukan dikembalikan sebagai data tunggu.
+
+```19:22:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+    public static byte[] subBytes(byte[] bArr, int i, int i2) {
+        int i3;
+        if (i2 <= 0 || bArr.length < (i3 = i + i2)) {
+            return null;
+```
+
+```75:80:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+    public static int bytesToInt(byte[] bArr) {
+        try {
+            return Integer.parseInt(bytesToHexString(bArr), 16);
+        } catch (NumberFormatException unused) {
+            return 0;
+        }
+```
+
+`ori_visceral_fat` menyimpan nilai mentah sebelum dibagi 10. Nilai 25600 tetap di sana walaupun lemak visceral yang ditampilkan menjadi 0. Pemeriksaan jenis perangkat di [`CsBtUtil_v11.handleConnectedInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java) memakai angka mentah itu.
+
+```192:198:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/device/CsFatScale.java
+    public void setVisceral_fat(double d) {
+        this.ori_visceral_fat = d;
+        double d2 = d / 10.0d;
+        if (d2 >= 100.0d || d2 > 59.0d) {
+            d2 = 0.0d;
+        }
+        this.visceral_fat = d2;
+```
+
 ## 2026-09-26 13:15 WIB — Rekomendasi berikut: parser GATT sesi ukur
 
 Langkah berikut: tulis parser GATT [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) untuk versi 16 dan perintah 0 serta 1 pada versi 17. Siaran tidak terenkripsi sudah ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Berat sesi yang tersambung dibaca dari GATT ini. Angka lemak pada paket versi 16 bukan komposisi laporan. Laporan tetap [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Antarmuka aplikasi, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini.
