@@ -1,5 +1,72 @@
 # Activity Log
 
+## 2026-09-26 15:58 WIB — Sambungan GATT setelah pemindaian berhenti
+
+### Tujuan
+Siaran terkunci sudah masuk, tetapi notify GATT habis waktu dan tidak dicoba lagi.
+
+### Perubahan
+- `aplikasi/sesi_ble.py`: sambungan menunggu impedansi terkunci, pemindaian berhenti dulu, lalu sampai tiga percobaan dan satu putaran ulang.
+- `aplikasi/test_sesi_ble.py`: uji `boleh_sambung` hanya setelah siaran terkunci.
+
+### Temuan
+Pesan `sambungan gagal:` kosong karena `TimeoutError`. Siaran `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92` terkunci pada 600 ohm. Notify belum tercatat.
+
+### Status
+Selesai untuk urutan sambungan. Syarat 4 menunggu sesi yang notify-nya aktif, lalu perbandingan dengan aplikasi OKOK.
+
+## 2026-09-26 15:52 WIB — Koreksi hasil pemindaian 15 detik
+
+### Tujuan
+Mencatat hasil pemindaian yang selesai setelah catatan 15:51 ditulis.
+
+### Temuan
+Siaran OKOK masuk dari `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92`. Status siaran terbuka, impedansi 0 ohm, berat bergerak, notify GATT belum tercatat, sesi tetap menunggu impedansi. Izin Bluetooth sudah cukup untuk menerima iklan.
+
+### Status
+Syarat 4 belum tertutup. Langkah berikut tetap `python -m aplikasi sesi` sampai siaran terkunci membawa impedansi dan berat GATT terkunci.
+
+## 2026-09-26 15:51 WIB — Pendengar sesi Bluetooth
+
+### Tujuan
+Membuka satu sesi ukur dari timbangan: impedansi dari iklan, berat dari notify GATT.
+
+### Perubahan
+- `rumus/iklan_okok.py`: muatan pabrik OKOK dari scan record dan dari id pabrik.
+- `rumus/test_iklan_okok.py`: uji rekaman, UUID di depan data pabrik, dan id little-endian.
+- `aplikasi/sesi_ble.py`: `PendengarSesi` mengisi `SesiUkur`; `dengar` memindai dan memasang notify.
+- `aplikasi/test_sesi_ble.py`: uji tutup sesi, saringan alamat, dan perintah tanpa profil.
+- `aplikasi/__main__.py`: perintah `sesi`.
+- `requirements.txt`: `bleak==3.0.2`.
+- `docs/pemahaman.md`: layanan GATT OKOK dan langkah sesi nyata.
+
+### Temuan
+Notify OKOK memakai [`CHIPSEA_CHAR_RX_UUID`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/BtGattAttr.java). Untuk protokol OKOK, [`getCharacteristicUUID`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java) dengan argumen benar mengembalikan RX itu.
+
+```44:46:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/BtGattAttr.java
+        CHIPSEA_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+        CHIPSEA_CHAR_RX_UUID = "0000fff1-0000-1000-8000-00805f9b34fb";
+        CHIPSEA_CHAR_TX_UUID = "0000fff2-0000-1000-8000-00805f9b34fb";
+```
+
+```768:771:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java
+        if (i == 1) {
+            if (z) {
+                return BtGattAttr.CHIPSEA_CHAR_RX_UUID;
+            }
+```
+
+[`getProtocalTypeByBroadcast`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java) berhenti pada blok pabrik atau daftar UUID 16-bit pertama. `muatan_okok` membaca rekaman sampai habis.
+
+```205:207:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java
+                        if (z) {
+                            break;
+                        }
+```
+
+### Status
+Selesai untuk pendengar pada frame dan sambungan GATT. Syarat 4 masih menunggu satu sesi pada timbangan nyata. Pemindaian dari proses ini berhenti di izin Bluetooth macOS, tanpa dialog yang selesai.
+
 ## 2026-09-26 14:29 WIB — Aplikasi satu sesi ukur
 
 ### Tujuan

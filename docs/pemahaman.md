@@ -6,6 +6,67 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 15:58 WIB — Rekomendasi berikut: ulang sesi GATT
+
+Langkah berikut: hentikan perintah `sesi` yang sedang berjalan, lalu jalankan `python -m aplikasi sesi` lagi. Sambungan menunggu siaran terkunci, pemindaian berhenti, lalu notify dicoba sampai tiga kali. Bila waktu sambungan habis, tutup aplikasi OKOK di ponsel. Syarat 4 tetap perbandingan berat dan komposisi pada timbangan yang sama.
+
+## 2026-09-26 15:58 WIB — Sambungan GATT habis waktu
+
+Pesan `sambungan gagal:` tanpa teks adalah `TimeoutError`. Percobaan itu jalan bersama pemindaian dan tidak diulang. Siaran terkunci dari `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92` sudah membawa impedansi 600 ohm. Notify belum tercatat. [`dengar`](../aplikasi/sesi_ble.py) sekarang menghentikan pemindaian sebelum `BleakClient`.
+
+## 2026-09-26 15:52 WIB — Siaran timbangan terdekat belum terkunci
+
+Pemindaian 15 detik menerima siaran OKOK dari alamat `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92`. Siaran itu terbuka, impedansi 0 ohm, dan beratnya bergerak. Notify GATT belum tercatat. Sesi tetap menunggu impedansi. Izin Bluetooth proses itu cukup untuk menerima iklan. Catatan 15:51 yang menyebut pemindaian berhenti di izin Bluetooth tidak berlaku.
+
+## 2026-09-26 15:51 WIB — Rekomendasi berikut: sesi Bluetooth pada timbangan nyata
+
+Langkah berikut: jalankan `python -m aplikasi sesi` dari terminal yang diizinkan mengakses Bluetooth, naik ke timbangan, lalu bandingkan berat dan komposisi dengan aplikasi OKOK pada timbangan yang sama. Syaratnya siaran tidak terenkripsi yang membawa impedansi (`0xCA` versi 32 atau `0xC0`) dan berat GATT terkunci. Perintah itu mengisi [`SesiUkur`](../aplikasi/sesi_ukur.py) lewat [`PendengarSesi`](../aplikasi/sesi_ble.py). Aplikasi Android dan `libprotocol.so` menunggu hasil sesi nyata itu.
+
+## 2026-09-26 15:51 WIB — Sesi dari iklan dan notify GATT
+
+Perintah `python -m aplikasi sesi` memindai iklan dan memasang notify. Berat dan impedansi tetap lewat [`SesiUkur`](../aplikasi/sesi_ukur.py). Muatan iklan untuk [`parse_broadcast`](../rumus/siaran_okok.py) disusun [`muatan_dari_pabrik`](../rumus/iklan_okok.py) dari id pabrik 16-bit little-endian plus sisa byte. Pada scan record mentah, [`muatan_okok`](../rumus/iklan_okok.py) mengambil byte setelah tipe `0xFF` bila byte pertama `0xCA` atau `0xC0`.
+
+[`getProtocalTypeByBroadcast`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java) berhenti pada blok pabrik atau daftar UUID 16-bit yang pertama. Pengambil muatan di repositori ini membaca rekaman sampai habis, jadi muatan OKOK tetap ketemu bila daftar UUID ada di depan.
+
+```165:170:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java
+                        if (b2 == -1) {
+                            scanMsg.manufacturerData = new byte[bArrSubBytes.length - 1];
+                            scanMsg.manufacturerData = BytesUtil.subBytes(bArrSubBytes, 1, scanMsg.manufacturerData.length);
+                            byte b3 = bArrSubBytes[1];
+                            if (b3 == -54 || b3 == -64) {
+                                scanMsg.protocalType = CsBtUtil_v11.Protocal_Type.OKOK;
+```
+
+```205:207:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java
+                        if (z) {
+                            break;
+                        }
+```
+
+Notify OKOK dipasang pada RX layanan Chipsea. Sesi ini tidak menulis TX.
+
+```44:46:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/BtGattAttr.java
+        CHIPSEA_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+        CHIPSEA_CHAR_RX_UUID = "0000fff1-0000-1000-8000-00805f9b34fb";
+        CHIPSEA_CHAR_TX_UUID = "0000fff2-0000-1000-8000-00805f9b34fb";
+```
+
+```768:771:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java
+        if (i == 1) {
+            if (z) {
+                return BtGattAttr.CHIPSEA_CHAR_RX_UUID;
+            }
+```
+
+```861:864:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java
+                    if ((properties | 16) > 0 && string.compareToIgnoreCase(getCharacteristicUUID(true)) == 0) {
+                        this.mNotifyCharacteristic = bluetoothGattCharacteristic;
+                        setCharacteristicNotification(bluetoothGattCharacteristic, true);
+                        LogUtil.i(TAG, "-------- got NOTIFY characteristic --------");
+```
+
+Alamat yang disimpan adalah alamat dari tumpukan Bluetooth komputer. Pada macOS itu UUID CoreBluetooth, bukan MAC radio timbangan. Pembandingan syarat 4 memakai berat dan komposisi. Syarat 4 belum tertutup.
+
 ## 2026-09-26 14:29 WIB — Rekomendasi berikut: sesi pada timbangan nyata
 
 Langkah berikut: jalankan satu sesi pada timbangan nyata, lalu bandingkan berat dan komposisi [`SesiUkur`](../aplikasi/sesi_ukur.py) dengan aplikasi sumber pada timbangan yang sama. Syaratnya siaran tidak terenkripsi yang membawa impedansi (`0xCA` versi 32 atau `0xC0`) dan berat GATT terkunci. Profil tinggi, umur, dan jenis kelamin sudah tersimpan lewat [`Penyimpan`](../aplikasi/simpan.py). `libprotocol.so` dan fitur di luar satu sesi ukur menunggu hasil sesi nyata itu.

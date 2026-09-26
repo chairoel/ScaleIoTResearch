@@ -2,15 +2,18 @@
 
     python -m aplikasi tubuh --tinggi 170 --umur 30 --kelamin 1
     python -m aplikasi ukur --mac AA:BB --siaran C0... --gatt CA...
+    python -m aplikasi sesi
     python -m aplikasi daftar
 """
 
 from __future__ import annotations
 
 import argparse
+import asyncio
 import sys
 from pathlib import Path
 
+from aplikasi.sesi_ble import PendengarSesi, dengar
 from aplikasi.sesi_ukur import DataTubuh, SesiUkur
 from aplikasi.simpan import Penyimpan
 from rumus.siaran_okok import FrameFormatError
@@ -50,6 +53,29 @@ def _cetak_hasil(sesi: SesiUkur) -> None:
     print(f"Rumus {hasil.rumus}")
 
 
+def _sesi_ble(args: argparse.Namespace, tubuh: DataTubuh, simpan: Penyimpan) -> int:
+    sesi = SesiUkur(tubuh, simpan)
+    pendengar = PendengarSesi(sesi, args.mac)
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+    print(f"Mendengarkan timbangan selama {args.detik:g} detik. Naik ke timbangan.")
+    print("Jika macOS menanyakan izin Bluetooth, izinkan untuk proses ini.")
+    try:
+        asyncio.run(dengar(pendengar, args.detik))
+    except Exception as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    _cetak_hasil(sesi)
+    if pendengar.hex_siaran:
+        print(f"Siaran {pendengar.hex_siaran}")
+    if pendengar.hex_gatt:
+        print(f"GATT {pendengar.hex_gatt}")
+    if sesi.hasil is None:
+        return 1
+    print("Bandingkan berat dan komposisi ini dengan aplikasi OKOK pada timbangan yang sama.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Satu sesi ukur OKOK")
     parser.add_argument("--berkas", type=Path, default=_BERKAS)
@@ -69,6 +95,13 @@ def main(argv: list[str] | None = None) -> int:
     ukur.add_argument("--tinggi", type=float)
     ukur.add_argument("--umur", type=int)
     ukur.add_argument("--kelamin", type=int, choices=(0, 1))
+
+    hidup = sub.add_parser("sesi", help="satu sesi dari timbangan lewat Bluetooth")
+    hidup.add_argument("--detik", type=float, default=120)
+    hidup.add_argument("--mac", default="")
+    hidup.add_argument("--tinggi", type=float)
+    hidup.add_argument("--umur", type=int)
+    hidup.add_argument("--kelamin", type=int, choices=(0, 1))
 
     sub.add_parser("daftar", help="daftar hasil ukur")
 
@@ -102,6 +135,8 @@ def main(argv: list[str] | None = None) -> int:
         if tubuh_sesi is None:
             print("Data tubuh belum ada.", file=sys.stderr)
             return 2
+        if args.perintah == "sesi":
+            return _sesi_ble(args, tubuh_sesi, simpan)
         sesi = SesiUkur(tubuh_sesi, simpan)
         try:
             sesi.terima_siaran(_hex(args.siaran), args.mac)
