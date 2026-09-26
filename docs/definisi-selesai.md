@@ -31,6 +31,8 @@ Selesai ketika empat syarat ini terpenuhi.
                 return PrefsUtil.getInstance(contexts.getApplicationContext()).getOkokScaleEncryptedKey(str);
 ```
 
+Keputusan rilis pertama: timbangan terenkripsi tidak masuk rilis pertama. Bit enkripsi adalah bit 7 pada byte offset 4 siaran `0xC0`. Repositori tidak memuat nilai `data` dari bind maupun entri `okok_scale_encrypted_key_`. Siaran `0xCA`, siaran `0xC0` tanpa bit itu, dan GATT header `0xCA` tetap masuk. Parser siaran itu ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py).
+
 3. Rumus komposisi laporan OKOK sudah ditulis ulang. Jalur itu [`CsAlgoBuilder`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). Pada timbangan yang bukan 8 elektroda, [`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan hasil [`cs_bias_v235`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/v235/CSBiasAPI.java) bila `result == 0`, dan rumus Java [`getBFR_Raw`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) bila tidak. Frekuensi ganda dan multi memakai [`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java). Memanggil library bias dari aplikasi sendiri tidak memenuhi syarat ini.
 
 ```943:960:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
@@ -73,7 +75,7 @@ Selesai ketika empat syarat ini terpenuhi.
     public native DeviceInfo parseScan(byte[] bArr, String str);
 ```
 
-Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Tulis ulang `cs_bias_vA019` ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tetap butuh satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC.
+Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Tulis ulang `cs_bias_vA019` ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Parser siaran tidak terenkripsi ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tertutup oleh keputusan di atas. Syarat 4 masih menunggu satu sesi ukur pada timbangan nyata.
 
 ## Aplikasi sendiri, tahap pertama
 

@@ -1,5 +1,51 @@
 # Activity Log
 
+## 2026-09-26 13:15 WIB — Keputusan kunci siaran dan parser siaran
+
+### Tujuan
+Menutup syarat 2 cakupan timbangan, lalu menyediakan pembacaan berat dan impedansi dari siaran yang tidak terenkripsi.
+
+### Perubahan
+- `docs/definisi-selesai.md`: keputusan bahwa timbangan terenkripsi tidak masuk rilis pertama.
+- `rumus/siaran_okok.py`: parser siaran `0xCA`, `0xC0` tanpa bit enkripsi, dan `0xFF`.
+- `rumus/test_siaran_okok.py`: vektor berat, impedansi, satuan, dan penolakan siaran terenkripsi.
+- `docs/protokol-frame-okok.md`: bagian yang belum tertutup menunjuk keputusan dan parser.
+- `docs/pemahaman.md`: keputusan syarat 2, topeng byte `0xFF`, dan rekomendasi berikut ke parser GATT.
+
+### Temuan
+Bit enkripsi siaran `0xC0` adalah bit 7 pada byte offset 4. [`okokBroadcasetV2Parser`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java) mengisi berat 0 bila kunci kosong. Parser sendiri menolak frame itu.
+
+```129:129:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        boolean z = (bArr[4] & (-128)) == -128;
+```
+
+```160:163:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        if (z) {
+            int iOkokBroadcasetV2ParserDecrypt2 = okokBroadcasetV2ParserDecrypt(BytesUtil.bytesToInt(bArr2), bytesFromHexStr);
+            if (bytesFromHexStr == null) {
+                iOkokBroadcasetV2ParserDecrypt2 = 0;
+```
+
+Di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex), [`bytesToHexString`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java) memakai `and-int/lit16` dengan literal `0xFF`.
+
+```49:51:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+        for (byte b : bArr) {
+            String hexString = Integer.toHexString(b & DataType.EXTEND);
+            if (hexString.length() < 2) {
+```
+
+### Status
+Selesai untuk syarat 2 dan parser siaran. Langkah berikut: parser GATT versi 16, plus perintah 0 dan 1 pada versi 17. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
 ## 2026-09-26 11:26 WIB — Tulis ulang cs_bias_vA019
 
 ### Tujuan

@@ -801,7 +801,7 @@ Pemeriksaan XOR ada di [`com.chipsea.btlib.model.Frame`](../ScaleHealtSource/jad
 
 ## Yang belum tertutup peta ini
 
-Kelas kunci sudah didekompilasi. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) hanya membaca prefs. Nilai 4 byte tidak ada di APK. Bentuk hex-nya baru diketahui dari satu nilai `data` pada respons bind, atau dari entri `okok_scale_encrypted_key_` ditambah MAC.
+Keputusan rilis pertama mengeluarkan siaran `0xC0` yang bit enkripsinya menyala. Nilai 4 byte tetap tidak ada di APK. [`OkokScaleEncryptedKeyUtils.getOkokScaleEncryptedKeySync`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java) hanya membaca prefs. Parser siaran `0xCA`, `0xC0` tanpa bit itu, dan `0xFF` ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Parser itu menolak siaran terenkripsi. Java mengisi berat 0 bila kunci kosong. Parser itu juga menolak frame yang lebih pendek dari field yang dibaca. Pada `0xC0` lebih pendek dari 9 byte, Java kembali lebih awal dan berat tetap 0.
 
 ```41:45:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/util/OkokScaleEncryptedKeyUtils.java
     public static String getOkokScaleEncryptedKeySync(String str) {

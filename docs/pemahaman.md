@@ -6,6 +6,69 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 13:15 WIB — Rekomendasi berikut: parser GATT sesi ukur
+
+Langkah berikut: tulis parser GATT [`chipseaStraightFrame.process`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java) untuk versi 16 dan perintah 0 serta 1 pada versi 17. Siaran tidak terenkripsi sudah ada di [`rumus/siaran_okok.py`](../rumus/siaran_okok.py). Berat sesi yang tersambung dibaca dari GATT ini. Angka lemak pada paket versi 16 bukan komposisi laporan. Laporan tetap [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) atau [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Antarmuka aplikasi, [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java), dan `libprotocol.so` bukan langkah ini.
+
+```71:74:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+        if (b == 16) {
+            byte b3 = bArr[4];
+            BytesUtil.subBytes(bArr, 5, 2);
+            byte[] bArrSubBytes = BytesUtil.subBytes(bArr, 7, 2);
+```
+
+```99:102:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaStraightFrame.java
+        if (b == 17) {
+            byte b4 = bArr[3];
+            if (b4 == 0 || b4 == 1) {
+                byte[] bArrSubBytes7 = BytesUtil.subBytes(bArr, 5, 2);
+```
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
+## 2026-09-26 13:15 WIB — Timbangan terenkripsi di luar rilis pertama
+
+Keputusan syarat 2 di `definisi-selesai.md`: timbangan terenkripsi tidak masuk rilis pertama. Bit itu bit 7 pada byte offset 4 siaran `0xC0`. Repositori tidak memuat nilai `data` bind maupun entri `okok_scale_encrypted_key_`. Siaran `0xCA`, siaran `0xC0` tanpa bit itu, dan GATT header `0xCA` tetap masuk.
+
+```129:129:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        boolean z = (bArr[4] & (-128)) == -128;
+```
+
+[`parse_broadcast`](../rumus/siaran_okok.py) menolak siaran terenkripsi. Java mengisi berat 0 bila kunci kosong. Parser itu juga menolak frame yang lebih pendek dari field yang dibaca. Pada `0xC0` lebih pendek dari 9 byte, Java kembali lebih awal dan berat tetap 0.
+
+```126:128:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        if (bArr.length < 9) {
+            return;
+        }
+```
+
+```160:164:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        if (z) {
+            int iOkokBroadcasetV2ParserDecrypt2 = okokBroadcasetV2ParserDecrypt(BytesUtil.bytesToInt(bArr2), bytesFromHexStr);
+            if (bytesFromHexStr == null) {
+                iOkokBroadcasetV2ParserDecrypt2 = 0;
+            }
+```
+
+Di [`classes4.dex`](../ScaleHealtSource/base/classes4.dex), `bytesToHexString` memakai `and-int/lit16` dengan literal `0xFF`. [`DataType.EXTEND`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/DataType.java) bertipe byte bernilai -1. Tampilan dekompilasi `b & DataType.EXTEND` memakai topeng 8 bit itu.
+
+```49:51:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/BytesUtil.java
+        for (byte b : bArr) {
+            String hexString = Integer.toHexString(b & DataType.EXTEND);
+            if (hexString.length() < 2) {
+```
+
+```5:5:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/model/DataType.java
+    public static final byte EXTEND = -1;
+```
+
 ## 2026-09-26 11:26 WIB — Rekomendasi berikut: contoh kunci siaran 0xC0
 
 Langkah berikut: penuhi syarat 2 di `definisi-selesai.md`. Butuh satu nilai `data` dari bind, atau satu entri `okok_scale_encrypted_key_` ditambah MAC. Bila contoh dari perangkat tidak ada, keputusan tertulis bahwa timbangan terenkripsi tidak masuk rilis pertama. Kedua rumus bias laporan OKOK sudah ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) dan [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Aplikasi sendiri belum dimulai. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi dan bukan langkah ini.
