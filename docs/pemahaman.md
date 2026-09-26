@@ -6,6 +6,10 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 16:02 WIB — GATT tetap habis waktu setelah pemindaian berhenti
+
+Enam percobaan `BleakClient` ke `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92` habis waktu setelah pemindaian dihentikan. Siaran terkunci tetap masuk, impedansi 600 ohm, berat sekitar 68,5–68,9 kg. Notify belum tercatat. Sesi berhenti di menunggu berat.
+
 ## 2026-09-26 15:58 WIB — Rekomendasi berikut: ulang sesi GATT
 
 Langkah berikut: hentikan perintah `sesi` yang sedang berjalan, lalu jalankan `python -m aplikasi sesi` lagi. Sambungan menunggu siaran terkunci, pemindaian berhenti, lalu notify dicoba sampai tiga kali. Bila waktu sambungan habis, tutup aplikasi OKOK di ponsel. Syarat 4 tetap perbandingan berat dan komposisi pada timbangan yang sama.

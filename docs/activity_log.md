@@ -1,5 +1,16 @@
 # Activity Log
 
+## 2026-09-26 16:02 WIB — GATT tetap habis waktu
+
+### Tujuan
+Mencatat hasil `python -m aplikasi sesi` setelah pemindaian dihentikan sebelum sambungan.
+
+### Temuan
+Enam percobaan ke `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92` habis waktu. Siaran terkunci tetap 600 ohm. Notify belum tercatat.
+
+### Status
+Syarat 4 belum tertutup. Langkah berikut tetap melepas sambungan ponsel, lalu mengulang `sesi`.
+
 ## 2026-09-26 15:58 WIB — Sambungan GATT setelah pemindaian berhenti
 
 ### Tujuan
