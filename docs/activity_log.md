@@ -1,5 +1,39 @@
 # Activity Log
 
+## 2026-09-26 11:26 WIB — Tulis ulang cs_bias_vA019
+
+### Tujuan
+Menulis ulang rumus komposisi laporan frekuensi ganda dan multi dari `libchipsea_bias_vA019.so`, supaya hasilnya tidak bergantung pada pemanggilan library asli.
+
+### Perubahan
+- `rumus/cs_bias_vA019.py`: tulis ulang `cs_bias_vA019`, regresi satu metrik, dan penyempitan field laporan.
+- `rumus/test_cs_bias_vA019.py`: vektor yang dicocokkan dengan keluaran native.
+- `docs/protokol-frame-okok.md`: peta frame menunjuk tulis ulang vA019.
+- `docs/definisi-selesai.md`: kedua tulis ulang rumus bias disebut. Langkah yang berlaku mengikuti rekomendasi terbaru.
+- `docs/pemahaman.md`: satuan masukan, kode gagal, dan rekomendasi berikut berpindah ke syarat 2.
+
+### Temuan
+[`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) mengisi laporan frekuensi ganda. Jenis kelamin 0 perempuan dan 1 laki-laki. Berat di luar 20,0–250,0 kg gagal lebih dulu, kode 2. Mode pada pemanggil Java 0. Pemeriksaan impedansi hanya pada mode itu.
+
+```7:10:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
+    public static native CSBiasVA019Resp cs_bias_vA019(CSBiasPersonalInfoVA019 cSBiasPersonalInfoVA019);
+
+    static {
+        System.loadLibrary("chipsea_bias_vA019");
+```
+
+### Status
+Selesai untuk `cs_bias_vA019`. Langkah berikut: syarat 2, contoh nilai kunci siaran `0xC0`. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
 ## 2026-09-26 08:42 WIB — Tulis ulang cs_bias_v235
 
 ### Tujuan

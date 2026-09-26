@@ -73,7 +73,7 @@ Selesai ketika empat syarat ini terpenuhi.
     public native DeviceInfo parseScan(byte[] bArr, String str);
 ```
 
-Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tetap butuh satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC.
+Tulis ulang `cs_bias_v235` ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py). Tulis ulang `cs_bias_vA019` ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Langkah engineering yang masih berlaku ada di rekomendasi terbaru `pemahaman.md`. Syarat 2 tetap butuh satu nilai `data` dari bind, atau entri `okok_scale_encrypted_key_` ditambah MAC.
 
 ## Aplikasi sendiri, tahap pertama
 

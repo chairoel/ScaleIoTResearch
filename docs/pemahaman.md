@@ -6,6 +6,66 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-26 11:26 WIB — Rekomendasi berikut: contoh kunci siaran 0xC0
+
+Langkah berikut: penuhi syarat 2 di `definisi-selesai.md`. Butuh satu nilai `data` dari bind, atau satu entri `okok_scale_encrypted_key_` ditambah MAC. Bila contoh dari perangkat tidak ada, keputusan tertulis bahwa timbangan terenkripsi tidak masuk rilis pertama. Kedua rumus bias laporan OKOK sudah ada di [`rumus/cs_bias_v235.py`](../rumus/cs_bias_v235.py) dan [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Aplikasi sendiri belum dimulai. [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) belum terdekompilasi dan bukan langkah ini.
+
+```969:974:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getVFR() {
+        /*
+            Method dump skipped, instructions count: 248
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.chipsea.code.algorithm.CsAlgoBuilder.getVFR():float");
+```
+
+## 2026-09-26 11:26 WIB — cs_bias_vA019 ditulis ulang
+
+Tulis ulang ada di [`rumus/cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). [`cs_bias_vA019`](../ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java) menerima jenis kelamin, umur, tinggi dalam persepuluhan sentimeter, berat dalam persepuluhan kilogram, mode, dan sepuluh impedansi dalam persepuluhan ohm. Jenis kelamin 0 perempuan, 1 laki-laki.
+
+```7:10:ScaleHealtSource/jadx-protocol/sources/chipsea/bias/vA019/CSBiasAPI.java
+    public static native CSBiasVA019Resp cs_bias_vA019(CSBiasPersonalInfoVA019 cSBiasPersonalInfoVA019);
+
+    static {
+        System.loadLibrary("chipsea_bias_vA019");
+```
+
+Pemanggil Java menyetel mode 0. Tinggi dan berat lewat `Math.round` setelah dikali 10. Urutan impedansi: tangan kanan, tangan kiri, batang, kaki kanan, kaki kiri, lalu frekuensi kedua dengan urutan yang sama.
+
+```691:698:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+        int[] iArr = {(int) (assemblyBodyImpedance.getRightHandImpedance1() * 10.0f), (int) (assemblyBodyImpedance.getLeftHandImpedance1() * 10.0f), (int) (assemblyBodyImpedance.getTrunkImpedance1() * 10.0f), (int) (assemblyBodyImpedance.getRightFootImpedance1() * 10.0f), (int) (assemblyBodyImpedance.getLeftFootImpedance1() * 10.0f), (int) (assemblyBodyImpedance.getRightHandImpedance2() * 10.0f), (int) (assemblyBodyImpedance.getLeftHandImpedance2() * 10.0f), (int) (assemblyBodyImpedance.getTrunkImpedance2() * 10.0f), (int) (assemblyBodyImpedance.getRightFootImpedance2() * 10.0f), (int) (assemblyBodyImpedance.getLeftFootImpedance2() * 10.0f)};
+        CSBiasAPI.CSBiasPersonalInfoVA019 cSBiasPersonalInfoVA019 = new CSBiasAPI.CSBiasPersonalInfoVA019();
+        cSBiasPersonalInfoVA019.age = this.Age;
+        cSBiasPersonalInfoVA019.sex = this.Sex;
+        cSBiasPersonalInfoVA019.height = Math.round(this.H * 10.0f);
+        cSBiasPersonalInfoVA019.weight = Math.round(this.Wt * 10.0f);
+        cSBiasPersonalInfoVA019.mode = 0;
+        cSBiasPersonalInfoVA019.impedance = iArr;
+```
+
+Kode gagal positif dan berurutan: 1 masukan kosong, 2 berat di luar 20,0–250,0 kg, 3 tinggi di luar 90,0–220,0 cm, 4 umur di luar 6–99, 5 jenis kelamin selain 0 dan 1, 6 impedansi. Pemeriksaan impedansi hanya berjalan pada mode 0. Tungkai harus 100,0–750,0 ohm. Batang, indeks 2 dan 7, harus 10,0–65,0 ohm.
+
+`metric_regression` menghitung satu metrik mode 0. Skala campuran regresi dan polinomial adalah float32 `0x3e99999a`. `parse_multi_frequency` mengikuti penyempitan [`toParserMultiFrequencyData`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). Field yang di-cast `(float)` disimpan sebagai float32. `sfm`, `sfp`, `icw`, `ecw`, massa sel, dan derajat obesitas tetap double. [`setVfl`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) menerima float, jadi `vfl` yang aslinya bilangan bulat disimpan sebagai float.
+
+```704:704:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+                setBfp((float) cSBiasVA019RespCs_bias_vA019.data.bfp);
+```
+
+```310:312:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public void setVfl(float f) {
+        this.vfl = f;
+    }
+```
+
+```739:744:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+                setSfm(cSBiasVA019RespCs_bias_vA019.data.sfm);
+                setSfp(cSBiasVA019RespCs_bias_vA019.data.sfp);
+                setIcw(cSBiasVA019RespCs_bias_vA019.data.icw);
+                setEcw(cSBiasVA019RespCs_bias_vA019.data.ecw);
+                setBody_cell_mass(cSBiasVA019RespCs_bias_vA019.data.body_cell_mass);
+                setObesity_degree(cSBiasVA019RespCs_bias_vA019.data.obesity_degree);
+```
+
 ## 2026-09-26 08:42 WIB — Rekomendasi berikut: bongkar cs_bias_vA019
 
 Langkah berikut: tulis ulang `cs_bias_vA019` di [`libchipsea_bias_vA019.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libchipsea_bias_vA019.so). Pada frekuensi ganda dan multi, [`getBFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) mengembalikan `getBfp()`, dan nilai itu diisi dari native ini.
