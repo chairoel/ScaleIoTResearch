@@ -1,4 +1,4 @@
-"""Satu sesi: impedansi dari siaran, berat dari GATT, laporan dari rumus."""
+"""Satu sesi: impedansi dari siaran, berat dari GATT atau siaran terkunci, laporan dari rumus."""
 
 import contextlib
 import io
@@ -32,6 +32,24 @@ def _siaran_c0(impedance: tuple[int, int] = (0x13, 0x88)) -> bytes:
 class SesiUkurTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tubuh = DataTubuh(170, 30, 1)
+
+    def test_berat_siaran_bila_gatt_tidak_ada(self):
+        sesi = SesiUkur(self.tubuh)
+        sesi.terima_siaran(_siaran_c0(), "AA:BB:CC:DD:EE:FF")
+        self.assertIsNone(sesi.hasil)
+        self.assertTrue(sesi.pakai_berat_siaran())
+        self.assertEqual(sesi.hasil.berat_kg, 70.5)
+        self.assertEqual(sesi.hasil.impedansi_ohm, (500.0,))
+        self.assertEqual(sesi.hasil.laporan, parse_default_z(1, 30, 170, 70.5, 500.0).data)
+        sesi.terima_gatt(_v17(1, (0x02, 0x8F), _prop()))
+        self.assertEqual(sesi.hasil.berat_kg, 70.5)
+
+    def test_gatt_tetap_dipakai_bila_sudah_masuk(self):
+        sesi = SesiUkur(self.tubuh)
+        sesi.terima_siaran(_siaran_c0(), "AA")
+        sesi.terima_gatt(_v17(1, (0x02, 0x8F), _prop()))
+        self.assertTrue(sesi.pakai_berat_siaran())
+        self.assertEqual(sesi.hasil.berat_kg, 65.5)
 
     def test_berat_gatt_dan_impedansi_siaran(self):
         sesi = SesiUkur(self.tubuh)

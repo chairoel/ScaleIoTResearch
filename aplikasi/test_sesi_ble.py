@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 from aplikasi.__main__ import main
-from aplikasi.sesi_ble import PendengarSesi, boleh_sambung
+from aplikasi.sesi_ble import PendengarSesi, boleh_sambung, menerima_sambungan, putuskan_berat
 from aplikasi.sesi_ukur import DataTubuh, SesiUkur
 from rumus.cs_bias_v235 import parse_default_z
 from rumus.iklan_okok import muatan_okok
@@ -51,15 +51,33 @@ class PendengarSesiTest(unittest.TestCase):
         self.assertIsNotNone(dengar.iklan("aa", _siaran()))
         self.assertEqual(dengar.alamat, "AA")
 
-    def test_sambungan_menunggu_impedansi_terkunci(self):
+    def test_sambungan_begitu_siaran_terbaca(self):
         sesi = SesiUkur(self.tubuh)
         dengar = PendengarSesi(sesi)
         terbuka = bytes((0xC0, 7, 0x02, 0xC1, 0x13, 0x88, 0x00, 0x01, 0))
         dengar.iklan("AA", terbuka)
-        self.assertFalse(boleh_sambung(dengar, "AA"))
-        dengar.iklan("AA", _siaran())
         self.assertTrue(boleh_sambung(dengar, "AA"))
         self.assertFalse(boleh_sambung(dengar, "BB"))
+        self.assertEqual(dengar.hex_siaran, "")
+
+    def test_siaran_tak_tersambung_menutup_berat(self):
+        sesi = SesiUkur(self.tubuh)
+        dengar = PendengarSesi(sesi)
+        dengar.iklan("AA", _siaran())
+        self.assertIsNone(putuskan_berat(dengar, True, False))
+        self.assertIsNone(sesi.hasil)
+        self.assertEqual(putuskan_berat(dengar, False, False), "berat dari siaran terkunci")
+        self.assertEqual(sesi.hasil.berat_kg, sesi.siaran.weight_kg)
+        self.assertIsNone(putuskan_berat(dengar, False, False))
+
+    def test_tanda_sambungan_iklan(self):
+        class _Iklan:
+            def __init__(self, isi):
+                self.platform_data = (None, isi, -40)
+
+        self.assertTrue(menerima_sambungan(_Iklan({"kCBAdvDataIsConnectable": 1})))
+        self.assertFalse(menerima_sambungan(_Iklan({"kCBAdvDataIsConnectable": 0})))
+        self.assertIsNone(menerima_sambungan(_Iklan({})))
 
     def test_siaran_berulang_diam(self):
         sesi = SesiUkur(self.tubuh)

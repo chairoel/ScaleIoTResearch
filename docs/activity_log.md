@@ -1,5 +1,71 @@
 # Activity Log
 
+## 2026-09-26 20:09 WIB — Berat dari siaran yang tidak menerima sambungan
+
+### Tujuan
+Sesi pada timbangan nyata berhenti di menunggu berat karena setiap iklan bertanda tidak bisa disambung.
+
+### Perubahan
+- `aplikasi/sesi_ukur.py`: `pakai_berat_siaran` menutup sesi dari berat siaran terkunci bila GATT belum ada.
+- `aplikasi/sesi_ble.py`: `putuskan_berat` memakai jalur itu saat `kCBAdvDataIsConnectable` salah.
+- `aplikasi/test_sesi_ukur.py`, `aplikasi/test_sesi_ble.py`: uji berat siaran dan uji GATT yang sudah masuk tetap dipakai.
+
+### Temuan
+Sesi `D92E955D-DA1E-5928-BD8B-D23EDAD2CD92` tidak pernah mencetak “siaran menerima sambungan”. Notify tidak dipasang. Siaran terkunci `c06b1ad117700a0125f8f2f038ca3a` adalah `0xC0` versi 1, berat 68,65 kg, impedansi 600 ohm, product id 2561. Berat itu field [`okokBroadcasetV2Parser`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java).
+
+```169:171:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/protocal/chipseaBroadcastFrame.java
+        WeightParserReturn weightParserReturnParser = WeightUnitUtil.Parser(bArr2[0], bArr2[c], this.scaleProperty, false);
+        this.weight = weightParserReturnParser.kgWeight;
+        this.scaleWeight = weightParserReturnParser.scaleWeight;
+```
+
+Laporan dari profil tersimpan 170 cm, umur 30, kelamin 1: lemak 21,151988983154297, otot 27,247825622558594, air 54,7817497253418, viseral 9, skor 67, rumus v235. Hasil itu tersimpan.
+
+### Status
+Selesai untuk berat siaran bila GATT tidak tersambung. Syarat 4 menunggu perbandingan angka ini dengan aplikasi OKOK pada timbangan yang sama dan profil tubuh yang sama.
+
+## 2026-09-26 18:27 WIB — Sambungan GATT pada siaran pertama
+
+### Tujuan
+Sambungan yang menunggu impedansi terkunci kalah dari jendela koneksi timbangan. FSAC menyambung begitu MAC cocok.
+
+### Perubahan
+- `aplikasi/sesi_ble.py`: `boleh_sambung` memakai siaran OKOK pertama. Siaran macOS yang tidak menerima sambungan dilewati. Setelah notify aktif, pemindaian dinyalakan lagi. Putusnya sambungan dicoba ulang.
+- `aplikasi/test_sesi_ble.py`: uji sambungan pada siaran terbuka dan tanda `kCBAdvDataIsConnectable`.
+
+### Temuan
+[`getConnectMode`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ConfigurableDeviceUtil.java) memakai FSAC, kecuali Xiaomi HM. [`handleBroadcastInfo`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java) memanggil `success` saat MAC cocok, tanpa melihat kunci. Callback itu menghentikan pemindaian lalu [`connectGATT`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java).
+
+```23:26:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/ConfigurableDeviceUtil.java
+    public static CsBtUtil_v11.CONNECT_MODE getConnectMode() {
+        CsBtUtil_v11.CONNECT_MODE connect_mode = CsBtUtil_v11.CONNECT_MODE.FSAC;
+        return (Build.BRAND.toLowerCase().equals("xiaomi") && Build.DEVICE.startsWith("HM")) ? CsBtUtil_v11.CONNECT_MODE.Alway_Conn : connect_mode;
+    }
+```
+
+```229:234:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/scanner/BluetoothLeScannerCompat.java
+            if (!TextUtils.isEmpty(strCheckAndDecryptedMac) && strCheckAndDecryptedMac.equalsIgnoreCase(this.mBoundMac)) {
+                byte[] manufacturerData = getManufacturerData(bArr);
+                CsBtUtil_v11.SeachDeviceCallback seachDeviceCallback = this.searchCallBack;
+                if (seachDeviceCallback != null) {
+                    seachDeviceCallback.success(manufacturerData);
+                    return;
+```
+
+```535:540:ScaleHealtSource/jadx-protocol/sources/com/chipsea/btlib/util/CsBtUtil_v11.java
+            public void success(byte[] bArr) {
+                BluetoothScanService.getInstanace().stopSeachBindDevice();
+                if (bArr != null) {
+                    CsBtUtil_v11.this.mManufacturerData = bArr;
+                }
+                CsBtUtil_v11.this.connectGATT();
+```
+
+`python -m aplikasi sesi --detik 70` selesai di menunggu impedansi. Tidak ada siaran OKOK. Pemindaian 12 detik berikutnya melihat perangkat BLE lain, jadi radio berjalan. Timbangan tidak menyiarkan.
+
+### Status
+Selesai untuk urutan sambungan. Syarat 4 belum tertutup. Langkah berikut: naik ke timbangan, tutup aplikasi OKOK di ponsel, lalu jalankan `python -m aplikasi sesi`.
+
 ## 2026-09-26 16:02 WIB — GATT tetap habis waktu
 
 ### Tujuan

@@ -2,6 +2,8 @@
 
 Berat yang disimpan adalah `GattOkok` dengan `lock_flag == 1` dan
 `history == False`, lewat [`GattParser`](../rumus/gatt_okok.py).
+Bila siaran tidak menerima sambungan, berat itu diambil dari
+`chipseaBroadcastFrame.weight` pada siaran terkunci.
 Impedansi yang masuk rumus adalah `impedance_ohm` pada siaran terkunci,
 lewat [`parse_broadcast`](../rumus/siaran_okok.py). Satu nilai ohm memakai
 [`parse_default_z`](../rumus/cs_bias_v235.py). Sepuluh nilai memakai
@@ -99,6 +101,7 @@ class SesiUkur:
         self._mac = ""
         self._product_id = 0
         self._berat: GattOkok | None = None
+        self._berat_siaran: SiaranOkok | None = None
         self.kode: int | None = None
         self.rumus: str | None = None
         self.hasil: HasilUkur | None = None
@@ -118,7 +121,7 @@ class SesiUkur:
             return "selesai"
         if self._impedansi is None:
             return "menunggu impedansi"
-        if self._berat is None:
+        if self._berat is None and self._berat_siaran is None:
             return "menunggu berat"
         return f"rumus {self.kode}"
 
@@ -132,6 +135,21 @@ class SesiUkur:
             self._tutup()
         return parsed
 
+    def pakai_berat_siaran(self) -> bool:
+        """Tutup sesi dari berat siaran terkunci bila GATT tidak ada."""
+        if self.hasil is not None or self._berat is not None:
+            return self.hasil is not None
+        if (
+            self.siaran is None
+            or not self.siaran.locked
+            or self.siaran.weight_kg <= 0
+            or self._impedansi is None
+        ):
+            return False
+        self._berat_siaran = self.siaran
+        self._tutup()
+        return self.hasil is not None
+
     def terima_gatt(self, frame: bytes) -> GattOkok | GattKonfirmasi | None:
         parsed = self._parser.parse(frame)
         if (
@@ -144,12 +162,24 @@ class SesiUkur:
             self._tutup()
         return parsed
 
+    def _angka_berat(self) -> tuple[float, str] | None:
+        if self._berat is not None:
+            return self._berat.weight_kg, self._berat.scale_weight
+        if self._berat_siaran is None:
+            return None
+        teks = self._berat_siaran.scale_weight or ""
+        return self._berat_siaran.weight_kg, teks
+
     def _tutup(self) -> None:
-        if self.hasil is not None or self._berat is None or self._impedansi is None:
+        if self.hasil is not None or self._impedansi is None:
             return
+        angka = self._angka_berat()
+        if angka is None:
+            return
+        berat_kg, tampilan = angka
         rumus, kode, data = hitung_laporan(
             self.tubuh,
-            self._berat.weight_kg,
+            berat_kg,
             self._impedansi,
         )
         self.rumus = rumus
@@ -159,8 +189,8 @@ class SesiUkur:
         hasil = HasilUkur(
             mac=self._mac,
             product_id=self._product_id,
-            berat_kg=self._berat.weight_kg,
-            tampilan_berat=self._berat.scale_weight,
+            berat_kg=berat_kg,
+            tampilan_berat=tampilan,
             impedansi_ohm=(self._impedansi,),
             rumus=rumus,
             kode=kode,
