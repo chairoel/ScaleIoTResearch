@@ -6,6 +6,40 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-27 12:00 WIB — Rekomendasi berikut: biarkan rumus v235
+
+Daftar indeks OKOK pada 68,7 kg sudah cocok dengan [`parse_default_z`](../rumus/cs_bias_v235.py). Rumus itu tidak diubah. Skor tidak ada di daftar indeks. Modul di luar satu sesi ukur belum dimulai. Yang berikutnya adalah memilih satu modul produk dan membaca alur kliennya. Jangan membongkar seluruh DEX sebelum modul itu dipilih.
+
+## 2026-09-27 12:00 WIB — Daftar indeks 68,7 kg cocok
+
+Layar OKOK yang terbaca memuat berat 68,7 kg, BMI 24,9, lemak 23,1, massa lemak 15,9, rasio otot rangka 38,2, otot rangka 26,2 kg, rasio otot 72,8, massa otot 50,0 kg, air 54,2, massa air 37,3 kg, viseral 10,0, tulang 2,77 kg, metabolisme 1502,0, protein 18,5, tingkat kegemukan 14,1, umur tubuh 36,0, berat tanpa lemak 52,84 kg, umur 29, tinggi 166 cm. Semuanya sama dengan v235 pada kelamin 1 dan impedansi 600 ohm, pada jumlah desimal yang layar tampilkan. Tulang 2,77 adalah nilai rumus pada dua desimal. Skor tidak ada di daftar ini. Syarat 4 untuk daftar indeks ini tertutup.
+
+## 2026-09-27 11:55 WIB — Rekomendasi berikut: cocokkan tulang, BMR, viseral, skor
+
+Langkah berikut: baca tulang, BMR, viseral, dan skor pada layar OKOK yang sama (berat 68,7 kg, 27 Sep 2026 11:48) dan cocokkan dengan 2,8 kg, 1502, 10, dan 61. Profil OKOK untuk perbandingan ini tinggi 166 cm, umur 29, kelamin 1. Jangan mulai modul lain sebelum keempat angka itu cocok.
+
+## 2026-09-27 11:55 WIB — Layar 68,7 kg cocok pada lemak dan air
+
+Layar OKOK pukul 11:48 menunjukkan berat 68,7 kg. Tinggi 166 cm dan umur 29. Kelamin 1: pada kelamin 0 lemak v235 menjadi 34,8, bukan 23,1. Impedansi tidak tampil di layar. Impedansi 600 ohm menghasilkan lemak 23,1 dan air 54,2 sekaligus. Pada 590 ohm lemak menjadi 23,0. Pada 610 ohm lemak menjadi 23,2.
+
+Satu desimal yang sama dengan layar: BMI 24,9, lemak 23,1, massa lemak 15,9, rasio otot rangka 38,2, rasio otot 72,8, air 54,2, massa air 37,3, umur metabolik 36. Massa lemak mengikuti [`getFM`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java). BMI mengikuti [`getBMI`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java).
+
+```909:911:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getFM() {
+        return (getBFR() * this.Wt) / 100.0f;
+    }
+```
+
+```903:907:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+    public float getBMI() {
+        float f = this.Wt;
+        float f2 = this.H;
+        return (f / (f2 * f2)) * 100.0f * 100.0f;
+    }
+```
+
+Tulang, BMR, viseral, dan skor di foto selebar 126 piksel tidak terbaca cukup untuk dicocokkan. Nilai rumusnya 2,8 kg, 1502, 10, dan 61. Syarat 4 belum tertutup.
+
 ## 2026-09-26 20:09 WIB — Rekomendasi berikut: bandingkan laporan 68,65 kg
 
 Bandingkan berat 68,65 kg dan komposisi laporan v235 dengan aplikasi OKOK pada timbangan yang sama. Profil yang dipakai tinggi 170 cm, umur 30, kelamin 1. Siaran timbangan ini tidak menerima sambungan, jadi notify GATT tidak masuk. GATT dipakai lagi hanya bila ada iklan yang menerima sambungan.

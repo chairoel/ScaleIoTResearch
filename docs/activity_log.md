@@ -1,5 +1,33 @@
 # Activity Log
 
+## 2026-09-27 12:00 WIB — Daftar indeks OKOK terbaca
+
+### Tujuan
+Mencocokkan daftar indeks yang terbaca dengan laporan v235 pada berat 68,7 kg, tinggi 166 cm, umur 29, kelamin 1.
+
+### Perubahan
+- `docs/definisi-selesai.md`: syarat 4 tertutup untuk daftar indeks ini.
+
+### Temuan
+Setiap baris daftar sama dengan v235 pada impedansi 600 ohm dan jumlah desimal di layar, termasuk viseral 10,0, tulang 2,77 kg, dan metabolisme 1502,0. Skor tidak ada di daftar itu.
+
+### Status
+Selesai untuk daftar indeks pengukuran ini.
+
+## 2026-09-27 11:55 WIB — Banding layar OKOK 68,7 kg
+
+### Tujuan
+Membandingkan laporan v235 dengan layar OKOK pada berat 68,7 kg, tinggi 166 cm, umur 29.
+
+### Perubahan
+- `data/scaleiot.sqlite`: profil tubuh terbaru menjadi tinggi 166 cm, umur 29, kelamin 1.
+
+### Temuan
+Layar 27 Sep 2026 11:48 cocok pada satu desimal untuk BMI 24,9, lemak 23,1, massa lemak 15,9, rasio otot rangka 38,2, rasio otot 72,8, air 54,2, massa air 37,3, dan umur metabolik 36. Impedansi tidak tampil. Nilai 600 ohm yang menghasilkan pasangan lemak dan air itu. Kelamin 0 menghasilkan lemak 34,8. Tulang 2,8 kg, BMR 1502, viseral 10, dan skor 61 belum terbaca dari foto.
+
+### Status
+Sebagian. Syarat 4 menunggu tulang, BMR, viseral, dan skor dari layar yang sama.
+
 ## 2026-09-26 20:09 WIB — Berat dari siaran yang tidak menerima sambungan
 
 ### Tujuan
