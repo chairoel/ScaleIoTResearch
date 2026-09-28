@@ -11,7 +11,7 @@ Modul produk lain menunggu sampai sesi ini lolos uji di timbangan yang sama. Dap
 - Parser, rumus, dan mesin sesi ditulis dalam Kotlin murni di modul Gradle `inti` (library JVM). Uji JUnit berjalan di komputer, tanpa emulator. Modul `app` yang sudah ada memakai `inti` untuk Compose, Room, dan Bluetooth.
 - Operasi rumus memakai `Float` (IEEE-754 binary32) dengan urutan operasi yang sama dengan `rumus/*.py`. Angka pembanding diambil dari keluaran Python yang sudah cocok dengan layar OKOK.
 - Bluetooth memakai `BluetoothLeScanner` dan `BluetoothGatt`.
-- Penyimpanan memakai Room, dengan dua tabel yang setara [Penyimpan](../aplikasi/simpan.py).
+- Preferensi lokal memakai DataStore, nama `healthtrack_prefs`. Profil tubuh dan hasil ukur memakai Room, dengan dua tabel yang setara [Penyimpan](../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
 - Jalur satu impedansi (`v235`) dibangun dan diuji di timbangan dulu. Timbangan yang sudah dicocokkan mengirim satu nilai ohm. `vA019` (sepuluh nilai) menyusul sebagai fase sendiri.
 - Siaran `0xC0` dengan bit enkripsi (bit 7 pada byte offset 4) ditolak. Rilis pertama tidak memuat kunci `okok_scale_encrypted_key_`. Keputusan itu ada di [definisi selesai](definisi-selesai.md).
 - Angka komposisi di dalam paket GATT tidak mengisi laporan. Laporan diisi [`parse_default_z`](../rumus/cs_bias_v235.py) atau, pada fase frekuensi ganda, [`parse_multi_frequency`](../rumus/cs_bias_vA019.py).
@@ -37,7 +37,7 @@ HealthTrack/
     rumus/       v235, lalu vA019
     sesi/        DataTubuh, SesiUkur, HasilUkur
   app/
-    data/        Room
+    data/        DataStore prefs dan Room
     ble/         pemindai + sambungan
     ui/          profil, sesi, hasil, riwayat
 ```

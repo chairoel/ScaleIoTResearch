@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-09-28 10:15 WIB — Prefs dan Room di HealthTrack
+
+### Tujuan
+Menyelaraskan rules HealthTrack dengan keputusan penyimpanan: DataStore untuk preferensi dan Room untuk profil serta hasil ukur.
+
+### Perubahan
+- `docs/rencana-aplikasi-android.md`: preferensi lokal memakai DataStore `healthtrack_prefs`; tabel `tubuh` dan `ukur` tetap di Room.
+- `HealthTrack/.cursor/rules/` dan skills terkait: larangan menambah Room dihapus. DataStore dan Room sama-sama bagian aplikasi.
+
+### Status
+Selesai. Urutan bangun tidak berubah. Langkah berikut tetap fase 1 parser di rekomendasi terbaru `docs/pemahaman.md`.
+
 ## 2026-09-28 09:12 WIB — Rencana aplikasi Android
 
 ### Tujuan

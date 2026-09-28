@@ -6,6 +6,10 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-28 10:15 WIB — HealthTrack memakai prefs dan Room
+
+HealthTrack memakai keduanya. Preferensi lokal ada di DataStore bernama `healthtrack_prefs`. Profil tubuh dan hasil ukur ada di Room, tabel `tubuh` dan `ukur`, seperti [rencana aplikasi Android](rencana-aplikasi-android.md). Prefs tidak menyimpan baris ukur. Rules di `HealthTrack/.cursor` tidak melarang Room.
+
 ## 2026-09-28 09:12 WIB — Rekomendasi berikut: fase 1 parser HealthTrack
 
 Langkah berikut: buat modul Gradle `inti` di [HealthTrack](../HealthTrack) dan pindahkan parser iklan, siaran, serta GATT ke Kotlin, dengan uji JUnit dari vektor Python. Rencana dan pintu keluarnya ada di [rencana aplikasi Android](rencana-aplikasi-android.md) fase 1. Jangan mulai profil, Bluetooth, rumus, atau modul produk lain sebelum pintu keluar itu terpenuhi.
