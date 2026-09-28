@@ -14,9 +14,9 @@ Sesi tidak menulis ke TX.
 
 ## Yang dihasilkan
 
-Di `app/.../ble/`:
+Di `app/.../data/ble/`:
 
-- `PendengarSesi` — meneruskan muatan iklan dan notify ke `SesiUkur`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:test`.
+- `PendengarSesi` — meneruskan muatan iklan dan notify ke `SesiUkur`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
 - `SesiBle` — `BluetoothLeScanner` dan `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.

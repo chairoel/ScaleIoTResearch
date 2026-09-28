@@ -10,7 +10,7 @@ Modul produk lain menunggu sampai sesi ini lolos uji di timbangan yang sama. Dap
 
 ## Keputusan
 
-- Parser, rumus, dan mesin sesi ditulis dalam Kotlin murni di modul Gradle `inti` (library JVM). Uji JUnit berjalan di komputer, tanpa emulator. Modul `app` yang sudah ada memakai `inti` untuk Compose, Room, dan Bluetooth.
+- HealthTrack satu modul Gradle, yaitu `app`. Parser, rumus, dan mesin sesi ditulis dalam Kotlin murni di paket `domain` dan tidak mengimpor `android.*`. Uji JUnit ada di `app/src/test` dan berjalan di komputer, tanpa emulator. Compose, Room, dan Bluetooth tetap di modul yang sama.
 - Operasi rumus memakai `Float` (IEEE-754 binary32) dengan urutan operasi yang sama dengan `rumus/*.py`. Angka pembanding diambil dari keluaran Python yang sudah cocok dengan layar OKOK.
 - Bluetooth memakai `BluetoothLeScanner` dan `BluetoothGatt`.
 - Preferensi lokal memakai DataStore, nama `healthtrack_prefs`. Profil tubuh dan hasil ukur memakai Room, dengan dua tabel yang setara [Penyimpan](../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
@@ -30,29 +30,29 @@ Modul produk lain menunggu sampai sesi ini lolos uji di timbangan yang sama. Dap
 
 `libprotocol.so` hanya untuk perangkat Xiangshan atau `KAYOFIT_CS8`. Library bias Chipsea tidak dipanggil dari aplikasi.
 
-## Modul
+## Paket
 
 ```text
-HealthTrack/
-  inti/          JVM, tanpa android.*
+HealthTrack/app/
+  domain/
     protokol/    muatan iklan, siaran, GATT
     rumus/       v235, lalu vA019
     sesi/        DataTubuh, SesiUkur, HasilUkur
-  app/
-    data/        DataStore prefs dan Room
+  data/
+    local/       DataStore prefs dan Room
     ble/         pemindai + sambungan
-    ui/          profil, sesi, hasil, riwayat
+  presentation/  profil, sesi, hasil, riwayat
 ```
 
 | Python | Kotlin |
 |---|---|
-| `rumus/iklan_okok.py` | `inti/.../protokol/IklanOkok.kt` |
-| `rumus/siaran_okok.py` | `inti/.../protokol/SiaranOkok.kt` |
-| `rumus/gatt_okok.py` | `inti/.../protokol/GattOkok.kt` |
-| `rumus/cs_bias_v235.py` | `inti/.../rumus/CsBiasV235.kt` |
-| `rumus/cs_bias_vA019.py` | `inti/.../rumus/CsBiasVA019.kt` |
-| `aplikasi/sesi_ukur.py` | `inti/.../sesi/SesiUkur.kt` |
-| `aplikasi/sesi_ble.py` | `app/.../ble/PendengarSesi.kt` dan `SesiBle.kt` |
+| `rumus/iklan_okok.py` | `app/.../domain/protokol/IklanOkok.kt` |
+| `rumus/siaran_okok.py` | `app/.../domain/protokol/SiaranOkok.kt` |
+| `rumus/gatt_okok.py` | `app/.../domain/protokol/GattOkok.kt` |
+| `rumus/cs_bias_v235.py` | `app/.../domain/rumus/CsBiasV235.kt` |
+| `rumus/cs_bias_vA019.py` | `app/.../domain/rumus/CsBiasVA019.kt` |
+| `aplikasi/sesi_ukur.py` | `app/.../domain/sesi/SesiUkur.kt` |
+| `aplikasi/sesi_ble.py` | `app/.../data/ble/PendengarSesi.kt` dan `SesiBle.kt` |
 | `aplikasi/simpan.py` | `app/.../data/` Room |
 
 Peta byte ada di [protokol frame OKOK](protokol-frame-okok.md).
@@ -152,7 +152,7 @@ ukur(id, dibuat, mac, product_id, berat_kg, tampilan_berat,
 
 Setiap fase selesai hanya jika pintu keluarnya terpenuhi. Fase berikutnya tidak dimulai sebelumnya.
 
-### 1. Modul `inti` dan parser
+### 1. Parser
 
 Salin perilaku [`iklan_okok.py`](../rumus/iklan_okok.py), [`siaran_okok.py`](../rumus/siaran_okok.py), dan [`gatt_okok.py`](../rumus/gatt_okok.py), termasuk rakitan perintah 18, 19, dan 20 serta perintah 20 untuk konfirmasi peran.
 

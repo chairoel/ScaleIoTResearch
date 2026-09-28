@@ -1,4 +1,4 @@
-# Fase 1 — Modul `inti` dan parser
+# Fase 1 — Parser di modul `app`
 
 Syarat mulai: belum ada. Ini fase pertama.
 
@@ -6,9 +6,7 @@ Sumber perilaku: [iklan_okok.py](../../rumus/iklan_okok.py), [siaran_okok.py](..
 
 ## Yang dihasilkan
 
-Modul Gradle `inti` di HealthTrack, library JVM, toolchain 11, tanpa plugin Android. `settings.gradle.kts` memuat `include(":inti")`. Plugin `org.jetbrains.kotlin.jvm` memakai versi Kotlin yang sudah ada di `gradle/libs.versions.toml` (2.2.10). `app` menambah `implementation(project(":inti"))`.
-
-Paket `com.mascill.healthtrack.inti.protokol`:
+Paket di modul `app` yang sudah ada: `com.mascill.healthtrack.domain.protokol`. Berkas ada di `app/src/main/java`. Uji ada di `app/src/test/java`. Paket ini tidak mengimpor `android.*`. Modul Gradle lain tidak ditambah. `settings.gradle.kts` tetap hanya `include(":app")`.
 
 | Python | Kotlin |
 |---|---|
@@ -22,7 +20,7 @@ Berat siaran yang lewat `_f32` di Python memakai `Float`, bukan `Double`.
 
 ## Langkah
 
-1. Tambah modul dan sambungkan ke `app`. `./gradlew :inti:test` sudah bisa jalan meski belum ada uji.
+1. Pastikan `./gradlew :app:testDebugUnitTest` jalan pada modul `app` yang sudah ada.
 2. Pindahkan iklan. Uji dari `rumus/test_iklan_okok.py`: muatan setelah bendera, UUID di depan data pabrik, pabrik lain dilewati, bukan OKOK, rekaman terpotong, id pabrik little-endian.
 3. Pindahkan parser berat dan siaran. Uji dari `rumus/test_siaran_okok.py`: kilogram, jin, pon, stone lewat float32, `0xC0` terkunci, `0xC0` terenkripsi, `0xCA` versi 32 terkunci dan belum kunci, versi 17, versi 16, versi lain kosong, cloud, cloud product khusus, frame ditolak.
 4. Pindahkan GATT, termasuk rakitan perintah 18 dan 19 serta perintah 20 untuk konfirmasi peran. Uji dari `rumus/test_gatt_okok.py`: versi 16, versi 17 perintah 0 dan 1, frame ditolak, rakitan, dan peran.
@@ -31,7 +29,7 @@ Vektor hex dan nilai harapan disalin dari uji Python. Jangan menulis vektor baru
 
 ## Pintu keluar
 
-`./gradlew :inti:test` lulus untuk ketiga berkas uji di atas. Siaran terenkripsi melempar tipe yang setara `EncryptedBroadcastError`.
+`./gradlew :app:testDebugUnitTest` lulus untuk ketiga berkas uji di atas. Siaran terenkripsi melempar tipe yang setara `EncryptedBroadcastError`.
 
 ## Belum dikerjakan
 

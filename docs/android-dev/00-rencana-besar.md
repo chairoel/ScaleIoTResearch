@@ -12,7 +12,7 @@ Di luar keenam fase: dapur, minum, olahraga, wearable, tali, puasa, VIP, iklan, 
 
 ## Urutan
 
-Fase berikutnya dimulai setelah pintu keluar fase berjalan terpenuhi. `./gradlew :inti:test` adalah pemeriksaan untuk kode di modul `inti`. Uji timbangan nyata hanya ada di fase 4.
+Fase berikutnya dimulai setelah pintu keluar fase berjalan terpenuhi. `./gradlew :app:testDebugUnitTest` adalah pemeriksaan JUnit di komputer. Uji timbangan nyata hanya ada di fase 4.
 
 ```mermaid
 flowchart LR
@@ -37,23 +37,22 @@ Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timb
 ## Letak kode
 
 ```text
-HealthTrack/
-  inti/                         modul Gradle JVM, tanpa android.*
-    src/main/kotlin/com/mascill/healthtrack/inti/
+HealthTrack/app/                satu-satunya modul Gradle
+  src/main/java/com/mascill/healthtrack/
+    domain/
       protokol/                 iklan, siaran, GATT
       rumus/                    v235 pada fase 2, vA019 pada fase 6
       sesi/                     DataTubuh, SesiUkur, HasilUkur
-    src/test/kotlin/            JUnit host
-  app/
-    src/main/java/com/mascill/healthtrack/
-      data/local/               DataStore healthtrack_prefs dan Room
+    data/
+      local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
-      presentation/             empat layar Compose
+    presentation/               empat layar Compose
+  src/test/java/                JUnit host, tanpa emulator
 ```
 
-`app` bergantung pada `inti`. Parser, rumus, dan mesin sesi tidak mengimpor `android.*`, Room, atau Compose, supaya `./gradlew :inti:test` jalan di komputer.
+HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser, rumus, dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
 
-Rules di `HealthTrack/.cursor` yang menyusun satu modul plus supabase-kt, Hilt, dan OkHttp berlaku untuk aplikasi yang lebih luas. Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi tetap tipe di `inti` (`DataTubuh`, `HasilUkur`, `SesiUkur`). Lapisan `domain/` terpisah tidak dibuat.
+Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi adalah `DataTubuh`, `HasilUkur`, dan `SesiUkur` di `domain/sesi`.
 
 Layar memakai Navigation 3 (`NavDisplay`, `NavKey`) saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin yang sudah terpin. AGP dan Kotlin yang ada tidak diturunkan. ViewModel memakai `StateFlow` dan konstruktor biasa.
 

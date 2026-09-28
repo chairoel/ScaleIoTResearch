@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-09-28 17:48 WIB — HealthTrack tetap satu modul app
+
+### Tujuan
+Menyelaraskan rencana eksekusi dengan keputusan satu modul Gradle. Parser, rumus, dan mesin sesi tidak dipisah ke library `inti`.
+
+### Perubahan
+- `docs/rencana-aplikasi-android.md`: paket `domain`, `data`, dan `presentation` di dalam `app`.
+- `docs/android-dev/`: pohon berkas dan perintah uji memakai `:app:testDebugUnitTest`.
+
+### Status
+Selesai. Pembangunan aplikasi belum dimulai. Langkah berikut ada di rekomendasi terbaru `docs/pemahaman.md`.
+
 ## 2026-09-28 17:41 WIB — Rencana eksekusi HealthTrack per fase
 
 ### Tujuan

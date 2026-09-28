@@ -6,6 +6,14 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-28 17:48 WIB — Rekomendasi berikut: parser di dalam modul app
+
+Langkah berikut: tulis parser iklan, siaran, dan GATT di paket `com.mascill.healthtrack.domain.protokol` pada modul Gradle `app` yang sudah ada. Uji JUnit host lewat `./gradlew :app:testDebugUnitTest`, dari vektor Python. Jangan membuat modul Gradle kedua. Jangan mulai profil, Bluetooth, rumus, atau modul produk lain sebelum pintu keluar fase 1 terpenuhi. Daftar kerjanya ada di [fase-01-modul-inti-parser.md](android-dev/fase-01-modul-inti-parser.md).
+
+## 2026-09-28 17:47 WIB — HealthTrack satu modul app
+
+Koreksi terhadap catatan 2026-09-28 09:12. Parser, rumus, dan mesin sesi tidak punya modul Gradle sendiri. Semuanya di dalam `app`, paket `domain`, dan tidak mengimpor `android.*`. Uji tanpa emulator tetap di `app/src/test`. Rencana yang berlaku ada di [rencana aplikasi Android](rencana-aplikasi-android.md) dan [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md).
+
 ## 2026-09-28 17:41 WIB — Rencana eksekusi HealthTrack dipecah per fase
 
 Urutan bangun tetap enam fase di [rencana aplikasi Android](rencana-aplikasi-android.md). Rincian kerja ada di [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md), lalu `fase-01` sampai `fase-06`. Pintu keluar tidak berubah. Langkah berikut tetap fase 1 parser; daftar kerjanya ada di [fase-01-modul-inti-parser.md](android-dev/fase-01-modul-inti-parser.md).

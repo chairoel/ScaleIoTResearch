@@ -6,7 +6,7 @@ Sumber perilaku: [cs_bias_vA019.py](../../rumus/cs_bias_vA019.py). Berkas ini me
 
 ## Yang dihasilkan
 
-`com.mascill.healthtrack.inti.rumus.CsBiasVA019.kt`:
+`com.mascill.healthtrack.domain.rumus.CsBiasVA019.kt`:
 
 - `cs_bias_vA019`
 - `parse_multi_frequency`
@@ -27,7 +27,7 @@ Layar hasil menampilkan field laporan `vA019` dengan pembulatan yang sama: sebag
 
 ## Pintu keluar
 
-`./gradlew :inti:test` lulus untuk `test_cs_bias_vA019` dan `test_sepuluh_impedansi`. `SesiUkur` memilih `vA019` bila impedansi berisi sepuluh nilai.
+`./gradlew :app:testDebugUnitTest` lulus untuk `test_cs_bias_vA019` dan `test_sepuluh_impedansi`. `SesiUkur` memilih `vA019` bila impedansi berisi sepuluh nilai.
 
 Fase ini menutup timbangan yang mengirim sepuluh ohm pada jalur rumus. Uji di timbangan sepuluh ohm dilakukan bila perangkat itu ada; ketiadaan perangkat itu tidak menahan pintu keluar host di atas.
 

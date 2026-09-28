@@ -4,7 +4,7 @@ Syarat mulai: pintu keluar [fase 4](fase-04-sesi-bluetooth.md). Tahap pertama un
 
 ## Yang dihasilkan
 
-Layar **Hasil** dari fase 4 tetap memakai fungsi pembulatan di `inti`. Fase ini tidak menghitung ulang angka di Compose.
+Layar **Hasil** dari fase 4 tetap memakai fungsi pembulatan di `domain`. Fase ini tidak menghitung ulang angka di Compose.
 
 Layar **Riwayat** memakai `daftar` Room, terbaru di atas. Satu baris membuka kembali layar hasil dari JSON `laporan` dan `impedansi_ohm` yang tersimpan, termasuk hex bila ikut tersimpan. Hasil yang dibuka dari riwayat tidak memulai sesi Bluetooth.
 

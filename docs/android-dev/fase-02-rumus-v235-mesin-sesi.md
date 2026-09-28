@@ -6,12 +6,12 @@ Sumber perilaku: [cs_bias_v235.py](../../rumus/cs_bias_v235.py) dan [sesi_ukur.p
 
 ## Yang dihasilkan
 
-Di `com.mascill.healthtrack.inti.rumus`:
+Di `com.mascill.healthtrack.domain.rumus`:
 
 - `CsBiasV235.kt` — `cs_bias_v235` dan `parse_default_z`.
 - Pembantu float yang setara `_f32` dan `_fma`: tiap operasi yang di Python dipaksa binary32 memakai `Float`.
 
-Di `com.mascill.healthtrack.inti.sesi`:
+Di `com.mascill.healthtrack.domain.sesi`:
 
 - `DataTubuh` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
 - `HasilUkur` — mac, product id, berat kg, tampilan berat, impedansi, nama rumus, kode, laporan.
@@ -29,7 +29,7 @@ Aturan mesin, sudah terbukti di Python:
 
 ## Pembulatan layar
 
-Fungsi tampilan di `inti` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
+Fungsi tampilan di `domain` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
 
 Vektor: `parse_default_z(1, 29, 166, 68.7, 600)`. Kelamin 0 pada vektor yang sama: lemak 34,8.
 
@@ -69,7 +69,7 @@ Nilai mentah pada vektor laki-laki itu, sebelum pembulatan layar: `bfp` 23,07963
 
 ## Pintu keluar
 
-`./gradlew :inti:test` lulus, termasuk v235 dan sesi satu ohm. Vektor 68,7 kg / 166 cm / 29 / kelamin 1 / 600 ohm menghasilkan angka tabel pada jumlah desimal yang sama.
+`./gradlew :app:testDebugUnitTest` lulus, termasuk v235 dan sesi satu ohm. Vektor 68,7 kg / 166 cm / 29 / kelamin 1 / 600 ohm menghasilkan angka tabel pada jumlah desimal yang sama.
 
 ## Belum dikerjakan
 
