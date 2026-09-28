@@ -1,5 +1,16 @@
 # Activity Log
 
+## 2026-09-28 09:12 WIB — Rencana aplikasi Android
+
+### Tujuan
+Menulis rencana tahap pertama HealthTrack supaya pembangunan satu sesi ukur mengikuti definisi selesai dan perilaku Python yang sudah ada.
+
+### Perubahan
+- `docs/rencana-aplikasi-android.md`: rencana modul `inti`, alur sesi, layar, penyimpanan, dan enam fase beserta pintu keluarnya.
+
+### Status
+Selesai. Pembangunan belum dimulai. Langkah berikut ada di rekomendasi terbaru `docs/pemahaman.md`.
+
 ## 2026-09-27 12:00 WIB — Daftar indeks OKOK terbaca
 
 ### Tujuan

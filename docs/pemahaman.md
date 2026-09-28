@@ -6,6 +6,14 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-28 09:12 WIB — Rekomendasi berikut: fase 1 parser HealthTrack
+
+Langkah berikut: buat modul Gradle `inti` di [HealthTrack](../HealthTrack) dan pindahkan parser iklan, siaran, serta GATT ke Kotlin, dengan uji JUnit dari vektor Python. Rencana dan pintu keluarnya ada di [rencana aplikasi Android](rencana-aplikasi-android.md) fase 1. Jangan mulai profil, Bluetooth, rumus, atau modul produk lain sebelum pintu keluar itu terpenuhi.
+
+## 2026-09-28 09:12 WIB — Rencana tahap pertama ada di berkas sendiri
+
+Aplikasi Android tahap pertama adalah [HealthTrack](../HealthTrack). Rencana bangunnya ada di [rencana aplikasi Android](rencana-aplikasi-android.md): modul JVM `inti` untuk parser dan rumus, Room untuk profil serta hasil, Bluetooth lewat API platform, v235 sebelum vA019, siaran terenkripsi ditolak. Modul di luar satu sesi ukur tetap belum dimulai.
+
 ## 2026-09-27 12:00 WIB — Rekomendasi berikut: biarkan rumus v235
 
 Daftar indeks OKOK pada 68,7 kg sudah cocok dengan [`parse_default_z`](../rumus/cs_bias_v235.py). Rumus itu tidak diubah. Skor tidak ada di daftar indeks. Modul di luar satu sesi ukur belum dimulai. Yang berikutnya adalah memilih satu modul produk dan membaca alur kliennya. Jangan membongkar seluruh DEX sebelum modul itu dipilih.
