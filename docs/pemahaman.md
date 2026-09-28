@@ -6,6 +6,12 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-28 17:41 WIB — Rencana eksekusi HealthTrack dipecah per fase
+
+Urutan bangun tetap enam fase di [rencana aplikasi Android](rencana-aplikasi-android.md). Rincian kerja ada di [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md), lalu `fase-01` sampai `fase-06`. Pintu keluar tidak berubah. Langkah berikut tetap fase 1 parser; daftar kerjanya ada di [fase-01-modul-inti-parser.md](android-dev/fase-01-modul-inti-parser.md).
+
+Baris layar 68,7 kg (tinggi 166 cm, umur 29, kelamin 1, impedansi 600 ohm) pada [`parse_default_z`](../rumus/cs_bias_v235.py) dipetakan sebagai berikut. BMI adalah `berat / (tinggi * tinggi) * 10000` (24,9). Lemak `bfp` (23,1). Massa lemak `bfp * berat / 100` (15,9). Rasio otot rangka `smm / berat * 100` (38,2). Otot rangka `smm` (26,2). Rasio otot `slp` (72,8). Massa otot `slm` (50,0). Air `bwp` (54,2). Massa air `bwp * berat / 100` (37,3). Viseral `vfl` (10,0). Tulang `bmc` dua desimal (2,77). Metabolisme `bmr` (1502,0). Protein `pp` (18,5). Tingkat kegemukan `(berat - swt) / swt * 100` (14,1). Umur tubuh `ma` (36,0). Berat tanpa lemak `berat - massa lemak`, dua desimal (52,84). Skor `sbc` (61) ikut dihitung dan tidak masuk daftar banding OKOK. Lemak kelamin 0 pada vektor yang sama 34,8. Pembulatan layar `HALF_UP`.
+
 ## 2026-09-28 10:15 WIB — HealthTrack memakai prefs dan Room
 
 HealthTrack memakai keduanya. Preferensi lokal ada di DataStore bernama `healthtrack_prefs`. Profil tubuh dan hasil ukur ada di Room, tabel `tubuh` dan `ukur`, seperti [rencana aplikasi Android](rencana-aplikasi-android.md). Prefs tidak menyimpan baris ukur. Rules di `HealthTrack/.cursor` tidak melarang Room.

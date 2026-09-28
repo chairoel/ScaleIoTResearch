@@ -1,5 +1,21 @@
 # Activity Log
 
+## 2026-09-28 17:41 WIB — Rencana eksekusi HealthTrack per fase
+
+### Tujuan
+Memecah rencana tahap pertama menjadi enam fase yang bisa dikerjakan berurutan, dengan pintu keluar yang sama.
+
+### Perubahan
+- `docs/android-dev/00-rencana-besar.md`: urutan enam fase, letak modul `inti` dan `app`, serta batas terhadap supabase, Hilt, dan OkHttp.
+- `docs/android-dev/fase-01-modul-inti-parser.md` sampai `fase-06-frekuensi-ganda.md`: berkas sumber Python, langkah, dan pintu keluar tiap fase.
+- `docs/rencana-aplikasi-android.md`: tautan ke rencana eksekusi.
+
+### Temuan
+Baris layar 68,7 kg terpetakan ke field [`parse_default_z`](../rumus/cs_bias_v235.py): rasio otot rangka dari `smm / berat * 100`, rasio otot dari `slp`, tingkat kegemukan dari `(berat - swt) / swt * 100`, berat tanpa lemak dari `berat - massa lemak`.
+
+### Status
+Selesai. Pembangunan aplikasi belum dimulai. Langkah berikut tetap fase 1 parser di rekomendasi terbaru `docs/pemahaman.md`.
+
 ## 2026-09-28 10:15 WIB — Prefs dan Room di HealthTrack
 
 ### Tujuan

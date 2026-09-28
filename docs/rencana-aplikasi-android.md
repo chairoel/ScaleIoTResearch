@@ -1,5 +1,7 @@
 # Rencana aplikasi Android
 
+Eksekusi per fase ada di [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md).
+
 Tahap pertama [HealthTrack](../HealthTrack) adalah satu sesi ukur OKOK di ponsel. Cakupan ini mengikuti [definisi selesai](definisi-selesai.md): kenali siaran, baca berat, sambung GATT, hitung komposisi dari rumus yang sudah ditulis ulang, simpan profil tubuh, dan simpan hasil ukur.
 
 HealthTrack sekarang templat Compose kosong. Namespace `com.mascill.healthtrack`, minSdk 28, targetSdk 36, satu `MainActivity`. Perilaku yang diikuti sudah jalan di Python: [sesi ukur](../aplikasi/sesi_ukur.py), [sesi Bluetooth](../aplikasi/sesi_ble.py), [penyimpan](../aplikasi/simpan.py), dan paket [rumus](../rumus).
