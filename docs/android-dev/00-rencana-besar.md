@@ -8,7 +8,7 @@ HealthTrack sekarang templat Compose kosong: namespace `com.mascill.healthtrack`
 
 Satu pengukuran di timbangan yang sama dengan uji 27 Sep 2026: berat dan daftar indeks cocok dengan aplikasi OKOK, profil tubuh tersimpan, hasil tetap ada setelah aplikasi ditutup. Jalur itu satu nilai ohm (`v235`). Sepuluh nilai ohm (`vA019`) adalah fase 6, sesudah tahap satu frekuensi lolos.
 
-Di luar keenam fase: dapur, minum, olahraga, wearable, tali, puasa, VIP, iklan, analitik, PDF, akun server Chipsea, kunci siaran terenkripsi, `libprotocol.so`, dan pemanggilan library bias Chipsea.
+Di luar keenam fase: dapur, minum, olahraga, wearable, tali, puasa, VIP, iklan, analitik, PDF, akun server Chipsea, kunci siaran terenkripsi, dan `libprotocol.so`.
 
 ## Urutan
 
@@ -40,17 +40,54 @@ Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timb
 HealthTrack/app/                satu-satunya modul Gradle
   src/main/java/com/mascill/healthtrack/
     domain/
-      protocol/                 iklan, siaran, GATT
+      model/                    ScaleBroadcast, ScaleGatt, kesalahan format
+      repository/               ScaleProtocolRepository, GattFrameReader
       formula/                  v235 pada fase 2, vA019 pada fase 6
       session/                  BodyData, MeasurementSession, MeasurementResult
     data/
+      protocol/                 parser iklan, siaran, GATT, dan JNI bridge
+      mapper/                   byte mentah ke model domain
+      model/                    RawBroadcast, RawGattMeasurement
+      repository/               ScaleProtocolRepositoryImpl
+      util/                     konstanta dan indeks hasil native
       local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
     presentation/               empat layar Compose
+  src/main/cpp/                 implementasi native C
+    CMakeLists.txt
+    scale_protocol.h            deklarasi fungsi C murni
+    scale_protocol.c            byte parsing, aritmatika, rumus komposisi
+    scale_protocol_jni.c        jembatan JNI ke Kotlin
   src/test/java/                JUnit host, tanpa emulator
 ```
 
 HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser, rumus, dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
+
+## Lapisan native (C/C++ JNI)
+
+Operasi hex, bit manipulation, dan rumus aritmatika tinggal di `libscale_protocol.so`. Logika yang dipindahkan ke C:
+
+- Semua byte parsing: `bytesToInt`, `sliceInt`, `splitPack`, `javaByte`, `u8`
+- Kalkulasi berat: unit, digit places, scaling, rounding, konversi kg/jin/lb/st
+- Rumus komposisi: `setAxunge`, `setWater`, `setMuscle`, `setBmr`, `setVisceral`, `setBone`, `recalculateMuscle`
+- Parsing frame broadcast: `parseCa`, `parseCaV20`, `parseCaLegacy`, `parseC0`, `parseFf`
+- Parsing frame GATT: `parseV16`, `parseV17Weight`, `parseAssembled`, `parseRoles`
+- Ekstraksi payload iklan: `scalePayload`, `payloadFromManufacturer`
+
+Yang tetap di Kotlin:
+
+- Data class (`ScaleBroadcast`, `ScaleGatt`, `GattConfirmation`, dll.)
+- Exception class (`FrameFormatError`, `EncryptedBroadcastError`, dll.)
+- Formatting string (`scaleText`, `javaFloatText`) karena bergantung `java.lang.Float.toString`
+- `GattParser` (state management: map buffer paket)
+- `NativeProtocol` (loader `.so` dan deklarasi `external fun`)
+
+Arsitektur dua jalur:
+
+- **Android runtime**: native C via JNI. Semua komputasi di `.so`, sulit di-reverse.
+- **JUnit host**: fallback Kotlin (implementasi yang sama). `.so` ARM tidak dimuat di JVM macOS/Linux. Uji tetap jalan tanpa emulator.
+
+Pemilihan jalur otomatis lewat `NativeProtocol.isLoaded`.
 
 Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi adalah `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/session`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
 

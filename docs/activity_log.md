@@ -1,5 +1,121 @@
 # Activity Log
 
+## 2026-09-29 17:16 WIB — Repository protocol: interface di domain, implementasi di data
+
+### Tujuan
+Menambah batas repository untuk parser timbangan. Domain memakai antarmuka. Implementasi yang memanggil parser ada di data.
+
+### Perubahan
+- `domain/repository/ScaleProtocolRepository.kt`: `ScaleProtocolRepository` dan `GattFrameReader`.
+- `data/repository/ScaleProtocolRepositoryImpl.kt`: `ScaleProtocolRepositoryImpl` mendelegasikan ke `scalePayload`, `payloadFromManufacturer`, `parseBroadcast`, `parseGatt`, dan `GattParser`.
+- `src/test/.../data/repository/ScaleProtocolRepositoryImplTest.kt`: uji delegasi siaran, iklan, GATT satu frame, dan paket GATT yang belum lengkap.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket menyesuaikan `domain/repository` dan `data/repository`.
+
+### Status
+Selesai. `ScaleProtocolRepositoryImplTest` lulus.
+
+## 2026-09-29 17:15 WIB — Indeks hasil native pindah ke data/util
+
+### Tujuan
+Mengeluarkan konstanta indeks `DoubleArray` hasil JNI dari berkas deklarasi native.
+
+### Perubahan
+- `data/util/NativeIndex.kt`: `BrIdx`, `GIdx`, dan `RIdx`.
+- `data/protocol/NativeProtocol.kt`: ketiga objek indeks dihapus.
+- `data/protocol/BroadcastParser.kt`: import `BrIdx`.
+- `data/protocol/GattFrameParser.kt`: import `GIdx` dan `RIdx`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus semua.
+
+## 2026-09-29 17:12 WIB — Konstanta pon ke kilogram pindah ke data/util
+
+### Tujuan
+Mengeluarkan faktor konversi pon dari mapper supaya konstanta protocol ada di satu tempat.
+
+### Perubahan
+- `data/util/Constants.kt`: `Constants.LB_PER_KG`, tetap `0.4535924.toFloat().toDouble()`.
+- `data/mapper/WeightMapper.kt`: `lbPerKg` dihapus. Konversi `lb` dan `st` memakai `Constants.LB_PER_KG`.
+
+### Status
+Selesai. `ParseWeightTest` dan `BroadcastTest` lulus.
+
+## 2026-09-29 17:06 WIB — Mapper memakai extension function
+
+### Tujuan
+Mengganti `object` mapper menjadi extension function pada model data, dengan receiver nullable.
+
+### Perubahan
+- `data/mapper/BroadcastMapper.kt`: `RawBroadcast?.toScaleBroadcast()` dan `RawBroadcast?.toCloudScaleBroadcast()`. `object BroadcastMapper` dihapus.
+- `data/mapper/GattMapper.kt`: `RawGattMeasurement?.toScaleGatt()` dan `RawGattConfirmation?.toGattConfirmation()`. `object GattMapper` dihapus.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus semua.
+
+## 2026-09-29 16:56 WIB — Reorganisasi: tambah data/mapper untuk pemisahan tanggung jawab
+
+### Tujuan
+Memisahkan tanggung jawab antara parsing protocol (byte manipulation) dan mapping ke domain model sesuai Clean Architecture. Sebelumnya semua di `data/protocol`, sekarang dibagi menjadi `data/protocol` (parsing bytes) dan `data/mapper` (transformasi ke domain model).
+
+### Perubahan
+- `data/mapper/WeightMapper.kt`: fungsi konversi berat (`weightKilograms`, `mapWeight`, `unit`, `digitPlaces`, `bits`, `scaleText`, `unitNameFromCode`). Dipindahkan dari `WeightParser.kt` dan `ProtocolUtils.kt`.
+- `data/mapper/BroadcastMapper.kt`: `BroadcastMapper.mapToDomain()` dan `mapCloudToDomain()` untuk transformasi `RawBroadcast` → `ScaleBroadcast`.
+- `data/mapper/GattMapper.kt`: `GattMapper.mapMeasurementToDomain()` dan `mapConfirmationToDomain()` untuk transformasi `RawGattMeasurement`/`RawGattConfirmation` → `ScaleGatt`/`GattConfirmation`. Termasuk fungsi narrowing body composition (`setAxunge`, `setWater`, `setMuscle`, `setBmr`, `setVisceral`, `setBone`, `recalculateMuscle`).
+- `data/protocol/RawProtocolData.kt`: data class intermediate (`RawBroadcast`, `RawGattMeasurement`, `RawGattConfirmation`, `RawGattResult`).
+- `data/protocol/ProtocolUtils.kt`: disederhanakan, hanya menyisakan fungsi byte utility (`u8`, `bytesToInt`, `f32`, `roundHalfUp`, `javaFloatText`).
+- `data/protocol/WeightParser.kt`: disederhanakan, delegasi ke `WeightMapper`.
+- `data/protocol/BroadcastParser.kt`: import dari mapper untuk `bits`, `digitPlaces`, `scaleText`, `unit`, `unitNameFromCode`.
+- `data/protocol/GattFrameParser.kt`: import dari mapper untuk `weightKilograms`, `scaleText`, `unitNameFromCode`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus semua.
+
+## 2026-09-29 16:40 WIB — Refactor: pisahkan domain model dari data layer
+
+### Tujuan
+Memindahkan kode parser protocol dari `domain.protocol` ke layer yang benar menurut Clean Architecture. Domain model (data class, exception) tetap di domain, parser dan JNI bridge pindah ke data layer.
+
+### Perubahan
+- `domain/model/ScaleBroadcast.kt`: data class `ScaleBroadcast` (baru, hanya model).
+- `domain/model/ScaleGatt.kt`: `GattResult`, `GattConfirmation`, `ScaleGatt` (baru, hanya model).
+- `domain/model/ScaleProtocolError.kt`: `FrameFormatError`, `EncryptedBroadcastError`, `UnsupportedGatt`, `IncompleteGatt` (baru).
+- `data/protocol/NativeProtocol.kt`: JNI bridge + `BrIdx`, `GIdx`, `RIdx` (dipindah dari `domain/protocol/`).
+- `data/protocol/ProtocolUtils.kt`: utilitas byte bersama (`u8`, `bits`, `f32`, `roundHalfUp`, `scaleText`, `unitNameFromCode`, `bytesToInt`).
+- `data/protocol/WeightParser.kt`: `weightKilograms`, `parseWeight`, `unit`, `digitPlaces`.
+- `data/protocol/BroadcastParser.kt`: `parseBroadcast` dan semua helper broadcast.
+- `data/protocol/GattFrameParser.kt`: `GattParser`, `parseGatt` dan semua helper GATT. `bytesToInt` GATT (Long-based, clamp) diganti nama menjadi `bytesToIntSafe` untuk menghindari konflik sama-paket.
+- `data/protocol/AdvertisementParser.kt`: `scalePayload`, `payloadFromManufacturer`.
+- `src/main/cpp/scale_protocol_jni.c`: semua nama fungsi JNI berubah dari `domain_protocol` ke `data_protocol`.
+- Test: dipindahkan dari `domain/protocol/` ke `data/protocol/` dengan import yang diperbarui.
+- Berkas lama di `domain/protocol/` dihapus.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus semua.
+
+## 2026-09-29 16:13 WIB — Parser protocol dipindahkan ke C/C++ JNI
+
+### Tujuan
+Memindahkan operasi hex, bit manipulation, dan rumus aritmatika ke implementasi native C lewat JNI. Library `.so` lebih sulit di-reverse engineer dibanding bytecode Kotlin/Java.
+
+### Perubahan
+- `HealthTrack/app/build.gradle.kts`: tambah `externalNativeBuild` CMake dan `ndkVersion`.
+- `HealthTrack/app/src/main/cpp/CMakeLists.txt`: konfigurasi build `libscale_protocol.so`.
+- `HealthTrack/app/src/main/cpp/scale_protocol.h`: deklarasi fungsi dan struct C murni — utilitas byte, kalkulasi berat, komposisi tubuh, parsing broadcast/GATT/advertisement.
+- `HealthTrack/app/src/main/cpp/scale_protocol.c`: implementasi C lengkap (~400 baris) — `sp_bytes_to_int`, `sp_weight_kilograms`, `sp_set_axunge`, `sp_set_water`, `sp_set_muscle`, `sp_set_bmr`, `sp_set_visceral`, `sp_set_bone`, `sp_recalculate_muscle`, `sp_parse_broadcast`, `sp_parse_gatt_v16`, `sp_parse_gatt_v17_weight`, `sp_parse_gatt_assembled`, `sp_parse_gatt_roles`, `sp_find_scale_payload`.
+- `HealthTrack/app/src/main/cpp/scale_protocol_jni.c`: jembatan JNI (~200 baris) — konversi `jbyteArray` ke `uint8_t*`, panggil fungsi C, kemas hasil ke `DoubleArray`/`IntArray`/`ByteArray`.
+- `HealthTrack/app/src/main/java/.../protocol/NativeProtocol.kt`: loader `System.loadLibrary("scale_protocol")`, `isLoaded` flag, deklarasi `external fun`, dan konstanta indeks (`BrIdx`, `GIdx`, `RIdx`).
+- `HealthTrack/app/src/main/java/.../protocol/ScaleAdvertisement.kt`: `scalePayload` dan `payloadFromManufacturer` delegasi ke native bila `.so` dimuat, fallback ke Kotlin.
+- `HealthTrack/app/src/main/java/.../protocol/ScaleBroadcast.kt`: `parseBroadcast`, `weightKilograms`, `parseWeight` delegasi ke native. Kotlin fallback tetap untuk JUnit host. Fungsi `scaleText` dan `javaFloatText` tetap di Kotlin karena bergantung `java.lang.Float.toString`.
+- `HealthTrack/app/src/main/java/.../protocol/ScaleGatt.kt`: `parseV16`, `parseV17Weight`, `parseAssembled`, `parseRoles` delegasi ke native. `GattParser` (state management) tetap di Kotlin. Helper `gattFromNative` dan `rolesFromNative` membongkar `DoubleArray` menjadi data class.
+- `docs/android-dev/00-rencana-besar.md`: tambah bagian lapisan native, pohon `src/main/cpp/`, arsitektur dua jalur (Android/JNI vs JUnit/Kotlin fallback).
+- `docs/android-dev/fase-01-modul-inti-parser.md`: tambah deskripsi berkas C dan pola delegasi native.
+
+### Temuan
+NDK `28.0.13004108` terpasang tapi tanpa `source.properties`. Versi `28.0.12433566` yang dipakai.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus (57 test, 0 failures). JUnit host memakai fallback Kotlin karena `libscale_protocol.so` ARM tidak dimuat di JVM macOS. Di Android runtime, native C yang jalan.
+
 ## 2026-09-29 15:55 WIB — Nama OKOK dihapus dari HealthTrack
 
 ### Tujuan

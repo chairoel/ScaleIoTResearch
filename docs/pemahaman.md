@@ -6,6 +6,86 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-29 17:16 WIB — Pintu protocol adalah repository
+
+Koreksi terhadap pohon paket di catatan lama yang menaruh parser di `domain/protocol`. Pemanggil di domain memakai [`ScaleProtocolRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleProtocolRepository.kt). Implementasinya [`ScaleProtocolRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleProtocolRepositoryImpl.kt) di data, dan dialah yang memanggil parser serta `GattParser`.
+
+`parseGatt` pada repository selalu mulai buffer baru. Rakitan paket GATT yang terpecah memakai `createGattReader()`, yang mengembalikan [`GattFrameReader`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleProtocolRepository.kt). Hilt belum dipakai. Repository profil, hasil ukur, dan Bluetooth belum dibuat; itu menyusul pada fase Room dan sesi Bluetooth.
+
+## 2026-09-29 17:15 WIB — Indeks hasil JNI ada di data/util
+
+Koreksi terhadap catatan 2026-09-29 16:40. `BrIdx`, `GIdx`, dan `RIdx` tidak lagi di `NativeProtocol.kt`. Ketiganya ada di [`NativeIndex.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/NativeIndex.kt). Mereka adalah posisi field di `DoubleArray` yang dikembalikan `nativeParseBroadcast`, parser GATT native, dan `nativeParseGattRoles`. Urutan angka harus tetap sama dengan urutan yang ditulis jembatan JNI. Mereka tidak digabung ke `Constants` karena nama field-nya bentrok (`ERROR`, `VERSION`, `PROPERTY`, `WEIGHT_KG`).
+
+## 2026-09-29 17:12 WIB — Faktor pon ke kilogram ada di data/util
+
+`Constants.LB_PER_KG` di [`Constants.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/Constants.kt) adalah faktor pon ke kilogram untuk mapper berat. Nilainya `0.4535924.toFloat().toDouble()`, jadi presisinya float32, bukan `Double` literal. [`WeightMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/WeightMapper.kt) memakai konstanta itu untuk satuan `lb` dan `st`.
+
+## 2026-09-29 17:06 WIB — Mapper data ke domain memakai extension
+
+Koreksi terhadap catatan 2026-09-29 16:56. `BroadcastMapper` dan `GattMapper` bukan `object`. Pemetaan ada sebagai extension pada model data:
+
+- [`BroadcastMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/BroadcastMapper.kt): `RawBroadcast?.toScaleBroadcast()` dan `RawBroadcast?.toCloudScaleBroadcast()`.
+- [`GattMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt): `RawGattMeasurement?.toScaleGatt()` dan `RawGattConfirmation?.toGattConfirmation()`.
+
+Receiver nullable. Nilai kosong memakai `0`, `false`, string kosong, atau `orEmpty()`.
+
+## 2026-09-29 16:56 WIB — Struktur paket data layer dengan mapper
+
+Koreksi terhadap catatan 2026-09-29 16:40. Data layer sekarang dibagi dua paket dengan tanggung jawab terpisah:
+
+**Data Mapper** (`com.mascill.healthtrack.data.mapper`):
+- [`WeightMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/WeightMapper.kt): konversi berat (`weightKilograms`, `mapWeight`, `unit`, `digitPlaces`, `bits`, `scaleText`, `unitNameFromCode`).
+- [`BroadcastMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/BroadcastMapper.kt): `BroadcastMapper` object dengan `mapToDomain()` dan `mapCloudToDomain()`.
+- [`GattMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt): `GattMapper` object dengan `mapMeasurementToDomain()`, `mapConfirmationToDomain()`, dan fungsi narrowing body composition.
+
+**Data Protocol** (`com.mascill.healthtrack.data.protocol`):
+- [`RawProtocolData.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/RawProtocolData.kt): data class intermediate (`RawBroadcast`, `RawGattMeasurement`, `RawGattConfirmation`, `RawGattResult`).
+- [`ProtocolUtils.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/ProtocolUtils.kt): byte utilities (`u8`, `bytesToInt`, `f32`, `roundHalfUp`, `javaFloatText`).
+- [`WeightParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/WeightParser.kt): `parseWeight` (delegasi ke mapper).
+- [`BroadcastParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/BroadcastParser.kt): `parseBroadcast`.
+- [`GattFrameParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/GattFrameParser.kt): `GattParser`, `parseGatt`.
+- [`AdvertisementParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/AdvertisementParser.kt): `scalePayload`, `payloadFromManufacturer`.
+- [`NativeProtocol.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/NativeProtocol.kt): JNI bridge.
+
+Pemisahan ini mengikuti Clean Architecture: protocol menangani parsing bytes, mapper menangani transformasi ke domain model.
+
+## 2026-09-29 16:40 WIB — Struktur paket parser protocol berubah
+
+Koreksi terhadap catatan 2026-09-29 16:13 dan 2026-09-29 15:55. Parser protocol tidak lagi di `com.mascill.healthtrack.domain.protocol`. Sekarang dibagi dua paket:
+
+**Domain model** (`com.mascill.healthtrack.domain.model`):
+- [`ScaleBroadcast.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleBroadcast.kt): data class `ScaleBroadcast`.
+- [`ScaleGatt.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleGatt.kt): `GattResult`, `GattConfirmation`, `ScaleGatt`.
+- [`ScaleProtocolError.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleProtocolError.kt): `FrameFormatError`, `EncryptedBroadcastError`, `UnsupportedGatt`, `IncompleteGatt`.
+
+**Data layer** (`com.mascill.healthtrack.data.protocol`):
+- [`NativeProtocol.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/NativeProtocol.kt): JNI bridge + `BrIdx`, `GIdx`, `RIdx`.
+- [`ProtocolUtils.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/ProtocolUtils.kt): `u8`, `bits`, `f32`, `roundHalfUp`, `scaleText`, `unitNameFromCode`, `bytesToInt`.
+- [`WeightParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/WeightParser.kt): `weightKilograms`, `parseWeight`, `unit`, `digitPlaces`.
+- [`BroadcastParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/BroadcastParser.kt): `parseBroadcast`.
+- [`GattFrameParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/GattFrameParser.kt): `GattParser`, `parseGatt`.
+- [`AdvertisementParser.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/AdvertisementParser.kt): `scalePayload`, `payloadFromManufacturer`.
+
+Nama fungsi JNI di [`scale_protocol_jni.c`](../HealthTrack/app/src/main/cpp/scale_protocol_jni.c) berubah dari `domain_protocol` ke `data_protocol`.
+
+## 2026-09-29 16:13 WIB — Parser protocol memakai C/C++ JNI
+
+Operasi hex, bit manipulation, dan rumus aritmatika parser protocol sekarang diimplementasikan di C lewat JNI (`libscale_protocol.so`). Berkas:
+
+- [`scale_protocol.h`](../HealthTrack/app/src/main/cpp/scale_protocol.h) dan [`scale_protocol.c`](../HealthTrack/app/src/main/cpp/scale_protocol.c): implementasi C murni. Semua `sp_*` functions: `sp_bytes_to_int`, `sp_weight_kilograms`, `sp_set_axunge`/`water`/`muscle`/`bmr`/`bone`, `sp_set_visceral`, `sp_recalculate_muscle`, `sp_parse_broadcast`, `sp_parse_gatt_v16`/`v17_weight`/`assembled`/`roles`, `sp_find_scale_payload`.
+- [`scale_protocol_jni.c`](../HealthTrack/app/src/main/cpp/scale_protocol_jni.c): jembatan JNI yang mengonversi `jbyteArray` → `uint8_t*`, memanggil fungsi C, lalu mengemas hasil ke `DoubleArray`/`ByteArray`.
+- [`NativeProtocol.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/NativeProtocol.kt): `System.loadLibrary("scale_protocol")`, flag `isLoaded`, deklarasi `external fun`, dan konstanta indeks (`BrIdx`, `GIdx`, `RIdx`).
+
+Arsitektur dua jalur: di Android, `NativeProtocol.isLoaded` bernilai `true` dan fungsi publik memanggil native C. Di JUnit host (macOS/Linux), `.so` ARM tidak dimuat, `isLoaded` bernilai `false`, dan fallback Kotlin yang jalan. Kedua jalur menghasilkan output identik.
+
+Formatting string (`scaleText`, `javaFloatText`) tetap di Kotlin karena bergantung `java.lang.Float.toString()`. `GattParser` (state management buffer paket) tetap di Kotlin; yang dipanggil native hanya parsing stateless per frame.
+
+NDK yang dipakai: `28.0.12433566` (beta1). Versi `28.0.13004108` terpasang tapi tanpa `source.properties`.
+
+## 2026-09-29 16:13 WIB — Rekomendasi berikut: rumus v235 dan mesin sesi
+
+Langkah berikut: port `cs_bias_v235` dan `parse_default_z` ke `com.mascill.healthtrack.domain.formula.CsBiasV235`, lalu mesin `MeasurementSession` untuk satu nilai ohm. Rumus itu juga kandidat untuk diimplementasikan di C dalam `libscale_protocol.so`, terutama koefisien dan aritmatika `bia_calc`. Syaratnya pintu keluar fase 1, yang sudah terpenuhi. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).
+
 ## 2026-09-29 15:55 WIB — Parser HealthTrack tanpa nama OKOK
 
 Koreksi terhadap catatan 2026-09-29 15:31. Parser di `com.mascill.healthtrack.domain.protocol` tidak memakai nama OKOK. [`ScaleAdvertisement.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleAdvertisement.kt) memuat `scalePayload` dan `payloadFromManufacturer`. [`ScaleBroadcast.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleBroadcast.kt) memuat `ScaleBroadcast`, `parseBroadcast`, `parseWeight`, dan `weightKilograms`. [`ScaleGatt.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleGatt.kt) memuat `ScaleGatt`, `GattConfirmation`, `GattResult`, `UnsupportedGatt`, `IncompleteGatt`, `GattParser`, dan `parseGatt`. Kode Python di `rumus/` dan `aplikasi/` tetap memakai nama berkas yang sudah ada.

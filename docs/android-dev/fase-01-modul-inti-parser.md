@@ -8,6 +8,21 @@ Sumber perilaku: [iklan_okok.py](../../rumus/iklan_okok.py), [siaran_okok.py](..
 
 Paket di modul `app` yang sudah ada: `com.mascill.healthtrack.domain.protocol`. Berkas ada di `app/src/main/java`. Uji ada di `app/src/test/java`. Paket ini tidak mengimpor `android.*`. Modul Gradle lain tidak ditambah. `settings.gradle.kts` tetap hanya `include(":app")`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
 
+### Lapisan native C
+
+Implementasi inti byte parsing dan aritmatika ada di `app/src/main/cpp/`:
+
+| Berkas | Isi |
+|---|---|
+| `CMakeLists.txt` | Konfigurasi CMake untuk `libscale_protocol.so` |
+| `scale_protocol.h` | Deklarasi fungsi dan struct C murni |
+| `scale_protocol.c` | Implementasi: byte parsing, weight calculation, composition formulas, broadcast/GATT parsing, advertisement extraction |
+| `scale_protocol_jni.c` | Jembatan JNI: konversi `jbyteArray` ke `uint8_t*`, panggil fungsi C, kemas hasil ke `DoubleArray`/`ByteArray` |
+
+`NativeProtocol.kt` di paket `protocol` memuat `System.loadLibrary("scale_protocol")` dan deklarasi `external fun`. Fungsi publik (`parseBroadcast`, `parseGatt`, `scalePayload`, dll.) memeriksa `NativeProtocol.isLoaded`: bila `.so` dimuat (Android), panggil native; bila tidak (JUnit host), jalankan fallback Kotlin.
+
+Formatting string (`javaFloatText`, `scaleText`) tetap di Kotlin karena bergantung `java.lang.Float.toString`. Fungsi native mengembalikan komponen numerik (high, low, places, unitCode, scaled) dan Kotlin menyusun teks.
+
 | Python | Kotlin |
 |---|---|
 | `muatan_okok`, `muatan_dari_pabrik` | `ScaleAdvertisement.kt` (`scalePayload`, `payloadFromManufacturer`) |
