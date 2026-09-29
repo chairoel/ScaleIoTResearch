@@ -10,9 +10,9 @@ Paket di modul `app` yang sudah ada: `com.mascill.healthtrack.domain.protocol`. 
 
 | Python | Kotlin |
 |---|---|
-| `muatan_okok`, `muatan_dari_pabrik` | `OkokAdvertisement.kt` (`okokPayload`, `payloadFromManufacturer`) |
-| `parse_broadcast`, `parse_weight`, `SiaranOkok` | `OkokBroadcast.kt` (`parseBroadcast`, `parseWeight`, `OkokBroadcast`) |
-| `GattParser`, `parse_gatt`, `GattOkok`, `GattKonfirmasi` | `OkokGatt.kt` (`GattParser`, `parseGatt`, `OkokGatt`, `GattConfirmation`) |
+| `muatan_okok`, `muatan_dari_pabrik` | `ScaleAdvertisement.kt` (`scalePayload`, `payloadFromManufacturer`) |
+| `parse_broadcast`, `parse_weight`, `SiaranOkok` | `ScaleBroadcast.kt` (`parseBroadcast`, `parseWeight`, `ScaleBroadcast`) |
+| `GattParser`, `parse_gatt`, `GattOkok`, `GattKonfirmasi` | `ScaleGatt.kt` (`GattParser`, `parseGatt`, `ScaleGatt`, `GattConfirmation`) |
 
 Kesalahan format dan siaran terenkripsi punya tipe sendiri. Siaran terenkripsi adalah subtipe kesalahan format, sama seperti `EncryptedBroadcastError` terhadap `FrameFormatError`. Uji menolak siaran `0xC0` bila bit 7 pada byte offset 4 menyala, untuk frame pendek dan frame yang ditambah enam byte.
 

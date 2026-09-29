@@ -6,6 +6,10 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-29 15:55 WIB — Parser HealthTrack tanpa nama OKOK
+
+Koreksi terhadap catatan 2026-09-29 15:31. Parser di `com.mascill.healthtrack.domain.protocol` tidak memakai nama OKOK. [`ScaleAdvertisement.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleAdvertisement.kt) memuat `scalePayload` dan `payloadFromManufacturer`. [`ScaleBroadcast.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleBroadcast.kt) memuat `ScaleBroadcast`, `parseBroadcast`, `parseWeight`, dan `weightKilograms`. [`ScaleGatt.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/ScaleGatt.kt) memuat `ScaleGatt`, `GattConfirmation`, `GattResult`, `UnsupportedGatt`, `IncompleteGatt`, `GattParser`, dan `parseGatt`. Kode Python di `rumus/` dan `aplikasi/` tetap memakai nama berkas yang sudah ada.
+
 ## 2026-09-29 15:31 WIB — Rekomendasi berikut: rumus v235 dan mesin sesi
 
 Langkah berikut: port `cs_bias_v235` dan `parse_default_z` ke `com.mascill.healthtrack.domain.formula.CsBiasV235`, lalu mesin `MeasurementSession` untuk satu nilai ohm, masih di modul Gradle `app`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris. Syaratnya pintu keluar fase 1, yang sudah terpenuhi lewat `./gradlew :app:testDebugUnitTest`. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).

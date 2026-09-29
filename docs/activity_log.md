@@ -1,5 +1,19 @@
 # Activity Log
 
+## 2026-09-29 15:55 WIB — Nama OKOK dihapus dari HealthTrack
+
+### Tujuan
+Menghilangkan nama OKOK dari kelas, fungsi, variabel, dan berkas parser di aplikasi HealthTrack.
+
+### Perubahan
+- `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/`: `ScaleAdvertisement.kt` (`scalePayload`, `scaleHeaders`), `ScaleBroadcast.kt` (`ScaleBroadcast`), `ScaleGatt.kt` (`ScaleGatt`). Berkas `Okok*.kt` dihapus.
+- `HealthTrack/app/src/test/java/com/mascill/healthtrack/domain/protocol/`: uji yang sama, berkas `ScaleAdvertisementTest.kt`, `ScaleBroadcastTest.kt`, `ScaleGattTest.kt`. Metode `notOkok` menjadi `otherManufacturer`.
+- `HealthTrack/.cursor/rules/bluetooth.mdc`: kalimat sesi dan alamat siaran tidak lagi menyebut OKOK.
+- `docs/android-dev/fase-01-modul-inti-parser.md` dan `docs/rencana-aplikasi-android.md`: peta nama Kotlin mengikuti berkas baru.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Nama OKOK di kode Python dan di dokumen sumber APK tidak diubah.
+
 ## 2026-09-29 15:31 WIB — Nama Kotlin HealthTrack berbahasa Inggris
 
 ### Tujuan
