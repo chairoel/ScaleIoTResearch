@@ -1,5 +1,38 @@
 # Activity Log
 
+## 2026-09-29 15:31 WIB — Nama Kotlin HealthTrack berbahasa Inggris
+
+### Tujuan
+Mengganti nama kelas, fungsi, dan variabel parser OKOK di HealthTrack ke bahasa Inggris, termasuk nama yang direncanakan untuk fase berikutnya.
+
+### Perubahan
+- `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/`: `OkokAdvertisement.kt`, `OkokBroadcast.kt`, `OkokGatt.kt`. Paket `domain.protokol` dihapus.
+- `HealthTrack/app/src/test/java/com/mascill/healthtrack/domain/protocol/`: uji JUnit yang sama, dengan nama Inggris.
+- `HealthTrack/app/build.gradle.kts`: `compileSdk` kembali ke rilis `37.0` supaya uji unit bisa dikompilasi.
+- `HealthTrack/.cursor/rules/bluetooth.mdc`: glob paket parser menunjuk `protocol`.
+- `docs/rencana-aplikasi-android.md` dan `docs/android-dev/`: nama Kotlin yang akan ditulis memakai bahasa Inggris. Tabel Room yang direncanakan adalah `body` dan `measurement`.
+
+### Status
+Selesai untuk kode Kotlin HealthTrack. `./gradlew :app:testDebugUnitTest` lulus. Kode Python di `rumus/` dan `aplikasi/` tidak diubah. Langkah berikut ada di rekomendasi terbaru `docs/pemahaman.md`.
+
+## 2026-09-29 10:34 WIB — Parser iklan, siaran, dan GATT
+
+### Tujuan
+Memindahkan parser OKOK fase 1 ke paket `domain.protokol` pada modul `app`, dengan vektor uji yang sama seperti Python.
+
+### Perubahan
+- `HealthTrack/app/build.gradle.kts`: `compileSdk` naik ke rilis `37.0` supaya uji unit bisa dikompilasi.
+- `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protokol/IklanOkok.kt`: muatan iklan pabrik OKOK.
+- `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protokol/SiaranOkok.kt`: parser berat dan siaran, plus `FrameFormatError` dan `EncryptedBroadcastError`.
+- `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protokol/GattOkok.kt`: parser GATT versi 16, perintah 0 dan 1, rakitan perintah 18 dan 19, serta perintah 20.
+- `HealthTrack/app/src/test/java/com/mascill/healthtrack/domain/protokol/`: uji JUnit dari `test_iklan_okok.py`, `test_siaran_okok.py`, dan `test_gatt_okok.py`.
+
+### Temuan
+`androidx.core:core-ktx:1.19.0` menolak `compileSdk` `36.1`. Platform yang terpasang dan diterima dependensi itu adalah `android-37.0`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus, termasuk ketiga berkas uji parser. Langkah berikut ada di rekomendasi terbaru `docs/pemahaman.md`.
+
 ## 2026-09-28 17:48 WIB — HealthTrack tetap satu modul app
 
 ### Tujuan

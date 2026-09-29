@@ -35,9 +35,9 @@ Modul produk lain menunggu sampai sesi ini lolos uji di timbangan yang sama. Dap
 ```text
 HealthTrack/app/
   domain/
-    protokol/    muatan iklan, siaran, GATT
-    rumus/       v235, lalu vA019
-    sesi/        DataTubuh, SesiUkur, HasilUkur
+    protocol/    iklan, siaran, GATT
+    formula/     v235, lalu vA019
+    session/     BodyData, MeasurementSession, MeasurementResult
   data/
     local/       DataStore prefs dan Room
     ble/         pemindai + sambungan
@@ -46,13 +46,13 @@ HealthTrack/app/
 
 | Python | Kotlin |
 |---|---|
-| `rumus/iklan_okok.py` | `app/.../domain/protokol/IklanOkok.kt` |
-| `rumus/siaran_okok.py` | `app/.../domain/protokol/SiaranOkok.kt` |
-| `rumus/gatt_okok.py` | `app/.../domain/protokol/GattOkok.kt` |
-| `rumus/cs_bias_v235.py` | `app/.../domain/rumus/CsBiasV235.kt` |
-| `rumus/cs_bias_vA019.py` | `app/.../domain/rumus/CsBiasVA019.kt` |
-| `aplikasi/sesi_ukur.py` | `app/.../domain/sesi/SesiUkur.kt` |
-| `aplikasi/sesi_ble.py` | `app/.../data/ble/PendengarSesi.kt` dan `SesiBle.kt` |
+| `rumus/iklan_okok.py` | `app/.../domain/protocol/OkokAdvertisement.kt` |
+| `rumus/siaran_okok.py` | `app/.../domain/protocol/OkokBroadcast.kt` |
+| `rumus/gatt_okok.py` | `app/.../domain/protocol/OkokGatt.kt` |
+| `rumus/cs_bias_v235.py` | `app/.../domain/formula/CsBiasV235.kt` |
+| `rumus/cs_bias_vA019.py` | `app/.../domain/formula/CsBiasVA019.kt` |
+| `aplikasi/sesi_ukur.py` | `app/.../domain/session/MeasurementSession.kt` |
+| `aplikasi/sesi_ble.py` | `app/.../data/ble/SessionListener.kt` dan `BleSession.kt` |
 | `aplikasi/simpan.py` | `app/.../data/` Room |
 
 Peta byte ada di [protokol frame OKOK](protokol-frame-okok.md).
@@ -141,9 +141,9 @@ Muatan iklan diambil seperti [`muatan_dari_pabrik`](../rumus/iklan_okok.py): com
 ## Penyimpanan
 
 ```text
-tubuh(id, tinggi_cm, umur, jenis_kelamin, dibuat)
-ukur(id, dibuat, mac, product_id, berat_kg, tampilan_berat,
-     impedansi_ohm, rumus, kode, laporan)
+body(id, height_cm, age, sex, created_at)
+measurement(id, created_at, mac, product_id, weight_kg, scale_weight,
+     impedance_ohm, formula, code, report)
 ```
 
 `impedansi_ohm` dan `laporan` disimpan sebagai JSON, sama seperti [Penyimpan](../aplikasi/simpan.py). Waktu dalam UTC.
@@ -160,7 +160,7 @@ Pintu keluar: vektor di `rumus/test_iklan_okok.py`, `test_siaran_okok.py`, dan `
 
 ### 2. Rumus v235 dan mesin sesi
 
-Port [`cs_bias_v235.py`](../rumus/cs_bias_v235.py) dan [`SesiUkur`](../aplikasi/sesi_ukur.py) beserta `hitung_laporan` untuk satu nilai ohm.
+Port [`cs_bias_v235.py`](../rumus/cs_bias_v235.py) dan [`SesiUkur`](../aplikasi/sesi_ukur.py) menjadi `MeasurementSession` beserta `calculateReport` untuk satu nilai ohm.
 
 Pintu keluar: `rumus/test_cs_bias_v235.py` dan `aplikasi/test_sesi_ukur.py` lulus. Vektor 68,7 kg / 166 cm / 29 / kelamin 1 / 600 ohm menghasilkan angka layar di tabel di atas pada jumlah desimal yang sama.
 
@@ -172,7 +172,7 @@ Pintu keluar: menyimpan profil, memuat baris terbaru, menolak jenis kelamin sela
 
 ### 4. Sesi Bluetooth
 
-`PendengarSesi` dan orkestrasi pindai–sambung–notify, dengan status di layar.
+`SessionListener` dan orkestrasi pindai–sambung–notify, dengan status di layar.
 
 Pintu keluar di timbangan yang sama dengan uji 27 Sep 2026: berat dan daftar indeks cocok dengan aplikasi OKOK. Uji ini memakai siaran tidak terenkripsi. Bila iklan tidak connectable, berat siaran terkunci tetap menghasilkan laporan. Hex siaran dan hex GATT terakhir tampil di layar hasil supaya banding bisa diulang.
 
@@ -188,7 +188,7 @@ Tahap pertama untuk timbangan satu frekuensi selesai di fase ini.
 
 Port [`cs_bias_vA019.py`](../rumus/cs_bias_vA019.py). Berkas ini memuat interpreter program. Ini bagian terbesar.
 
-Pintu keluar: `rumus/test_cs_bias_vA019.py` lulus. `SesiUkur` memilih `vA019` bila impedansi berisi sepuluh nilai. Fase ini menutup timbangan yang mengirim sepuluh ohm.
+Pintu keluar: `rumus/test_cs_bias_vA019.py` lulus. `MeasurementSession` memilih `vA019` bila impedansi berisi sepuluh nilai. Fase ini menutup timbangan yang mengirim sepuluh ohm.
 
 ## Risiko yang sudah terlihat
 

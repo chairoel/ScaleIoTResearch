@@ -16,8 +16,8 @@ Sesi tidak menulis ke TX.
 
 Di `app/.../data/ble/`:
 
-- `PendengarSesi` — meneruskan muatan iklan dan notify ke `SesiUkur`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
-- `SesiBle` — `BluetoothLeScanner` dan `BluetoothGatt`.
+- `SessionListener` — meneruskan muatan iklan dan notify ke `MeasurementSession`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
+- `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 
@@ -33,7 +33,7 @@ Alamat yang disimpan adalah MAC radio (`ScanResult.device.address`).
 6. Temukan layanan Chipsea, pasang notify pada RX, tulis descriptor CCCD, lalu nyalakan pemindaian lagi supaya impedansi terkunci tetap masuk.
 7. Tiga percobaan sambungan, batas 15 detik, lalu paling banyak dua putaran pindai. Sesi berakhir pada 120 detik atau saat hasil tersimpan.
 8. Bila waktu sambungan habis, layar memberitahu bahwa aplikasi OKOK di ponsel perlu ditutup bila timbangan sedang tersambung di sana.
-9. Iklan yang tidak bisa disambung menutup sesi lewat `pakaiBeratSiaran`. Berat GATT yang sudah masuk tidak diganti.
+9. Iklan yang tidak bisa disambung menutup sesi lewat `applyBroadcastWeight`. Berat GATT yang sudah masuk tidak diganti.
 10. Siaran terenkripsi menampilkan pesan di layar sesi dan tidak masuk rumus.
 
 Mode sumber `Alway_Conn` untuk ponsel Xiaomi yang `DEVICE`-nya diawali `HM` tidak mengubah `autoConnect` pada tahap ini. Kalimat Android di rencana memakai `autoConnect = false`.

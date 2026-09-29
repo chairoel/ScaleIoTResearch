@@ -40,9 +40,9 @@ Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timb
 HealthTrack/app/                satu-satunya modul Gradle
   src/main/java/com/mascill/healthtrack/
     domain/
-      protokol/                 iklan, siaran, GATT
-      rumus/                    v235 pada fase 2, vA019 pada fase 6
-      sesi/                     DataTubuh, SesiUkur, HasilUkur
+      protocol/                 iklan, siaran, GATT
+      formula/                  v235 pada fase 2, vA019 pada fase 6
+      session/                  BodyData, MeasurementSession, MeasurementResult
     data/
       local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
@@ -52,11 +52,11 @@ HealthTrack/app/                satu-satunya modul Gradle
 
 HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser, rumus, dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
 
-Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi adalah `DataTubuh`, `HasilUkur`, dan `SesiUkur` di `domain/sesi`.
+Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi adalah `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/session`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
 
 Layar memakai Navigation 3 (`NavDisplay`, `NavKey`) saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin yang sudah terpin. AGP dan Kotlin yang ada tidak diturunkan. ViewModel memakai `StateFlow` dan konstruktor biasa.
 
-Preferensi lokal: DataStore `healthtrack_prefs`. Profil dan hasil: Room, tabel `tubuh` dan `ukur`, setara [Penyimpan](../../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
+Preferensi lokal: DataStore `healthtrack_prefs`. Profil dan hasil: Room, tabel `body` dan `measurement`, setara [Penyimpan](../../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
 
 ## Yang dipakai bersama
 

@@ -11,14 +11,14 @@ Sumber kolom: [simpan.py](../../aplikasi/simpan.py). Waktu disimpan UTC.
 Dua tabel. `impedansi_ohm` dan `laporan` adalah teks JSON, sama seperti `json.dumps` di Python. Serialization memakai `kotlinx.serialization`.
 
 ```text
-tubuh(id, tinggi_cm, umur, jenis_kelamin, dibuat)
-ukur(id, dibuat, mac, product_id, berat_kg, tampilan_berat,
-     impedansi_ohm, rumus, kode, laporan)
+body(id, height_cm, age, sex, created_at)
+measurement(id, created_at, mac, product_id, weight_kg, scale_weight,
+     impedance_ohm, formula, code, report)
 ```
 
-`muatTubuh` mengambil baris `tubuh` dengan `id` terbesar. `daftar` mengembalikan `ukur` terbaru di atas (`id` menurun; Python mengurutkan menaik, layar riwayat membaliknya).
+`loadBody` mengambil baris `body` dengan `id` terbesar. `listMeasurements` mengembalikan `measurement` terbaru di atas (`id` menurun; Python mengurutkan menaik, layar riwayat membaliknya).
 
-Jenis kelamin selain 0 dan 1 ditolak sebelum insert, sama seperti `DataTubuh`.
+Jenis kelamin selain 0 dan 1 ditolak sebelum insert, sama seperti `BodyData`.
 
 ### DataStore
 
@@ -30,18 +30,18 @@ Navigasi Compose dengan Navigation 3: `NavDisplay` dan `NavKey` di `presentation
 
 Teks Indonesia.
 
-1. **Profil.** Tinggi (cm), umur, jenis kelamin. Simpan menulis baris `tubuh` baru. Layar menampilkan baris terbaru.
+1. **Profil.** Tinggi (cm), umur, jenis kelamin. Simpan menulis baris `body` baru. Layar menampilkan baris terbaru.
 2. **Sesi.** Tombol mulai. Tanpa profil, sesi tidak masuk keadaan mengukur. Bluetooth belum disambungkan; tombol hanya membuka alur yang fase 4 isi.
-3. **Riwayat.** Daftar kosong bila belum ada baris `ukur`. Membuka hasil tersimpan menyusul di fase 5.
+3. **Riwayat.** Daftar kosong bila belum ada baris `measurement`. Membuka hasil tersimpan menyusul di fase 5.
 
 ViewModel memegang `StateFlow`. Dependensi diisi lewat konstruktor dari `MainActivity` atau pabrik kecil di `app`. Hilt tidak dipasang.
 
 ## Langkah
 
 1. Tambah Room, DataStore, dan plugin serialization ke version catalog. Jangan menambah supabase, Hilt, OkHttp, atau Retrofit.
-2. Entity, DAO, dan database untuk `tubuh` dan `ukur`.
-3. Uji JVM di `app` (bukan emulator): simpan profil, muat baris terbaru, tolak jenis kelamin 2, simpan satu hasil lewat `PenyimpanHasil`, baca kembali JSON laporan.
-4. Layar profil dan riwayat kosong, serta kunci mulai sesi bila `muatTubuh` kosong.
+2. Entity, DAO, dan database untuk `body` dan `measurement`.
+3. Uji JVM di `app` (bukan emulator): simpan profil, muat baris terbaru, tolak jenis kelamin 2, simpan satu hasil lewat `ResultStore`, baca kembali JSON laporan.
+4. Layar profil dan riwayat kosong, serta kunci mulai sesi bila `loadBody` kosong.
 
 ## Pintu keluar
 

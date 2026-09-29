@@ -6,6 +6,28 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-29 15:31 WIB — Rekomendasi berikut: rumus v235 dan mesin sesi
+
+Langkah berikut: port `cs_bias_v235` dan `parse_default_z` ke `com.mascill.healthtrack.domain.formula.CsBiasV235`, lalu mesin `MeasurementSession` untuk satu nilai ohm, masih di modul Gradle `app`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris. Syaratnya pintu keluar fase 1, yang sudah terpenuhi lewat `./gradlew :app:testDebugUnitTest`. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).
+
+## 2026-09-29 15:31 WIB — Nama Kotlin HealthTrack berbahasa Inggris
+
+Parser OKOK ada di paket `com.mascill.healthtrack.domain.protocol`. [`OkokAdvertisement.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/OkokAdvertisement.kt) memuat `okokPayload` dan `payloadFromManufacturer`. [`OkokBroadcast.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/OkokBroadcast.kt) memuat `OkokBroadcast`, `parseBroadcast`, `parseWeight`, dan `weightKilograms`. [`OkokGatt.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/protocol/OkokGatt.kt) memuat `OkokGatt`, `GattConfirmation`, `GattResult`, `UnsupportedGatt`, `IncompleteGatt`, `GattParser`, dan `parseGatt`. Paket itu tidak mengimpor `android.*`.
+
+Koreksi terhadap catatan 2026-09-29 10:34 dan 2026-09-28 10:15. Paket rumus yang akan ditulis adalah `domain.formula`. Paket sesi adalah `domain.session`, dengan `BodyData`, `MeasurementSession`, `MeasurementResult`, `ResultStore.saveResult`, `calculateReport`, dan `applyBroadcastWeight`. Bluetooth yang akan ditulis adalah `SessionListener` dan `BleSession`. Tabel Room adalah `body` dan `measurement`. Kode Python di `rumus/` dan `aplikasi/` tetap memakai nama yang sudah ada.
+
+## 2026-09-29 10:34 WIB — Rekomendasi berikut: rumus v235 dan mesin sesi
+
+Langkah berikut: port `cs_bias_v235` dan `parse_default_z` ke `com.mascill.healthtrack.domain.rumus.CsBiasV235`, lalu mesin `SesiUkur` untuk satu nilai ohm, masih di modul Gradle `app`. Syaratnya pintu keluar fase 1, yang sudah terpenuhi lewat `./gradlew :app:testDebugUnitTest`. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).
+
+## 2026-09-29 10:34 WIB — Parser OKOK di paket domain
+
+Parser iklan, siaran, dan GATT ada di modul `app`, paket `com.mascill.healthtrack.domain.protokol`: `IklanOkok.kt`, `SiaranOkok.kt`, `GattOkok.kt`. Paket itu tidak mengimpor `android.*`. `settings.gradle.kts` tetap hanya `include(":app")`.
+
+`SiaranOkok.weightKg` dan `impedanceOhm` bertipe `Float`. Itu hasil operasi yang di `rumus/siaran_okok.py` lewat `_f32`, termasuk pembulatan akhir yang lalu disimpan sebagai `Float`. Berat dan angka komposisi di `GattOkok` serta `GattKonfirmasi` bertipe `Double`, sama dengan pembagian Python pada `_stored_weight` dan penyempitan komposisi. `EncryptedBroadcastError` adalah subclass `FrameFormatError`. Siaran `0xC0` ditolak bila bit 7 pada byte offset 4 menyala.
+
+`compileSdk` modul `app` adalah rilis `37.0` (`android-37.0`). `androidx.core:core-ktx:1.19.0` menolak kompilasi terhadap `android-36.1`. `minSdk` tetap 28 dan `targetSdk` tetap 36.
+
 ## 2026-09-28 17:48 WIB — Rekomendasi berikut: parser di dalam modul app
 
 Langkah berikut: tulis parser iklan, siaran, dan GATT di paket `com.mascill.healthtrack.domain.protokol` pada modul Gradle `app` yang sudah ada. Uji JUnit host lewat `./gradlew :app:testDebugUnitTest`, dari vektor Python. Jangan membuat modul Gradle kedua. Jangan mulai profil, Bluetooth, rumus, atau modul produk lain sebelum pintu keluar fase 1 terpenuhi. Daftar kerjanya ada di [fase-01-modul-inti-parser.md](android-dev/fase-01-modul-inti-parser.md).

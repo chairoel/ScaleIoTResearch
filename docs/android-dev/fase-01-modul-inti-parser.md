@@ -6,13 +6,13 @@ Sumber perilaku: [iklan_okok.py](../../rumus/iklan_okok.py), [siaran_okok.py](..
 
 ## Yang dihasilkan
 
-Paket di modul `app` yang sudah ada: `com.mascill.healthtrack.domain.protokol`. Berkas ada di `app/src/main/java`. Uji ada di `app/src/test/java`. Paket ini tidak mengimpor `android.*`. Modul Gradle lain tidak ditambah. `settings.gradle.kts` tetap hanya `include(":app")`.
+Paket di modul `app` yang sudah ada: `com.mascill.healthtrack.domain.protocol`. Berkas ada di `app/src/main/java`. Uji ada di `app/src/test/java`. Paket ini tidak mengimpor `android.*`. Modul Gradle lain tidak ditambah. `settings.gradle.kts` tetap hanya `include(":app")`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
 
 | Python | Kotlin |
 |---|---|
-| `muatan_okok`, `muatan_dari_pabrik` | `IklanOkok.kt` |
-| `parse_broadcast`, `parse_weight`, `SiaranOkok` | `SiaranOkok.kt` |
-| `GattParser`, `parse_gatt`, `GattOkok`, `GattKonfirmasi` | `GattOkok.kt` |
+| `muatan_okok`, `muatan_dari_pabrik` | `OkokAdvertisement.kt` (`okokPayload`, `payloadFromManufacturer`) |
+| `parse_broadcast`, `parse_weight`, `SiaranOkok` | `OkokBroadcast.kt` (`parseBroadcast`, `parseWeight`, `OkokBroadcast`) |
+| `GattParser`, `parse_gatt`, `GattOkok`, `GattKonfirmasi` | `OkokGatt.kt` (`GattParser`, `parseGatt`, `OkokGatt`, `GattConfirmation`) |
 
 Kesalahan format dan siaran terenkripsi punya tipe sendiri. Siaran terenkripsi adalah subtipe kesalahan format, sama seperti `EncryptedBroadcastError` terhadap `FrameFormatError`. Uji menolak siaran `0xC0` bila bit 7 pada byte offset 4 menyala, untuk frame pendek dan frame yang ditambah enam byte.
 
@@ -33,4 +33,4 @@ Vektor hex dan nilai harapan disalin dari uji Python. Jangan menulis vektor baru
 
 ## Belum dikerjakan
 
-Rumus, `SesiUkur`, Room, DataStore, Compose, izin Bluetooth, dan `vA019`.
+Rumus, `MeasurementSession`, Room, DataStore, Compose, izin Bluetooth, dan `vA019`.

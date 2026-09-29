@@ -6,24 +6,24 @@ Sumber perilaku: [cs_bias_v235.py](../../rumus/cs_bias_v235.py) dan [sesi_ukur.p
 
 ## Yang dihasilkan
 
-Di `com.mascill.healthtrack.domain.rumus`:
+Di `com.mascill.healthtrack.domain.formula`:
 
 - `CsBiasV235.kt` — `cs_bias_v235` dan `parse_default_z`.
 - Pembantu float yang setara `_f32` dan `_fma`: tiap operasi yang di Python dipaksa binary32 memakai `Float`.
 
-Di `com.mascill.healthtrack.domain.sesi`:
+Di `com.mascill.healthtrack.domain.session`:
 
-- `DataTubuh` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
-- `HasilUkur` — mac, product id, berat kg, tampilan berat, impedansi, nama rumus, kode, laporan.
-- `PenyimpanHasil` — satu method `simpanHasil`. Implementasi Room menyusul di fase 3. Uji fase ini memakai penyimpan palsu di memori.
-- `hitungLaporan` — satu nilai ohm memanggil `parse_default_z` dan mengembalikan nama `v235`. Sepuluh nilai belum punya rumus; cabang itu ditutup di [fase 6](fase-06-frekuensi-ganda.md). Jumlah selain 1 dan 10 menolak sesi.
-- `SesiUkur` — keadaan `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
+- `BodyData` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
+- `MeasurementResult` — mac, product id, berat kg, tampilan berat, impedansi, nama rumus, kode, laporan.
+- `ResultStore` — satu method `saveResult`. Implementasi Room menyusul di fase 3. Uji fase ini memakai penyimpan palsu di memori.
+- `calculateReport` — satu nilai ohm memanggil `parse_default_z` dan mengembalikan nama `v235`. Sepuluh nilai belum punya rumus; cabang itu ditutup di [fase 6](fase-06-frekuensi-ganda.md). Jumlah selain 1 dan 10 menolak sesi.
+- `MeasurementSession` — keadaan `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
 
 Aturan mesin, sudah terbukti di Python:
 
 1. Impedansi laporan adalah `impedance_ohm` pada siaran terkunci. Siaran belum kunci tidak menimpa impedansi yang sudah ada.
 2. Berat yang disimpan adalah GATT `lock_flag == 1` dan bukan riwayat. Berat GATT yang sudah masuk tidak diganti siaran.
-3. `pakaiBeratSiaran` menutup sesi dari siaran terkunci bila GATT belum ada.
+3. `applyBroadcastWeight` menutup sesi dari siaran terkunci bila GATT belum ada.
 4. Sesi ditutup hanya bila rumus mengembalikan kode 0. Hasil pertama yang berhasil tetap, termasuk bila frame berat berikutnya datang.
 5. Angka komposisi di dalam paket GATT tidak mengisi laporan.
 
@@ -61,7 +61,7 @@ Nilai mentah pada vektor laki-laki itu, sebelum pembulatan layar: `bfp` 23,07963
 
 1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z`.
 2. Salin uji `rumus/test_cs_bias_v235.py`: nilai sama dengan library, kode galat berurutan, laporan Java memotong float (`bfp` 21,062211990356445 pada masukan 1 / 30 / 170,9 / 70,56 / 500,4).
-3. Port `SesiUkur` dan `hitungLaporan` untuk satu ohm.
+3. Port `MeasurementSession` dan `calculateReport` untuk satu ohm.
 4. Salin `aplikasi/test_sesi_ukur.py` kelas `SesiUkurTest` kecuali `test_sepuluh_impedansi`. Uji itu menunggu `vA019`.
 5. Tambah uji pembulatan tabel di atas, plus lemak 34,8 untuk kelamin 0.
 
