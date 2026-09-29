@@ -41,17 +41,18 @@ HealthTrack/app/                satu-satunya modul Gradle
   src/main/java/com/mascill/healthtrack/
     domain/
       model/                    ScaleBroadcast, ScaleGatt, kesalahan format
-      repository/               ScaleProtocolRepository, GattFrameReader
+      repository/               ScaleBroadcastRepository, ScaleGattRepository
       formula/                  v235 pada fase 2, vA019 pada fase 6
       session/                  BodyData, MeasurementSession, MeasurementResult
     data/
-      protocol/                 parser iklan, siaran, GATT, dan JNI bridge
+      datasource/               JNI bridge NativeProtocol
       mapper/                   byte mentah ke model domain
       model/                    RawBroadcast, RawGattMeasurement
-      repository/               ScaleProtocolRepositoryImpl
-      util/                     konstanta dan indeks hasil native
+      repository/               implementasi siaran dan GATT, termasuk parser frame
+      util/                     byte, berat, konstanta, indeks hasil native
       local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
+    di/                         RepositoryModule, binding Hilt
     presentation/               empat layar Compose
   src/main/cpp/                 implementasi native C
     CMakeLists.txt
@@ -61,7 +62,7 @@ HealthTrack/app/                satu-satunya modul Gradle
   src/test/java/                JUnit host, tanpa emulator
 ```
 
-HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser, rumus, dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
+HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser frame ada di implementasi repository. Rumus dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
 
 ## Lapisan native (C/C++ JNI)
 
@@ -89,9 +90,9 @@ Arsitektur dua jalur:
 
 Pemilihan jalur otomatis lewat `NativeProtocol.isLoaded`.
 
-Tahap ini tidak memasang supabase-kt, Hilt, OkHttp, atau Retrofit. Model sesi adalah `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/session`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
+Tahap ini memasang Hilt. supabase-kt, OkHttp, dan Retrofit tidak dipasang. Model sesi adalah `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/session`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
 
-Layar memakai Navigation 3 (`NavDisplay`, `NavKey`) saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin yang sudah terpin. AGP dan Kotlin yang ada tidak diturunkan. ViewModel memakai `StateFlow` dan konstruktor biasa.
+Layar memakai Navigation 3 (`NavDisplay`, `NavKey`) saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin yang sudah terpin. AGP dan Kotlin yang ada tidak diturunkan. ViewModel memakai `@HiltViewModel`, `StateFlow`, dan konstruktor yang diisi Hilt.
 
 Preferensi lokal: DataStore `healthtrack_prefs`. Profil dan hasil: Room, tabel `body` dan `measurement`, setara [Penyimpan](../../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
 

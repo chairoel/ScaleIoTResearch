@@ -6,6 +6,58 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-29 18:02 WIB — Hilt tidak dipecah per layer
+
+Binding yang ada hanya [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt): `ScaleBroadcastRepository` dan `ScaleGattRepository` ke implementasi data, `@Singleton` pada `SingletonComponent`. Domain tidak punya modul Hilt. Isinya antarmuka, model, dan kesalahan format. Modul di `domain/` menarik Hilt ke paket yang tidak mengimpor framework Android.
+
+Data tidak punya modul terpisah. [`NativeProtocol`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt) adalah `object` JNI yang dimuat sekali. Mapper adalah extension tanpa konstruktor. Util adalah fungsi dan konstanta. `GattParser` privat di dalam [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt); `@Singleton` pada repository itu yang menjaga buffer `parse`. Memindahkan `@Module` ke `data/di` tetap mengikat komponen aplikasi yang sama.
+
+Konstruktor kedua implementasi repository kosong. Tidak ada dependensi lain yang perlu `@Provides` atau `@Binds` sebelum Room, DataStore, dan ViewModel di fase 3.
+
+## 2026-09-29 17:58 WIB — Konversi berat ada di data/util
+
+Koreksi terhadap catatan 2026-09-29 17:12 dan 2026-09-29 16:56. Konversi berat tidak lagi di `data/mapper/WeightMapper.kt`.
+
+- [`Weight.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/Weight.kt): `unit`, `digitPlaces`, `unitNameFromCode`, `scaleText`, `weightKilograms`, `mapWeight`. Satuan `lb` dan `st` memakai `Constants.LB_PER_KG`.
+- [`ProtocolUtils.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt): `bits`, bersama `u8` dan `bytesToInt`.
+
+Paket `data/mapper` hanya memetakan model data ke domain: [`BroadcastMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/BroadcastMapper.kt) dan [`GattMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt). Penyempitan komposisi tubuh (`setAxunge`, `setWater`, `setMuscle`, dan sejenisnya) tetap privat di `GattMapper`.
+
+## 2026-09-29 17:54 WIB — Jembatan JNI ada di data/datasource
+
+Koreksi terhadap catatan 2026-09-29 17:45. [`NativeProtocol`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt) ada di `com.mascill.healthtrack.data.datasource`, bukan `data/protocol`. Paket `data/protocol` di sumber utama kosong. Uji parser tetap di paket `com.mascill.healthtrack.data.protocol`.
+
+Nama fungsi di [`scale_protocol_jni.c`](../HealthTrack/app/src/main/cpp/scale_protocol_jni.c) mengikuti paket Kotlin itu. Awalan simbolnya `Java_com_mascill_healthtrack_data_datasource_NativeProtocol_`.
+
+```6:6:HealthTrack/app/src/main/cpp/scale_protocol_jni.c
+#define JNI_PKG Java_com_mascill_healthtrack_data_datasource_NativeProtocol_
+```
+
+## 2026-09-29 17:45 WIB — Parser frame ada di repository implementation
+
+Koreksi terhadap catatan yang menaruh parser di `data/protocol`. Pembacaan iklan, berat, dan siaran ada di [`ScaleBroadcastRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleBroadcastRepositoryImpl.kt). Pembacaan GATT ada di [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt). `data/protocol` hanya menyisakan [`NativeProtocol`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/protocol/NativeProtocol.kt), jembatan JNI.
+
+## 2026-09-29 17:43 WIB — GATT punya satu antarmuka repository
+
+Koreksi terhadap catatan 2026-09-29 17:38. [`ScaleGattRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleGattRepository.kt) tidak lagi punya `GattFrameReader` atau `createGattReader`. Satu antarmuka itu memuat `parseGatt` dan `parse`. `parseGatt` mulai buffer baru tiap frame. `parse` menyimpan buffer pada instance [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt).
+
+## 2026-09-29 17:38 WIB — Repository protocol terpisah: siaran dan GATT
+
+Koreksi terhadap catatan 2026-09-29 17:16 dan 2026-09-29 17:21. Tidak ada lagi `ScaleProtocolRepository`. Pintu domain ada dua:
+
+- [`ScaleBroadcastRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleBroadcastRepository.kt): `scalePayload`, `payloadFromManufacturer`, `parseBroadcast`. Implementasi [`ScaleBroadcastRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleBroadcastRepositoryImpl.kt).
+- [`ScaleGattRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleGattRepository.kt): `parseGatt` dan `createGattReader`. Implementasi [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt). `GattFrameReader` ada di berkas antarmuka GATT yang sama.
+
+Keduanya diikat di [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt) sebagai `@Singleton`.
+
+## 2026-09-29 17:21 WIB — Hilt mengikat repository protocol
+
+Koreksi terhadap catatan 2026-09-29 17:16 yang menyatakan Hilt belum dipakai. Aplikasi memakai [`App`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/App.kt) dengan `@HiltAndroidApp`. [`MainActivity`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/MainActivity.kt) memakai `@AndroidEntryPoint`.
+
+[`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt) mengikat `ScaleProtocolRepository` ke `ScaleProtocolRepositoryImpl` sebagai `@Singleton`. Antarmuka domain tidak mengimpor Hilt. Versi: Hilt `2.60.1`, KSP `2.2.10-2.0.2`, sama dengan Kotlin `2.2.10`.
+
+AGP 9 menolak `kotlin.sourceSets`. KSP `2.2.10-2.0.2` masih memakai DSL itu, jadi `HealthTrack/gradle.properties` memuat `android.disallowKotlinSourceSets=false`. supabase-kt, OkHttp, Retrofit, Room, dan DataStore belum dipasang.
+
 ## 2026-09-29 17:16 WIB — Pintu protocol adalah repository
 
 Koreksi terhadap pohon paket di catatan lama yang menaruh parser di `domain/protocol`. Pemanggil di domain memakai [`ScaleProtocolRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleProtocolRepository.kt). Implementasinya [`ScaleProtocolRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleProtocolRepositoryImpl.kt) di data, dan dialah yang memanggil parser serta `GattParser`.

@@ -1,5 +1,97 @@
 # Activity Log
 
+## 2026-09-29 17:58 WIB — Konversi berat pindah ke data/util
+
+### Tujuan
+Memisahkan helper berat dan bit dari paket mapper. Mapper hanya memetakan model data ke model domain.
+
+### Perubahan
+- `data/util/Weight.kt`: `unit`, `digitPlaces`, `unitNameFromCode`, `scaleText`, `weightKilograms`, `mapWeight`. Dipindah dari `data/mapper/WeightMapper.kt`.
+- `data/util/ProtocolUtils.kt`: `bits`.
+- `data/mapper/WeightMapper.kt`: dihapus.
+- `BroadcastMapper.kt`, `GattMapper.kt`, kedua implementasi repository, dan `ScaleBroadcastParserTest.kt`: import mengikuti lokasi baru.
+- `docs/android-dev/00-rencana-besar.md`: pohon `util/` mencakup byte dan berat.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. `BroadcastMapper` dan `GattMapper` tetap di `data/mapper`.
+
+## 2026-09-29 17:54 WIB — NativeProtocol pindah ke data/datasource
+
+### Tujuan
+Menaruh jembatan JNI di paket sumber data, karena `data/protocol` tidak lagi memuat parser.
+
+### Perubahan
+- `data/datasource/NativeProtocol.kt`: dipindah dari `data/protocol/`. Paket menjadi `com.mascill.healthtrack.data.datasource`.
+- `data/mapper/WeightMapper.kt`, `data/repository/ScaleBroadcastRepositoryImpl.kt`, `data/repository/ScaleGattRepositoryImpl.kt`: import mengikuti paket baru.
+- `app/src/main/cpp/scale_protocol_jni.c`: awalan simbol JNI dari `data_protocol` menjadi `data_datasource`.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket memakai `datasource/`.
+
+### Status
+Selesai. Paket `data/protocol` di sumber utama kosong. Uji JUnit host tidak memuat `.so`, jadi nama simbol JNI belum teruji di perangkat.
+
+## 2026-09-29 17:45 WIB — Parser pindah ke repository implementation
+
+### Tujuan
+Menaruh pembacaan frame di dalam implementasi repository, bukan sebagai API terpisah di `data/protocol`.
+
+### Perubahan
+- `data/repository/ScaleBroadcastRepositoryImpl.kt`: iklan, berat, dan siaran. `AdvertisementParser.kt`, `WeightParser.kt`, dan `BroadcastParser.kt` dihapus.
+- `data/repository/ScaleGattRepositoryImpl.kt`: parser GATT dan `GattParser`. `GattFrameParser.kt` dihapus.
+- `data/protocol/` menyisakan `NativeProtocol.kt`.
+- Uji siaran, iklan, dan GATT memanggil repository implementation.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-09-29 17:43 WIB — ScaleGattRepository satu antarmuka
+
+### Tujuan
+Menghapus antarmuka kedua dari pintu GATT. Buffer paket ada pada repository itu sendiri.
+
+### Perubahan
+- `domain/repository/ScaleGattRepository.kt`: hanya `ScaleGattRepository`, dengan `parseGatt` dan `parse`. `GattFrameReader` dan `createGattReader` dihapus.
+- `data/repository/ScaleGattRepositoryImpl.kt`: menyimpan satu `GattParser` untuk `parse`.
+- `ScaleGattRepositoryImplTest.kt`: paket yang belum lengkap memakai `parse`.
+
+### Status
+Selesai. `ScaleGattRepositoryImplTest` lulus.
+
+## 2026-09-29 17:38 WIB — Repository protocol dipecah jadi siaran dan GATT
+
+### Tujuan
+Memisahkan pintu siaran dan pintu GATT. Satu repository tidak lagi mengurus keduanya.
+
+### Perubahan
+- `domain/repository/ScaleBroadcastRepository.kt`: iklan dan siaran.
+- `domain/repository/ScaleGattRepository.kt`: `parseGatt`, `createGattReader`, dan `GattFrameReader`.
+- `data/repository/ScaleBroadcastRepositoryImpl.kt` dan `ScaleGattRepositoryImpl.kt`: implementasi masing-masing.
+- `di/RepositoryModule.kt`: dua binding `@Binds`.
+- `domain/repository/ScaleProtocolRepository.kt`, `data/repository/ScaleProtocolRepositoryImpl.kt`, dan uji lamanya dihapus.
+- Uji baru: `ScaleBroadcastRepositoryImplTest` dan `ScaleGattRepositoryImplTest`.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket memakai dua repository.
+
+### Status
+Selesai. Kedua uji repository lulus.
+
+## 2026-09-29 17:21 WIB — Hilt dipasang dan repository diikat
+
+### Tujuan
+Memasang Hilt sebagai dependency injection dan menyambungkan repository protocol yang sudah ada.
+
+### Perubahan
+- `HealthTrack/gradle/libs.versions.toml`: Hilt `2.60.1` dan KSP `2.2.10-2.0.2`.
+- `HealthTrack/build.gradle.kts` dan `HealthTrack/app/build.gradle.kts`: plugin Hilt dan KSP, dependensi `hilt-android` serta `hilt-compiler`.
+- `HealthTrack/gradle.properties`: `android.disallowKotlinSourceSets=false` supaya KSP 2.2.10 boleh mendaftarkan sumber hasil generate di AGP 9.
+- `App.kt`: `@HiltAndroidApp`.
+- `AndroidManifest.xml`: `android:name=".App"`.
+- `MainActivity.kt`: `@AndroidEntryPoint`.
+- `data/repository/ScaleProtocolRepositoryImpl.kt`: konstruktor `@Inject`.
+- `di/RepositoryModule.kt`: `@Binds` `ScaleProtocolRepository` ke `ScaleProtocolRepositoryImpl` pada `SingletonComponent`.
+- `docs/android-dev/00-rencana-besar.md` dan `fase-03-profil-room.md`: Hilt sudah terpasang. ViewModel fase 3 memakai `@HiltViewModel`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
 ## 2026-09-29 17:16 WIB — Repository protocol: interface di domain, implementasi di data
 
 ### Tujuan

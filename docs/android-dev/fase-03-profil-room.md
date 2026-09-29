@@ -34,11 +34,11 @@ Teks Indonesia.
 2. **Sesi.** Tombol mulai. Tanpa profil, sesi tidak masuk keadaan mengukur. Bluetooth belum disambungkan; tombol hanya membuka alur yang fase 4 isi.
 3. **Riwayat.** Daftar kosong bila belum ada baris `measurement`. Membuka hasil tersimpan menyusul di fase 5.
 
-ViewModel memegang `StateFlow`. Dependensi diisi lewat konstruktor dari `MainActivity` atau pabrik kecil di `app`. Hilt tidak dipasang.
+ViewModel memegang `StateFlow` dan memakai `@HiltViewModel`. Hilt sudah dipasang. Binding repository baru ditambah di `RepositoryModule`.
 
 ## Langkah
 
-1. Tambah Room, DataStore, dan plugin serialization ke version catalog. Jangan menambah supabase, Hilt, OkHttp, atau Retrofit.
+1. Tambah Room, DataStore, dan plugin serialization ke version catalog. Jangan menambah supabase, OkHttp, atau Retrofit.
 2. Entity, DAO, dan database untuk `body` dan `measurement`.
 3. Uji JVM di `app` (bukan emulator): simpan profil, muat baris terbaru, tolak jenis kelamin 2, simpan satu hasil lewat `ResultStore`, baca kembali JSON laporan.
 4. Layar profil dan riwayat kosong, serta kunci mulai sesi bila `loadBody` kosong.
