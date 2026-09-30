@@ -1,5 +1,177 @@
 # Activity Log
 
+## 2026-10-01 01:59 WIB — scaleHeaders pindah ke DataModule
+
+### Tujuan
+Daftar header iklan disediakan di `data/di`, satu tempat dengan parser sesi GATT.
+
+### Perubahan
+- `data/di/DataModule.kt`: `@Provides scaleHeaders()` mengembalikan `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`, ditandai `@ScaleFrameHeaders`.
+- `di/RepositoryModule.kt`: penyedia header dihapus. Modul ini hanya mengikat `ScaleTransmissionRepository` dan `ScaleGattRepository`.
+- Uji transmission dan iklan memakai `DataModule.scaleHeaders()`.
+- `docs/android-dev/00-rencana-besar.md`: `RepositoryModule` tercatat sebagai binding repository.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 01:53 WIB — Parser sesi GATT disediakan DataModule
+
+### Tujuan
+Satu `GattParser` untuk `parse` dibuat di `data/di`, lalu diterima `ScaleGattRepositoryImpl` lewat konstruktor.
+
+### Perubahan
+- `data/di/DataModule.kt`: `@Provides @Singleton gattParser()` membuat parser sesi. Perintah terpecah 18, 19, dan 20 dilanjutkan pada instance yang sama.
+- `data/repository/ScaleGattRepositoryImpl.kt`: konstruktor menerima `GattParser`. `parseGatt` tetap membuat parser baru tiap frame.
+- `data/repository/gatt/GattParser.kt`: kelas ini publik karena konstruktor repository dan penyedia Hilt menyebut tipenya.
+- Uji GATT membuat repository dengan `DataModule.gattParser()`.
+- `docs/android-dev/00-rencana-besar.md`: pohon `data/di` memuat `DataModule`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 01:49 WIB — ScaleFrameHeaders pindah ke data/di
+
+### Tujuan
+Anotasi qualifier Hilt untuk header iklan tinggal di paket `data.di`, terpisah dari implementasi repository.
+
+### Perubahan
+- `data/di/ScaleFrameHeaders.kt`: anotasi `@Qualifier` `ScaleFrameHeaders`.
+- `data/repository/ScaleTransmissionRepositoryImpl.kt`: anotasi dihapus dari berkas ini. Konstruktor mengimpornya dari `data.di`.
+- `di/RepositoryModule.kt`: impor mengikuti paket baru.
+- `docs/android-dev/00-rencana-besar.md`: pohon `data/` memuat `di/`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 01:47 WIB — Header iklan masuk lewat konstruktor
+
+### Tujuan
+Daftar header iklan yang diterima sebagai frame timbangan disediakan Hilt, lalu diterima `ScaleTransmissionRepositoryImpl` lewat konstruktor.
+
+### Perubahan
+- `di/RepositoryModule.kt`: `@Provides scaleHeaders()` mengembalikan `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`, ditandai `@ScaleFrameHeaders`.
+- `data/repository/ScaleTransmissionRepositoryImpl.kt`: konstruktor `@Inject` menerima `IntArray` itu. Anotasi `ScaleFrameHeaders` membedakannya dari `IntArray` lain.
+- Uji transmission dan iklan membuat repository dengan `RepositoryModule.scaleHeaders()`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 01:39 WIB — Composition dan header iklan pindah ke pemakainya
+
+### Tujuan
+Menaruh tipe dan daftar yang hanya dipakai satu berkas di berkas itu.
+
+### Perubahan
+- `data/mapper/GattMapper.kt`: `Composition` menjadi kelas `private`. Angka yang sudah dijepit hanya hidup saat `RawGattMeasurement` menjadi `ScaleGatt`.
+- `data/model/Composition.kt`: dihapus.
+- `data/repository/ScaleTransmissionRepositoryImpl.kt`: `scaleHeaders` menjadi properti `private`. Isinya `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`.
+- `data/util/Constants.kt`: `scaleHeaders` dihapus. Objek ini hanya menyimpan `LB_PER_KG`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 01:09 WIB — Konversi berat pindah ke mapper
+
+### Tujuan
+Menaruh konversi byte berat menjadi kilogram dan teks timbangan di paket mapper. Fungsi itu hanya dipakai mapper dan uji berat.
+
+### Perubahan
+- `data/mapper/WeightMapper.kt`: `unit`, `digitPlaces`, `unitNameFromCode`, `scaleText`, `weightKilograms`, dan `mapWeight`. Dipindah dari `data/util/Weight.kt`.
+- `data/util/Weight.kt`: dihapus.
+- `GattMapper.kt`, `TransmissionMapper.kt`, dan `ScaleTransmissionParserTest.kt`: impor mengikuti paket baru.
+- `docs/android-dev/00-rencana-besar.md`: pohon `util/` tidak lagi memuat berat.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:57 WIB — Model domain hanya dibangun di mapper
+
+### Tujuan
+Memisahkan pembacaan byte dari perakitan model domain. Pembaca frame sebelumnya langsung membangun `ScaleTransmission`, `ScaleGatt`, dan `GattConfirmation`, sementara mapper yang ada tidak terpanggil.
+
+### Perubahan
+- `data/model/RawProtocolData.kt`: `RawTransmission` membawa `RawWeight` dan `RawImpedance`. `RawGattMeasurement` membawa `RawBody` bila frame punya blok komposisi.
+- `data/mapper/TransmissionMapper.kt` dan `data/mapper/GattMapper.kt`: satu-satunya tempat yang membangun model domain, termasuk hasil `DoubleArray` native dan penjepit komposisi.
+- `data/repository/transmission/`: `parseCa`, `parseC0`, dan `parseFf` mengembalikan `RawTransmission`. `fromWeight` dan `div10` dihapus dari `TransmissionFrame`.
+- `data/repository/gatt/GattFrames.kt` dan `GattNative.kt`: pembaca mengiris byte atau menolak kode kesalahan, lalu memanggil mapper.
+- `data/repository/gatt/GattComposition.kt` dan `data/model/Composition.kt`: dihapus.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket mengikuti batas baru.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:31 WIB — Fungsi GATT satu berkas jadi private
+
+### Tujuan
+Fungsi di paket `data/repository/gatt` yang hanya dipanggil dari berkas yang sama tidak perlu terlihat di seluruh modul.
+
+### Perubahan
+- `GattNative.kt`: `gattFromNative` dan `rolesFromNative` menjadi `private`. Pembaca yang dipanggil `GattFrames` tetap `internal`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:25 WIB — Fungsi transmission satu pemanggil jadi private
+
+### Tujuan
+Fungsi yang hanya dipanggil satu fungsi tidak perlu terlihat di seluruh modul.
+
+### Perubahan
+- `FfTransmission.kt`: `cloudProperty` menjadi `private`.
+- `ScaleTransmissionRepositoryImpl`: pembaca iklan Kotlin dan `transmissionFromNative` menjadi `private`. `TransmissionPayload.kt` dihapus.
+- `docs/android-dev/00-rencana-besar.md`: paket `transmission/` tidak lagi menyebut muatan iklan.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:13 WIB — Angka mentah di ProtocolUtils diberi nama
+
+### Tujuan
+Menghilangkan angka mentah pada util byte bersama.
+
+### Perubahan
+- `data/util/ProtocolUtils.kt`: `LOW_BYTE`, `BYTE_SHIFT`, `BIT_COUNT`, `HIGH_BIT`, `LOW_BIT`, `BIT_MASK`, dan `INT_ABSENT`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:08 WIB — Angka nol pembaca transmission diberi nama
+
+### Tujuan
+Menghilangkan angka mentah yang tersisa di paket `data/repository/transmission`.
+
+### Perubahan
+- `data/util/TxConst.kt`: `FLAG_OFF`, `NO_PROPERTY`, `NO_PRODUCT`, `NO_SEQ`, `NO_WEIGHT`, `NO_IMPEDANCE`, `BIT_CLEAR`, `BIT_SET`, serta `AD_START`, `AD_END`, `AD_LENGTH_BYTES`, dan `MANUFACTURER_ID_MIN`.
+- Pembaca `0xCA`, `0xC0`, `0xFF`, muatan iklan, dan hasil native memakai nama itu. Komentar menyebut konstanta, bukan nomor byte.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-10-01 00:04 WIB — Angka nol pembaca GATT diberi nama
+
+### Tujuan
+Menghilangkan angka mentah yang tersisa di pembaca byte, hasil native, dan perakit paket GATT.
+
+### Perubahan
+- `data/util/GattConst.kt`: `FLAG_OFF`, `INT_ABSENT`, dan `EMPTY_LEN`.
+- `GattBytes`, `GattNative`, dan `GattParser` memakai nama itu. Komentar menyebut konstanta perintah, bukan angka perintah.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-09-30 23:59 WIB — Nilai komposisi kosong bernama CLEARED
+
+### Tujuan
+Menghilangkan `0.0` mentah pada pembaca komposisi GATT.
+
+### Perubahan
+- `data/util/GattConst.kt`: `CLEARED` untuk field komposisi yang ditolak.
+- `data/repository/gatt/GattComposition.kt`: hasil kosong dan massa nol memakai `CLEARED`.
+- `data/repository/gatt/GattFrames.kt`: impor `Composition` dari `data.model`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
 ## 2026-09-30 23:53 WIB — Impor java.lang.Float dihapus
 
 ### Tujuan

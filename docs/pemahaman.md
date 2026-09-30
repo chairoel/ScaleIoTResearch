@@ -6,6 +6,72 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-01 01:59 WIB — scaleHeaders disediakan DataModule
+
+Koreksi catatan 2026-10-01 01:47 dan 2026-10-01 01:49. Daftar header iklan disediakan [`DataModule.scaleHeaders`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt): `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`, ditandai `@ScaleFrameHeaders`. [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt) hanya mengikat `ScaleTransmissionRepository` dan `ScaleGattRepository`.
+
+## 2026-10-01 01:53 WIB — Parser sesi GATT ada di DataModule
+
+[`DataModule.gattParser`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt) menyediakan satu [`GattParser`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattParser.kt) untuk seluruh aplikasi. [`ScaleGattRepositoryImpl.parse`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt) memakai instance itu, jadi perintah terpecah 18, 19, dan 20 bisa selesai pada panggilan berikutnya. `parseGatt` tetap membuat `GattParser` baru untuk tiap frame. Kelas `GattParser` publik karena konstruktor repository dan penyedia Hilt menyebut tipenya.
+
+## 2026-10-01 01:49 WIB — ScaleFrameHeaders ada di data/di
+
+Koreksi catatan 2026-10-01 01:47. Anotasi [`ScaleFrameHeaders`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/ScaleFrameHeaders.kt) ada di paket `data.di`. [`ScaleTransmissionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleTransmissionRepositoryImpl.kt) dan [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt) mengimpor anotasi itu. Daftar header tetap disediakan `RepositoryModule.scaleHeaders`.
+
+## 2026-10-01 01:47 WIB — Header iklan diisi Hilt
+
+Koreksi catatan 2026-10-01 01:39 pada `scaleHeaders`. Daftar itu disediakan [`RepositoryModule.scaleHeaders`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt): `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`. [`ScaleTransmissionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleTransmissionRepositoryImpl.kt) menerimanya lewat konstruktor. Anotasi `ScaleFrameHeaders` di berkas yang sama menandai parameter itu. `Constants` tetap hanya menyimpan `LB_PER_KG`.
+
+## 2026-10-01 01:39 WIB — Composition dan header iklan milik pemakainya
+
+Koreksi catatan 2026-10-01 00:57. `Composition` ada lagi, sebagai kelas `private` di dalam [`GattMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt). Kelas itu menampung angka komposisi yang sudah dijepit, hanya saat `RawGattMeasurement` menjadi `ScaleGatt`. `data/model` tidak memuat tipe itu. Model mentah komposisi tetap `RawBody`.
+
+`scaleHeaders` adalah properti `private` pada [`ScaleTransmissionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleTransmissionRepositoryImpl.kt). Isinya `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`. [`Constants`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/Constants.kt) hanya menyimpan `LB_PER_KG`.
+
+## 2026-10-01 01:09 WIB — Konversi berat ada di WeightMapper
+
+Koreksi catatan 2026-09-29 17:58. Konversi berat tidak lagi di `data/util/Weight.kt`.
+
+[`WeightMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/WeightMapper.kt) memuat `unit`, `digitPlaces`, `unitNameFromCode`, `scaleText`, `weightKilograms`, dan `mapWeight`. `weightKilograms` memilih `NativeProtocol.nativeWeightKilograms` bila `libscale_protocol.so` termuat, dan rumus Kotlin bila tidak. `mapWeight` mengembalikan kilogram sebagai `Float` untuk transmission.
+
+`ProtocolUtils` tetap di `data/util`: `u8`, `bytesToInt`, `bits`, `f32`, `roundHalfUp`, dan `javaFloatText`. `Constants.LB_PER_KG` tetap di sana dan dipakai `WeightMapper` untuk pon dan stone.
+
+## 2026-10-01 00:57 WIB — Model domain dibangun di mapper
+
+Koreksi catatan 2026-09-29 18:09, 2026-09-29 18:12, dan 2026-10-01 00:25. Pembaca frame tidak lagi membangun model domain.
+
+[`parseCa`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/transmission/CaTransmission.kt), `parseC0`, dan `parseFf` mengembalikan [`RawTransmission`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/RawProtocolData.kt). `RawWeight` membedakan berat dari dua byte, bilangan dibagi sepuluh, berat kosong, dan teks timbangan kosong. `RawImpedance` membedakan impedansi yang tidak ada, nol, dan dibagi sepuluh. Layout `0xCA`, `0xC0`, dan `0xFF` tidak memakai satu rumus.
+
+[`RawGattMeasurement`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/RawProtocolData.kt) membawa `RawBody` hanya bila frame punya blok komposisi. Perintah 0 dan 1 tidak punya blok itu. Versi 16 membacanya saat kunci aktif. Perintah 18 dan 19 selalu membacanya, lalu mapper menghitung ulang otot.
+
+[`TransmissionMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/TransmissionMapper.kt) dan [`GattMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt) adalah satu-satunya pembangun `ScaleTransmission`, `ScaleGatt`, dan `GattConfirmation`. Penjepit komposisi ada di `GattMapper`. Pemetaan `DoubleArray` native ada di mapper yang sama. Pembaca native hanya memanggil JNI dan menolak kode kesalahan. `fromWeight`, `div10` di pembaca transmission, `cloudProperty` di `FfTransmission`, `GattComposition`, dan `data/model/Composition` tidak ada lagi.
+
+[`ScaleTransmissionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleTransmissionRepositoryImpl.kt) tetap memegang pembacaan iklan dan penolakan kode kesalahan native.
+
+## 2026-10-01 00:31 WIB — Pembantu GATT satu berkas bersifat private
+
+[`gattFromNative`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattNative.kt) dan `rolesFromNative` di berkas yang sama bersifat `private`. Hanya pembaca native di berkas itu yang memanggilnya. `nativeParseAssembled`, `nativeParseV16`, `nativeParseRoles`, dan `nativeParseV17Weight` tetap `internal` karena [`GattFrames`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattFrames.kt) memanggilnya. Fungsi komposisi, `need`, `javaByte`, `sliceInt`, `splitPack`, dan `concatPackets` tetap `internal` karena pemanggilnya ada di berkas lain pada paket yang sama.
+
+## 2026-10-01 00:25 WIB — Pembantu transmission satu pemanggil bersifat private
+
+Fungsi yang hanya dipanggil satu fungsi tidak `internal`. `cloudProperty` ada di [`FfTransmission.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/transmission/FfTransmission.kt) sebagai `private`, karena hanya `parseFf` yang memakai. Pembaca iklan Kotlin `scalePayloadKotlin` dan `transmissionFromNative` adalah method `private` pada [`ScaleTransmissionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleTransmissionRepositoryImpl.kt). `need`, `lockBit`, `div10`, `frameInt`, dan `fromWeight` tetap `internal` karena lebih dari satu pembaca memakainya. `parseCa`, `parseC0`, dan `parseFf` tetap `internal` karena dispatcher-nya ada di berkas lain.
+
+## 2026-10-01 00:13 WIB — Mask byte ada di ProtocolUtils
+
+Mask dan geser byte di [`ProtocolUtils.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt) bernama `LOW_BYTE`, `BYTE_SHIFT`, `BIT_COUNT`, `HIGH_BIT`, `LOW_BIT`, `BIT_MASK`, dan `INT_ABSENT`. `BYTE_SHIFT` dan `BIT_COUNT` sama-sama `8` dengan arti berbeda: geser satu byte, dan lebar bit dalam satu byte. Nama itu tinggal di berkas util byte. `TxConst.LOW_BYTE` dan `GattConst.LOW_BYTE` tetap milik layout frame.
+
+## 2026-10-01 00:08 WIB — Angka nol transmission punya nama sendiri
+
+Di [`TxConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/TxConst.kt), beberapa nilai `0` tidak digabung. `FLAG_OFF` adalah flag native yang mati. `NO_PROPERTY`, `NO_PRODUCT`, dan `NO_SEQ` adalah field yang layout itu tidak punya. `NO_WEIGHT` dan `NO_IMPEDANCE` adalah berat dan impedansi kosong. `AD_START` dan `AD_END` adalah awal pindai iklan dan panjang blok yang mengakhiri pindai. `BIT_CLEAR` dan `BIT_SET` adalah karakter bit pada string properti.
+
+## 2026-10-01 00:04 WIB — Angka nol GATT punya tiga nama
+
+Di [`GattConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/GattConst.kt), `FLAG_OFF`, `INT_ABSENT`, dan `EMPTY_LEN` sama-sama `0` dengan arti berbeda. `FLAG_OFF` adalah flag native yang mati. `INT_ABSENT` adalah irisan bilangan yang kosong atau tidak muat di 32 bit. `EMPTY_LEN` adalah panjang muatan kosong. Mereka tidak digabung karena artinya beda, sama seperti `ERR_OK` dan `CMD_UNLOCKED` yang juga `0`.
+
+## 2026-09-30 23:59 WIB — Komposisi GATT yang ditolak bernama CLEARED
+
+Nilai yang ditampilkan saat field komposisi kosong atau di luar rentang adalah [`GattConst.CLEARED`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/GattConst.kt), yaitu `0.0`. `GattConst.RAW_ABSENT` tetap `65535` pada nilai mentah, sebelum dibagi `GattConst.TENTHS`.
+
 ## 2026-09-30 23:50 WIB — Indeks DoubleArray native satu objek per berkas
 
 [`TxIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/TxIdx.kt), [`GIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/GIdx.kt), dan [`RIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/RIdx.kt) masing-masing satu berkas di `data/util`. Nama berkas sama dengan nama objek. Urutan angka tetap sama dengan urutan yang ditulis jembatan JNI.
