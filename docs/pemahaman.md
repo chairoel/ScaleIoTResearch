@@ -6,6 +6,105 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-09-30 23:50 WIB — Indeks DoubleArray native satu objek per berkas
+
+[`TxIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/TxIdx.kt), [`GIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/GIdx.kt), dan [`RIdx`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/RIdx.kt) masing-masing satu berkas di `data/util`. Nama berkas sama dengan nama objek. Urutan angka tetap sama dengan urutan yang ditulis jembatan JNI.
+
+## 2026-09-30 23:44 WIB — TxConst dan GattConst ada di data/util
+
+[`TxConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/TxConst.kt) dan [`GattConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/GattConst.kt) ada di paket `data/util`. Keduanya tetap objek terpisah. Nama field bentrok, antara lain `HEADER`, `LOW_BYTE`, `TENTHS`, `VERSION_16`, dan `CMD_LOCKED`, jadi tidak digabung ke `Constants`. Pembaca transmission, pembaca GATT, `TransmissionMapper`, dan `GattMapper` mengimpor objek itu.
+
+## 2026-09-30 23:44 WIB — Indeks DoubleArray native bernama NativeDoubleArrayIndex
+
+`TxIdx`, `GIdx`, dan `RIdx` ada di [`NativeDoubleArrayIndex.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/NativeDoubleArrayIndex.kt). Mereka adalah posisi field di `DoubleArray` hasil `nativeParseTransmission`, parser GATT native, dan `nativeParseGattRoles`. Urutan angka tetap sama dengan urutan yang ditulis jembatan JNI.
+
+## 2026-09-29 18:40 WIB — Layout GATT ada di GattConst
+
+Angka perintah, offset, panjang, dan batas komposisi pembaca GATT ada di [`GattConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattConst.kt). Offset tidak digabung dengan [`TxConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/transmission/TxConst.kt). Versi 16, berat versi 17, badan perintah 18 dan 19, serta daftar peran perintah 20 menaruh field di indeks yang berbeda.
+
+Perintah `0` dan `1` adalah berat langsung. `18` pengukuran sekarang, `19` riwayat, `20` daftar peran. Batas komposisi, termasuk `65535`, `5000`, dan tutup otot `50`, ada di objek yang sama. `GattMapper` memakai konstanta itu. Parser di `scale_protocol.c` masih menulis angka yang sama sebagai literal.
+
+## 2026-09-29 18:36 WIB — Layout transmission ada di TxConst
+
+Angka header, versi, offset, panjang, dan kode kesalahan pembaca transmission ada di [`TxConst`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/transmission/TxConst.kt). Offset tidak dijadikan satu daftar `BYTE_n` karena indeks yang sama adalah field berbeda pada `0xCA`, `0xC0`, dan `0xFF`. Panjang minimum dihitung dari offset field ditambah panjang field itu.
+
+Kode kesalahan Kotlin sama dengan makro C:
+
+```8:12:HealthTrack/app/src/main/cpp/scale_protocol.h
+#define SP_OK           0
+#define SP_ERR_EMPTY    1
+#define SP_ERR_UNKNOWN  2
+#define SP_ERR_SHORT    3
+#define SP_ERR_ENCRYPTED 4
+```
+
+Parser di `scale_protocol.c` masih menulis angka itu sebagai literal. `Constants.LB_PER_KG` tetap faktor pon, bukan tempat layout frame.
+
+## 2026-09-29 18:31 WIB — Nama kode frame siaran adalah Transmission
+
+Koreksi catatan 2026-09-29 18:25. Tipe Kotlin tidak memakai kata Indonesia `Siaran`. Nama Inggrisnya `Transmission`.
+
+`Broadcast` tetap dihindari karena bentrok dengan `android.content.BroadcastReceiver`. `Advertisement` tetap nama langkah lain: mengambil muatan dari rekaman pindai (`scalePayload`, `payloadFromManufacturer`). Frame `0xCA`, `0xC0`, dan `0xFF` dibaca `parseTransmission` pada [`ScaleTransmissionRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleTransmissionRepository.kt) dan mengembalikan [`ScaleTransmission`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleTransmission.kt).
+
+Pembaca ada di paket `data/repository/transmission/`. Model mentah `RawTransmission`. Indeks `DoubleArray` native bernama `TxIdx`. Fungsi JNI-nya `nativeParseTransmission`. Struct C `sp_broadcast_t` dan `sp_parse_broadcast` tidak berubah.
+
+```104:105:HealthTrack/app/src/main/cpp/scale_protocol_jni.c
+Java_com_mascill_healthtrack_data_datasource_NativeProtocol_nativeParseTransmission(
+        JNIEnv *env, jclass cls, jbyteArray frame) {
+```
+
+```35:35:HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt
+    @JvmStatic external fun nativeParseTransmission(frame: ByteArray): DoubleArray
+```
+
+## 2026-09-29 18:25 WIB — Frame siaran tidak memakai nama Broadcast
+
+Nama Kotlin untuk frame `0xCA`, `0xC0`, dan `0xFF` adalah siaran. Nama `Broadcast` bentrok dengan `android.content.BroadcastReceiver`. Iklan tetap terpisah: `scalePayload` dan `payloadFromManufacturer` pada [`ScaleSiaranRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleSiaranRepository.kt).
+
+- Model domain [`ScaleSiaran`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleSiaran.kt). Pembacaan domain: `parseSiaran`.
+- Kesalahan frame terenkripsi: `EncryptedSiaranError`.
+- Pembaca ada di [`ScaleSiaranRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleSiaranRepositoryImpl.kt) dan paket `data/repository/siaran/`.
+- Model mentah `RawSiaran`. Mapper [`SiaranMapper.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/SiaranMapper.kt) tetap tidak dipanggil repository.
+- Indeks `DoubleArray` native bernama `SrIdx`, menggantikan `BrIdx`.
+
+Fungsi JNI yang dipanggil Kotlin adalah `nativeParseSiaran`. Simbol C `sp_broadcast_t` dan `sp_parse_broadcast` tetap. Build Android berikutnya harus memakai `.so` yang memuat simbol JNI baru:
+
+```104:105:HealthTrack/app/src/main/cpp/scale_protocol_jni.c
+Java_com_mascill_healthtrack_data_datasource_NativeProtocol_nativeParseSiaran(
+        JNIEnv *env, jclass cls, jbyteArray frame) {
+```
+
+```35:35:HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt
+    @JvmStatic external fun nativeParseSiaran(frame: ByteArray): DoubleArray
+```
+
+## 2026-09-29 18:20 WIB — Pembaca frame dipecah di dalam data/repository
+
+[`ScaleBroadcastRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleBroadcastRepositoryImpl.kt) dan [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt) hanya memilih `NativeProtocol.isLoaded`. Pembaca Kotlin dan pemetaan `DoubleArray` ada di paket di bawahnya.
+
+- `data/repository/broadcast/`: muatan iklan, `0xCA`, `0xC0`, `0xFF`, dan hasil native siaran.
+- `data/repository/gatt/`: [`GattParser`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattParser.kt), frame versi 16 dan 17, komposisi, dan hasil native GATT.
+
+`parse` tetap memegang satu `GattParser`. `parseGatt` membuat `GattParser` baru tiap panggilan. Antarmuka domain dan binding Hilt tidak berubah. `RawBroadcast`, `BroadcastMapper`, dan `GattMapper` tetap tidak dipanggil.
+
+## 2026-09-29 18:12 WIB — Pembaca frame tidak pindah ke mapper, datasource, atau util
+
+Pembaca header di kedua implementasi repository tidak masuk paket yang sudah ada.
+
+- `data/datasource` hanya [`NativeProtocol`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt): muat `libscale_protocol.so` dan `external fun`. Nama kelas itu mengunci simbol JNI.
+- `data/mapper` mengubah `RawBroadcast` dan model GATT mentah menjadi model domain. Repository tidak membangun model mentah itu.
+- `data/util` sudah dipakai repository: `u8`, `bytesToInt`, `mapWeight`, `scaleText`, `BrIdx`, `GIdx`, `RIdx`.
+
+`parseCa`, `parseC0`, `parseFf`, `parseV16`, dan `GattParser` membaca offset frame, menolak format, dan untuk GATT menyimpan buffer. Itu tetap di `data/repository`. `GattParser` tidak pindah karena buffer milik instance [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt).
+
+## 2026-09-29 18:09 WIB — Parser frame ada di berkas repository, mapper tidak terpanggil
+
+Kelas [`ScaleBroadcastRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleBroadcastRepositoryImpl.kt) dan [`ScaleGattRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleGattRepositoryImpl.kt) pendek. Panjang berkasnya adalah fungsi privat di berkas yang sama: pembaca header, jalur Kotlin, dan pemetaan `DoubleArray` native ke model domain.
+
+[`RawBroadcast`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/RawProtocolData.kt), [`BroadcastMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/BroadcastMapper.kt), dan [`GattMapper`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/mapper/GattMapper.kt) tidak dipanggil repository. Jalur native sudah mengembalikan angka jadi. Melewatkannya lewat mapper menghitung ulang berat di Kotlin. Penyempitan komposisi di `GattMapper` menyalin rumus yang sama dengan fungsi privat di implementasi GATT.
+
+Memecah berkas tetap di `data/repository`, antarmuka domain tidak bertambah. Pengelompokan mengikuti header di `docs/protokol-frame-okok.md`: `0xCA`, `0xC0`, `0xFF`, lalu GATT versi 16 dan 17. `GattParser` tetap milik instance repository.
+
 ## 2026-09-29 18:02 WIB — Hilt tidak dipecah per layer
 
 Binding yang ada hanya [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt): `ScaleBroadcastRepository` dan `ScaleGattRepository` ke implementasi data, `@Singleton` pada `SingletonComponent`. Domain tidak punya modul Hilt. Isinya antarmuka, model, dan kesalahan format. Modul di `domain/` menarik Hilt ke paket yang tidak mengimpor framework Android.

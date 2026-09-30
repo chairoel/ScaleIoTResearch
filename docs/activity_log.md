@@ -1,5 +1,129 @@
 # Activity Log
 
+## 2026-09-30 23:53 WIB — Impor java.lang.Float dihapus
+
+### Tujuan
+Menghilangkan peringatan pada impor `java.lang.Float` di `ProtocolUtils.kt`.
+
+### Perubahan
+- `data/util/ProtocolUtils.kt`: `javaFloatText` memakai `toFloat().toString()`. Impor `java.lang.Float` dihapus.
+
+### Status
+Selesai. `./gradlew :app:compileDebugKotlin` lulus.
+
+## 2026-09-30 23:50 WIB — Indeks native dipecah per objek
+
+### Tujuan
+Pemanggil `TxIdx`, `GIdx`, dan `RIdx` tidak bisa mengikat simbol yang tinggal di berkas bernama `NativeDoubleArrayIndex.kt`.
+
+### Perubahan
+- `data/util/TxIdx.kt`, `GIdx.kt`, dan `RIdx.kt`: satu objek per berkas.
+- `NativeDoubleArrayIndex.kt` dihapus.
+- `docs/android-dev/00-rencana-besar.md`: pohon `util/` menyebut ketiga berkas itu.
+
+### Status
+Selesai. `./gradlew :app:compileDebugKotlin` lulus.
+
+## 2026-09-30 23:44 WIB — TxConst dan GattConst pindah ke data/util
+
+### Tujuan
+Meletakkan konstanta layout frame di paket util, bersama byte, berat, dan indeks hasil native.
+
+### Perubahan
+- `data/util/TxConst.kt` dan `data/util/GattConst.kt`: pindah dari paket repository. Keduanya tetap objek terpisah.
+- Pembaca transmission, pembaca GATT, `TransmissionMapper`, dan `GattMapper` mengimpor keduanya.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket menaruh `TxConst`, `GattConst`, dan `NativeDoubleArrayIndex` di `util/`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-09-30 23:44 WIB — NativeIndex jadi NativeDoubleArrayIndex
+
+### Tujuan
+Nama berkas indeks hasil native menyebut `DoubleArray`.
+
+### Perubahan
+- `data/util/NativeDoubleArrayIndex.kt`: `TxIdx`, `GIdx`, dan `RIdx`. Berkas `NativeIndex.kt` tidak dipakai lagi.
+
+### Status
+Selesai.
+
+## 2026-09-29 18:40 WIB — Angka frame GATT jadi GattConst
+
+### Tujuan
+Menghilangkan angka mentah pada pembaca GATT. Perintah, offset, panjang, dan batas komposisi punya nama.
+
+### Perubahan
+- `data/repository/gatt/GattConst.kt`: layout versi 16, versi 17, badan rakitan, daftar peran, dan batas komposisi.
+- `GattParser`, `GattFrames`, `GattBytes`, `GattComposition`, dan `GattNative` memakai `GattConst`.
+- `GattMapper.kt` memakai konstanta yang sama untuk batas komposisi.
+- `docs/android-dev/00-rencana-besar.md`: paket `gatt/` menyebut `GattConst`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Parser C masih memakai angka literal.
+
+## 2026-09-29 18:36 WIB — Angka frame transmission jadi TxConst
+
+### Tujuan
+Menghilangkan angka mentah pada pembaca transmission. Header, versi, offset, panjang, dan kode kesalahan punya nama.
+
+### Perubahan
+- `data/repository/transmission/TxConst.kt`: konstanta layout `0xCA`, `0xC0`, `0xFF`, iklan pabrik, dan properti cloud.
+- Pembaca transmission dan `TransmissionMapper.kt` memakai `TxConst`. Panjang frame dihitung dari offset field.
+- `docs/android-dev/00-rencana-besar.md`: paket `transmission/` menyebut `TxConst`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Parser C masih memakai angka literal.
+
+## 2026-09-29 18:31 WIB — Nama Siaran diganti Transmission
+
+### Tujuan
+Nama tipe di kode memakai bahasa Inggris. `Transmission` menggantikan `Siaran`, tetap terpisah dari advertisement dan dari `BroadcastReceiver`.
+
+### Perubahan
+- `ScaleTransmission`, `ScaleTransmissionRepository`, `parseTransmission`, `EncryptedTransmissionError`.
+- `ScaleTransmissionRepositoryImpl` dan paket `data/repository/transmission/`.
+- `RawTransmission`, `TransmissionMapper.kt`, indeks `TxIdx`.
+- `NativeProtocol.nativeParseTransmission` dan simbol JNI yang sama di `scale_protocol_jni.c`.
+- Uji host dan pohon paket di `docs/android-dev/00-rencana-besar.md`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-09-29 18:25 WIB — Nama Broadcast diganti Siaran
+
+### Tujuan
+Menghindari bentrok nama dengan `BroadcastReceiver` Android. Frame `0xCA`, `0xC0`, dan `0xFF` memakai nama siaran. Muatan iklan tetap advertisement.
+
+### Perubahan
+- `domain/model/ScaleSiaran.kt`, `EncryptedSiaranError`, `domain/repository/ScaleSiaranRepository.kt`: `parseSiaran`.
+- `data/repository/ScaleSiaranRepositoryImpl.kt` dan paket `data/repository/siaran/`.
+- `RawSiaran`, `SiaranMapper.kt`, indeks `SrIdx`.
+- `NativeProtocol.nativeParseSiaran` dan simbol JNI yang sama di `scale_protocol_jni.c`.
+- Uji host mengikuti nama baru.
+- `docs/android-dev/00-rencana-besar.md`: pohon paket memakai `siaran/`.
+
+### Temuan
+Struct C `sp_broadcast_t` dan `sp_parse_broadcast` tidak diubah. Keduanya tidak masuk API Android.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
+## 2026-09-29 18:20 WIB — Pembaca frame dipecah dan diberi KDoc
+
+### Tujuan
+Membuat kedua implementasi repository mudah dibaca. Pembaca tiap header pindah ke berkas sendiri di dalam `data/repository`, dengan KDoc pada aturan frame.
+
+### Perubahan
+- `data/repository/ScaleBroadcastRepositoryImpl.kt`: memilih jalur native atau Kotlin.
+- `data/repository/broadcast/`: muatan iklan, siaran `0xCA`, `0xC0`, `0xFF`, dan pemetaan hasil native.
+- `data/repository/ScaleGattRepositoryImpl.kt`: `parse` memegang satu `GattParser`; `parseGatt` membuat parser baru tiap panggilan.
+- `data/repository/gatt/`: `GattParser`, byte paket, frame versi 16 dan 17, komposisi, dan pemetaan hasil native.
+- `docs/android-dev/00-rencana-besar.md`: pohon `repository/` menyebut paket `broadcast/` dan `gatt/`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Antarmuka domain dan `RepositoryModule` tidak berubah.
+
 ## 2026-09-29 17:58 WIB — Konversi berat pindah ke data/util
 
 ### Tujuan

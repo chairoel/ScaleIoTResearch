@@ -40,16 +40,18 @@ Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timb
 HealthTrack/app/                satu-satunya modul Gradle
   src/main/java/com/mascill/healthtrack/
     domain/
-      model/                    ScaleBroadcast, ScaleGatt, kesalahan format
-      repository/               ScaleBroadcastRepository, ScaleGattRepository
+      model/                    ScaleTransmission, ScaleGatt, kesalahan format
+      repository/               ScaleTransmissionRepository, ScaleGattRepository
       formula/                  v235 pada fase 2, vA019 pada fase 6
       session/                  BodyData, MeasurementSession, MeasurementResult
     data/
       datasource/               JNI bridge NativeProtocol
       mapper/                   byte mentah ke model domain
-      model/                    RawBroadcast, RawGattMeasurement
-      repository/               implementasi siaran dan GATT, termasuk parser frame
-      util/                     byte, berat, konstanta, indeks hasil native
+      model/                    RawTransmission, RawGattMeasurement
+      repository/               ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl
+        transmission/           pembaca 0xCA, 0xC0, 0xFF, dan muatan iklan
+        gatt/                   GattParser, frame versi 16 dan 17, dan komposisi
+      util/                     byte, berat, TxConst, GattConst, TxIdx, GIdx, RIdx
       local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
     di/                         RepositoryModule, binding Hilt
@@ -71,14 +73,14 @@ Operasi hex, bit manipulation, dan rumus aritmatika tinggal di `libscale_protoco
 - Semua byte parsing: `bytesToInt`, `sliceInt`, `splitPack`, `javaByte`, `u8`
 - Kalkulasi berat: unit, digit places, scaling, rounding, konversi kg/jin/lb/st
 - Rumus komposisi: `setAxunge`, `setWater`, `setMuscle`, `setBmr`, `setVisceral`, `setBone`, `recalculateMuscle`
-- Parsing frame broadcast: `parseCa`, `parseCaV20`, `parseCaLegacy`, `parseC0`, `parseFf`
+- Parsing frame siaran: `parseCa`, `parseCaV20`, `parseCaLegacy`, `parseC0`, `parseFf`
 - Parsing frame GATT: `parseV16`, `parseV17Weight`, `parseAssembled`, `parseRoles`
 - Ekstraksi payload iklan: `scalePayload`, `payloadFromManufacturer`
 
 Yang tetap di Kotlin:
 
-- Data class (`ScaleBroadcast`, `ScaleGatt`, `GattConfirmation`, dll.)
-- Exception class (`FrameFormatError`, `EncryptedBroadcastError`, dll.)
+- Data class (`ScaleTransmission`, `ScaleGatt`, `GattConfirmation`, dll.)
+- Exception class (`FrameFormatError`, `EncryptedTransmissionError`, dll.)
 - Formatting string (`scaleText`, `javaFloatText`) karena bergantung `java.lang.Float.toString`
 - `GattParser` (state management: map buffer paket)
 - `NativeProtocol` (loader `.so` dan deklarasi `external fun`)
