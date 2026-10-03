@@ -6,6 +6,12 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-03 18:33 WIB — Rencana eksekusi ada di docs/android-dev
+
+Letak paket yang dipakai saat menulis HealthTrack ada di [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md). Bagian paket di [rencana aplikasi Android](rencana-aplikasi-android.md) yang menaruh parser di `domain/protocol` dan menyebut templat kosong tidak dipakai.
+
+Fase 1 sudah di kode: pintu domain `ScaleTransmissionRepository` dan `ScaleGattRepository`, modul Hilt di `data/di`. Fase 2–6 menambah `domain/formula`, `domain/session`, `domain/usecase`, entitas Room `body` dan `measurement`, DataStore `healthtrack_prefs`, serta layar di `presentation/[feature]` dengan Navigation 3. Tabel Room tidak dinamai `tubuh` atau `ukur`. Enam fase ini tidak memasang supabase-kt, OkHttp, atau Retrofit. Antarmuka simpan hasil bernama `MeasurementRepository`, bukan `ResultStore`.
+
 ## 2026-10-03 16:01 WIB — RepositoryModule ada di data/di
 
 Koreksi catatan 2026-10-01 01:59. [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) ada di paket `data.di`, bersama `DataModule` dan `ScaleFrameHeaders`. Modul itu mengikat `ScaleTransmissionRepository` dan `ScaleGattRepository` ke implementasi data, `@Singleton` pada `SingletonComponent`. Paket `com.mascill.healthtrack.di` tidak ada.

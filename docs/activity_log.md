@@ -1,5 +1,18 @@
 # Activity Log
 
+## 2026-10-03 18:33 WIB — Rencana android-dev diselaraskan dengan kode dan aturan
+
+### Tujuan
+Dokumen eksekusi HealthTrack memakai letak paket yang ada di kode dan aturan `HealthTrack/.cursor/rules`, supaya fase berikut tidak kembali ke `domain.protocol`.
+
+### Perubahan
+- `docs/android-dev/00-rencana-besar.md`: fase 1 tercatat sudah ada; pohon paket memisahkan kode sekarang dan yang menyusul; Hilt tetap di `data/di`; supabase-kt, OkHttp, dan Retrofit tidak masuk enam fase ini.
+- `docs/android-dev/fase-01-modul-inti-parser.md`: pintu parser adalah `ScaleTransmissionRepository` dan `ScaleGattRepository`, kesalahan terenkripsi `EncryptedTransmissionError`.
+- `docs/android-dev/fase-02-rumus-v235-mesin-sesi.md` sampai `fase-06-frekuensi-ganda.md`: rumus di `domain/formula`, sesi di `domain/session`, Room lewat `BodyRepository` dan `MeasurementRepository`, layar di `presentation/[feature]` dengan Navigation 3.
+
+### Status
+Selesai. Kode aplikasi tidak diubah. Langkah berikut tetap fase 2.
+
 ## 2026-10-03 16:01 WIB — RepositoryModule pindah ke data/di
 
 ### Tujuan

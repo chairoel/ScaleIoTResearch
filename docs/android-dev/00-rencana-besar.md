@@ -1,8 +1,16 @@
 # Rencana besar eksekusi HealthTrack
 
-Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase yang bisa dikerjakan satu per satu. Tiap fase punya berkas sendiri di folder ini.
+Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase. Tiap fase punya berkas sendiri di folder ini.
 
-HealthTrack sekarang templat Compose kosong: namespace `com.mascill.healthtrack`, minSdk 28, targetSdk 36, satu `MainActivity`. Perilaku yang dipindahkan sudah jalan di Python.
+Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1 sudah ada. Layar, Room, DataStore, rumus, dan Bluetooth belum.
+
+## Keadaan modul
+
+Satu modul Gradle: `include(":app")` di [settings.gradle.kts](../../HealthTrack/settings.gradle.kts). Namespace `com.mascill.healthtrack`, minSdk 28, targetSdk 36, `compileSdk` 37.0. Kotlin `2.2.10`, AGP `9.2.1`, Hilt `2.60.1`. Sumber Kotlin ada di `app/src/main/java`, bukan `src/main/kotlin`. Berkas Kotlin baru ditaruh di source set yang sama.
+
+[`MainActivity`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/MainActivity.kt) masih layar sapaan templat. Tema yang ada adalah `ui/theme/HealthTrackTheme`. Hilt sudah terpasang lewat [`App`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/App.kt).
+
+supabase-kt, OkHttp, Retrofit, Room, DataStore, Navigation 3, dan plugin serialization belum di katalog. Enam fase ini tidak memasang supabase-kt, OkHttp, atau Retrofit: tidak ada Auth atau CRUD server di tahap ini. Retrofit dan Moshi tidak ditambah. Room, DataStore, Navigation 3, dan `kotlinx.serialization` masuk di fase 3.
 
 ## Selesai artinya
 
@@ -23,89 +31,101 @@ flowchart LR
   f5 --> f6[6 Frekuensi ganda]
 ```
 
-| Fase | Berkas | Pintu keluar singkat |
-|---|---|---|
-| 1 | [fase-01-modul-inti-parser.md](fase-01-modul-inti-parser.md) | Uji iklan, siaran, dan GATT lulus di JUnit host |
-| 2 | [fase-02-rumus-v235-mesin-sesi.md](fase-02-rumus-v235-mesin-sesi.md) | v235 dan mesin sesi satu ohm lulus; angka layar 68,7 kg cocok |
-| 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
-| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
-| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
-| 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
+| Fase | Berkas | Keadaan | Pintu keluar singkat |
+|---|---|---|---|
+| 1 | [fase-01-modul-inti-parser.md](fase-01-modul-inti-parser.md) | Sudah di kode | Uji iklan, siaran, dan GATT lulus di JUnit host |
+| 2 | [fase-02-rumus-v235-mesin-sesi.md](fase-02-rumus-v235-mesin-sesi.md) | Belum | v235 dan mesin sesi satu ohm lulus; angka layar 68,7 kg cocok |
+| 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Belum | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
+| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Belum | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
+| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Belum | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
+| 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Belum | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
 
 Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timbangan yang mengirim sepuluh ohm.
 
+## Aturan yang mengikat kode baru
+
+Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 2–6. Penyesuaian yang sudah terkunci di kode:
+
+- Lapisan: `presentation` memakai `domain`. `data` memakai `domain`. `domain` tidak mengimpor `data`, `presentation`, `android.*`, Room, Compose, atau Hilt.
+- Modul Hilt ada di `com.mascill.healthtrack.data.di`. Paket `com.mascill.healthtrack.di` tidak dibuat. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) dan [`DataModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt) sudah di sana. `DataStoreModule`, `DatabaseModule`, dan `DispatcherModule` menyusul di paket yang sama pada fase 3.
+- Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
+- ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
+- Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel menerima UseCase. UseCase menerima antarmuka repository domain.
+- Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
+- SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
+
 ## Letak kode
 
+Yang ada sekarang:
+
 ```text
-HealthTrack/app/                satu-satunya modul Gradle
-  src/main/java/com/mascill/healthtrack/
-    domain/
-      model/                    ScaleTransmission, ScaleGatt, kesalahan format
-      repository/               ScaleTransmissionRepository, ScaleGattRepository
-      formula/                  v235 pada fase 2, vA019 pada fase 6
-      session/                  BodyData, MeasurementSession, MeasurementResult
-    data/
-      datasource/               JNI bridge NativeProtocol
-      di/                       ScaleFrameHeaders, DataModule, RepositoryModule
-      mapper/                   model mentah, hasil native, dan berat ke model domain
-      model/                    RawTransmission, RawGattMeasurement, RawGattConfirmation
-      repository/               ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl
-        transmission/           pembaca 0xCA, 0xC0, dan 0xFF
-        gatt/                   GattParser serta frame versi 16 dan 17
-      util/                     byte, TxConst, GattConst, TxIdx, GIdx, RIdx
-      local/                    DataStore healthtrack_prefs dan Room
-      ble/                      pemindai dan GATT
-    presentation/               empat layar Compose
-  src/main/cpp/                 implementasi native C
-    CMakeLists.txt
-    scale_protocol.h            deklarasi fungsi C murni
-    scale_protocol.c            byte parsing, aritmatika, rumus komposisi
-    scale_protocol_jni.c        jembatan JNI ke Kotlin
-  src/test/java/                JUnit host, tanpa emulator
+HealthTrack/app/src/main/java/com/mascill/healthtrack/
+  domain/model/                 ScaleTransmission, ScaleGatt, GattConfirmation, kesalahan format
+  domain/repository/            ScaleTransmissionRepository, ScaleGattRepository
+  data/datasource/              NativeProtocol
+  data/di/                      ScaleFrameHeaders, DataModule, RepositoryModule
+  data/mapper/                  TransmissionMapper, GattMapper, WeightMapper
+  data/model/                   RawTransmission, RawGattMeasurement, RawGattConfirmation
+  data/repository/              ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl
+    transmission/               pembaca 0xCA, 0xC0, dan 0xFF
+    gatt/                       GattParser serta frame versi 16 dan 17
+  data/util/                    ProtocolUtils, Constants, TxConst, GattConst, TxIdx, GIdx, RIdx
+  ui/theme/                     HealthTrackTheme
+  App.kt
+  MainActivity.kt
+HealthTrack/app/src/main/cpp/   libscale_protocol.so
+HealthTrack/app/src/test/java/  JUnit host, tanpa emulator
 ```
 
-HealthTrack satu modul Gradle, yaitu `app` yang sudah ada. Parser frame ada di implementasi repository. Rumus dan mesin sesi tinggal di paket `domain` dan tidak mengimpor `android.*`, Room, atau Compose. Uji mereka ada di `src/test` dan jalan di komputer lewat `./gradlew :app:testDebugUnitTest`. Modul Gradle kedua tidak dibuat.
+Yang ditambah fase 2–6, masih di modul `app`:
 
-## Lapisan native (C/C++ JNI)
+```text
+domain/formula/                 CsBiasV235 pada fase 2, CsBiasVA019 pada fase 6
+domain/session/                 BodyData, MeasurementSession, MeasurementResult
+domain/usecase/                 simpan dan muat profil serta hasil, mulai fase 3
+data/model/entity/              entitas Room body dan measurement
+data/datasource/local/          DAO Room dan DataStore healthtrack_prefs
+data/ble/                       BleSession dan SessionListener, fase 4
+presentation/navigation/        NavDisplay, NavKey
+presentation/profile/           fase 3
+presentation/session/           fase 3–4
+presentation/history/           fase 3 dan 5
+presentation/result/            fase 4–5
+presentation/common/            AppError dan komponen bersama
+util/                           AppDispatcher
+```
 
-Operasi hex, bit manipulation, dan rumus aritmatika tinggal di `libscale_protocol.so`. Logika yang dipindahkan ke C:
+Modul Gradle kedua tidak dibuat. Rumus dan mesin sesi tidak mengimpor `android.*`. Uji mereka ada di `src/test/java` dan jalan lewat `./gradlew :app:testDebugUnitTest`.
 
-- Semua byte parsing: `bytesToInt`, `sliceInt`, `splitPack`, `javaByte`, `u8`
-- Kalkulasi berat: unit, digit places, scaling, rounding, konversi kg/jin/lb/st
-- Rumus komposisi: `setAxunge`, `setWater`, `setMuscle`, `setBmr`, `setVisceral`, `setBone`, `recalculateMuscle`
-- Parsing frame siaran: `parseCa`, `parseCaV20`, `parseCaLegacy`, `parseC0`, `parseFf`
-- Parsing frame GATT: `parseV16`, `parseV17Weight`, `parseAssembled`, `parseRoles`
-- Ekstraksi payload iklan: `scalePayload`, `payloadFromManufacturer`
+## Lapisan native
 
-Yang tetap di Kotlin:
+Operasi byte parser yang sudah pindah ada di `libscale_protocol.so` (`app/src/main/cpp/`). [`NativeProtocol`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt) di `data.datasource` memuat library itu. Simbol JNI berawalan `Java_com_mascill_healthtrack_data_datasource_NativeProtocol_`.
 
-- Data class (`ScaleTransmission`, `ScaleGatt`, `GattConfirmation`, dll.)
-- Exception class (`FrameFormatError`, `EncryptedTransmissionError`, dll.)
-- Formatting string (`scaleText`, `javaFloatText`) karena bergantung `java.lang.Float.toString`
-- `GattParser` (state management: map buffer paket)
-- `NativeProtocol` (loader `.so` dan deklarasi `external fun`)
+Yang di C untuk parser: byte, berat siaran, penjepit komposisi GATT (`setAxunge` dan saudaranya), parse frame `0xCA` / `0xC0` / `0xFF`, parse GATT versi 16 dan 17, serta muatan iklan. Rumus laporan `v235` dan `vA019` belum di C. Keduanya menyusul di `domain/formula` sebagai `Float`.
 
-Arsitektur dua jalur:
+Dua jalur, dipilih `NativeProtocol.isLoaded`:
 
-- **Android runtime**: native C via JNI. Semua komputasi di `.so`, sulit di-reverse.
-- **JUnit host**: fallback Kotlin (implementasi yang sama). `.so` ARM tidak dimuat di JVM macOS/Linux. Uji tetap jalan tanpa emulator.
+- Android: native C lewat JNI.
+- JUnit host: pembaca Kotlin di `data/repository/transmission` dan `data/repository/gatt`. `.so` ARM tidak dimuat di JVM macOS/Linux.
 
-Pemilihan jalur otomatis lewat `NativeProtocol.isLoaded`.
+Model domain dibangun di mapper pada kedua jalur. `GattParser` (buffer paket) tetap di Kotlin, satu instance sesi dari `DataModule.gattParser`. `parseGatt` membuat `GattParser` baru tiap frame. Teks `scaleText` dan `javaFloatText` tetap di Kotlin.
 
-Tahap ini memasang Hilt. supabase-kt, OkHttp, dan Retrofit tidak dipasang. Model sesi adalah `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/session`. Nama kelas, fungsi, dan variabel Kotlin memakai bahasa Inggris.
+## Penyimpanan dan layar
 
-Layar memakai Navigation 3 (`NavDisplay`, `NavKey`) saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin yang sudah terpin. AGP dan Kotlin yang ada tidak diturunkan. ViewModel memakai `@HiltViewModel`, `StateFlow`, dan konstruktor yang diisi Hilt.
+Preferensi: DataStore `healthtrack_prefs` di `data/datasource/local`. Prefs tidak menyimpan baris ukur dan tidak menyimpan token.
 
-Preferensi lokal: DataStore `healthtrack_prefs`. Profil dan hasil: Room, tabel `body` dan `measurement`, setara [Penyimpan](../../aplikasi/simpan.py). Prefs tidak menyimpan baris ukur.
+Profil dan hasil: Room, tabel `body` dan `measurement`, padanan [Penyimpan](../../aplikasi/simpan.py) (`tubuh` dan `ukur`). Nama tabel Android memakai bahasa Inggris. Jangan membuat tabel `tubuh` atau `ukur`.
+
+Layar memakai Navigation 3 saat fase 3 menambah tujuan. Versi ditambahkan ke `HealthTrack/gradle/libs.versions.toml` pada rilis yang cocok dengan Kotlin `2.2.10`. AGP dan Kotlin yang ada tidak diturunkan.
 
 ## Yang dipakai bersama
 
 - Peta byte: [protokol frame OKOK](../protokol-frame-okok.md).
 - Definisi selesai: [definisi-selesai.md](../definisi-selesai.md).
-- Bluetooth di aplikasi: `HealthTrack/.cursor/rules/bluetooth.mdc`.
-- Operasi rumus: `Float` (IEEE-754 binary32), urutan sama dengan `rumus/*.py`.
+- Bluetooth: `HealthTrack/.cursor/rules/bluetooth.mdc`.
+- Operasi rumus: `Float` (IEEE-754 binary32), urutan sama dengan `rumus/*.py`. Pembantu float rumus tinggal di `domain/formula`. `data/util/ProtocolUtils.f32` milik parser, bukan rumus laporan.
 - Angka pembanding layar: berat 68,7 kg, tinggi 166 cm, umur 29, kelamin 1, impedansi 600 ohm. Kelamin 0 pada vektor yang sama menghasilkan lemak 34,8. Pemetaan field ada di fase 2.
-- Siaran `0xC0` dengan bit 7 pada byte offset 4 ditolak. Repositori tidak memuat kunci `okok_scale_encrypted_key_`.
+- Siaran `0xC0` dengan bit 7 pada byte offset 4 ditolak lewat `EncryptedTransmissionError`. Repositori tidak memuat kunci `okok_scale_encrypted_key_`.
 - Sesi tidak menulis ke karakteristik TX.
 - [`getVFR`](../../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) tidak dipindahkan. Viseral laporan v235 adalah field `vfl`. Pemanggilan `getVFR` di sumber ada pada skor umur, untuk jalur yang bukan frekuensi ganda:
 
