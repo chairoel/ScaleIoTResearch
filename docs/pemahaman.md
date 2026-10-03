@@ -6,6 +6,130 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 02:13 WIB — Use case disediakan UseCaseModule
+
+Koreksi catatan 2026-10-03 22:08 pada cara inject use case. Tujuh use case di `domain/usecase` tidak memakai `@Inject`. [`UseCaseModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) membuatnya dengan `@Provides`. `@Inject` pada kelas yang sama bentrok dengan provider itu.
+
+`@BindsOptionalOf` untuk `MeasurementRepository` tetap di `data/di/RepositoryModule`. `provideCloseMeasurementUseCase` membuka optional itu. Kosong berarti `save` dilewati.
+
+```46:53:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt
+    @Provides
+    fun provideCloseMeasurementUseCase(
+        calculateReport: CalculateReportUseCase,
+        repository: Optional<MeasurementRepository>,
+    ): CloseMeasurementUseCase = CloseMeasurementUseCase(
+        calculateReport = calculateReport,
+        repository = repository.orElse(null),
+    )
+```
+
+## 2026-10-04 02:03 WIB — Optional MeasurementRepository ada di data/di
+
+Koreksi catatan 2026-10-03 22:08. `@BindsOptionalOf` untuk [`MeasurementRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/MeasurementRepository.kt) ada di [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt). Paket `domain/di` tidak ada. Use case tetap memakai `@Inject`. `dagger.hilt` hanya di `data/di`.
+
+```35:37:HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt
+    @BindsOptionalOf
+    abstract fun measurementRepository(): MeasurementRepository
+}
+```
+
+## 2026-10-03 22:08 WIB — Use case domain di-inject dari domain/di
+
+Tujuh use case di `domain/usecase` memakai konstruktor `@Inject`. [`DomainModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/DomainModule.kt) hanya menandai [`MeasurementRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/MeasurementRepository.kt) sebagai `@BindsOptionalOf`. Implementasi Room nanti diikat `@Binds` di `data/di/RepositoryModule` dan mengisi optional itu. Jangan menyediakan instance kedua.
+
+[`CloseMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt) melewatkan `save` bila optional kosong. `MeasurementSession` dibuat per pengukuran lewat `BodyData`, bukan dari graf. Tipe di `domain/model` tidak di-inject. Binding `ScaleTransmissionRepository` dan `ScaleGattRepository` tetap di `data/di`. [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt) tetap `object` di `util` dan dipanggil langsung oleh `CalculateReportUseCase`.
+
+```21:23:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/DomainModule.kt
+    @BindsOptionalOf
+    abstract fun measurementRepository(): MeasurementRepository
+}
+```
+
+## 2026-10-03 22:03 WIB — Urutan tambah otot rangka v235
+
+Di [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt), otot rangka ditambah dari kiri: otot, lalu `muscleZ`, lalu konstanta. Bentuk `muscle += muscleZ + kSmmConst` menjumlahkan `muscleZ` dan konstanta lebih dulu, dan menggeser hasil satu ulp pada vektor `(0, 99, 220, 25000, 15000)`.
+
+```356:356:HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt
+        muscle = muscle + muscleZ + kSmmConst
+```
+
+## 2026-10-03 21:57 WIB — Satu use case satu invoke
+
+Satu kelas use case memuat satu fungsi publik, `invoke`. Fungsi lain di kelas itu privat. Use case boleh memanggil use case lain.
+
+Keadaan ukur ada di [`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt). [`AcceptTransmissionUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptTransmissionUseCase.kt), `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase` memanggil [`CloseMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt). Kelas itu memanggil `CalculateReportUseCase`. `MeasurementStateUseCase` hanya membaca keadaan.
+
+```13:20:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptTransmissionUseCase.kt
+    operator fun invoke(session: MeasurementSession, frame: ScaleTransmission): ScaleTransmission {
+        session.transmission = frame
+        val ohms = frame.impedanceOhm
+        if (session.result == null && frame.locked && ohms != null) {
+            session.impedanceOhm = ohms.toDouble()
+            session.mac = frame.mac
+            session.productId = frame.productId
+            closeMeasurement(session)
+```
+
+## 2026-10-03 21:51 WIB — Rumus v235 ada di util
+
+Koreksi catatan 2026-10-03 19:57. Paket `domain` tidak berisi rumus. [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt) ada di `com.mascill.healthtrack.util`, bersama `f32` dan `fma`. Tipe laporan tetap di `domain/model`. [`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) memilih rumus itu. `CsBiasVA019` menyusul di `util`. Jangan membuat `domain/formula`.
+
+```284:290:HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt
+object CsBiasV235 {
+    /**
+     * Same inputs as the native call.
+     * [weight100] is kilograms times 100. [impedance10] is ohms times 10.
+     * Height, weight, and impedance are cut to 16 bits. Age and sex are cut to 8 bits.
+     * Out of range, [BiasV235Result.data] is null and [BiasV235Result.code] is negative:
+     * -2 weight, -3 height, -4 age, -5 sex, -6 impedance.
+```
+
+## 2026-10-03 19:57 WIB — Rumus v235 ada di domain/formula
+
+Koreksi catatan 2026-10-03 19:55 pada letak rumus. [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/formula/CsBiasV235.kt) ada di `domain/formula`. Paket `model` tetap tipe. [`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) di `domain/usecase` memilih rumus itu. `CsBiasVA019` menyusul di paket `formula` yang sama. `f32` dan `fma` tetap di `util`.
+
+```286:294:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/formula/CsBiasV235.kt
+object CsBiasV235 {
+    /**
+     * Same inputs as the native call.
+     * [weight100] is kilograms times 100. [impedance10] is ohms times 10.
+     * Height, weight, and impedance are cut to 16 bits. Age and sex are cut to 8 bits.
+     * Out of range, [BiasV235Result.data] is null and [BiasV235Result.code] is negative:
+     * -2 weight, -3 height, -4 age, -5 sex, -6 impedance.
+     */
+    fun csBiasV235(
+```
+
+## 2026-10-03 19:55 WIB — Paket model hanya tipe
+
+Koreksi catatan 2026-10-03 19:34 pada letak rumus dan pembulatan. Paket `domain/model` hanya tipe. [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CsBiasV235.kt) dan [`DisplayMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/DisplayMeasurementUseCase.kt) ada di `domain/usecase`.
+
+Tipe yang tetap di `domain/model`: `BiasV235Data`, `BiasV235Result`, `V235Report`, `V235ReportResult`, dan `MeasurementDisplay`. `CsBiasVA019` menyusul di `domain/usecase`, satu berkas dengan `CsBiasV235`. Tipe laporannya tetap di `domain/model`. `f32` dan `fma` tetap di `util`, sesuai catatan 2026-10-03 19:51.
+
+## 2026-10-03 19:51 WIB — f32 dan fma ada di util
+
+Koreksi catatan 2026-10-03 19:34 dan 2026-10-03 18:48 pada letak pembantu float. [`f32`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/BinaryFloat.kt) dan `fma` ada di `com.mascill.healthtrack.util`. [`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CsBiasV235.kt) memakai keduanya dari sana. [`ProtocolUtils.f32`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt) tetap milik parser di `data/util` dan tidak dipakai rumus laporan.
+
+## 2026-10-03 19:34 WIB — Sesi dan pilih rumus ada di domain/usecase
+
+Koreksi catatan 2026-10-03 18:39 dan 2026-10-03 18:48 pada letak mesin sesi. [`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) dan [`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasurementSession.kt) ada di `domain/usecase`. Sesi memakai `MeasurementRepository` untuk menyimpan hasil yang kodenya 0.
+
+[`CsBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/CsBiasV235.kt), `BodyData`, `MeasurementResult`, `V235Report`, dan `MeasurementDisplay` tetap di `domain/model`. `BinaryFloat` tetap di sana. `MeasurementRepositoryImpl` belum ada. Implementasi itu nanti hanya `save` dan `list`. Rumus dan mesin sesi tidak pindah ke `data/repository`.
+
+ViewModel profil dan riwayat tetap menerima antarmuka repository. Jangan menambah UseCase untuk simpan profil atau daftar riwayat. Folder `domain/formula` dan `domain/session` tetap tidak dibuat.
+
+## 2026-10-03 18:48 WIB — Rekomendasi berikut: profil dan Room
+
+Langkah berikut: fase 3 di [fase-03-profil-room.md](android-dev/fase-03-profil-room.md). Tambah Room, DataStore, Navigation 3, dan plugin serialization. Entitas `body` dan `measurement`, implementasi `BodyRepository` serta `MeasurementRepository.save` yang sudah ada, layar profil, sesi yang tidak mulai tanpa profil, dan riwayat kosong. Syaratnya pintu keluar fase 2, yang sudah terpenuhi. Jangan memindai Bluetooth, jangan menyambung GATT, dan jangan mem-port `cs_bias_vA019`.
+
+## 2026-10-03 18:48 WIB — Rumus v235 dan mesin sesi ada di domain
+
+[`CsBiasV235.csBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/CsBiasV235.kt) dan `parseDefaultZ` ada di `domain/model`. Nilai library sebelum penyempitan bertipe `Double`. Operasi yang dipaksa binary32 memakai [`f32`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/BinaryFloat.kt), dan perkalian-tambah memakai `fma` di berkas yang sama. `parseDefaultZ` menyempitkan field ke `V235Report`. Viseral laporan adalah `vfl`.
+
+[`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) menerima `ScaleTransmission` dan `GattResult` yang sudah diurai. Sesi tidak memegang parser dan tidak membaca byte. Impedansi diambil dari siaran terkunci. Berat diambil dari `ScaleGatt` dengan `lockFlag == 1` dan `history == false`. `applyBroadcastWeight` menutup sesi dari siaran bila berat GATT belum ada. Hasil pertama dengan kode 0 disimpan lewat [`MeasurementRepository.save`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/MeasurementRepository.kt). Method itu mengembalikan id baris dan tidak `suspend`. Implementasi Room belum ada.
+
+`calculateReport` untuk satu ohm memakai nama `v235`. Sepuluh ohm melempar `IllegalStateException` sampai `vA019`. Jumlah lain melempar `IllegalArgumentException`. Pembulatan layar ada di `V235Report.toDisplay`. Layar nanti memakai nilai itu dan tidak menghitung ulang.
+
 ## 2026-10-03 18:39 WIB — Rekomendasi berikut: rumus v235 di domain/model
 
 Langkah berikut: port `cs_bias_v235` dan `MeasurementSession` ke paket `domain/model` yang sudah ada, dan antarmuka `MeasurementRepository` ke `domain/repository`. Syaratnya pintu keluar fase 1, yang sudah terpenuhi. Jangan membuat folder `domain/formula`, `domain/session`, atau `domain/usecase`. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).

@@ -20,7 +20,7 @@ measurement(id, created_at, mac, product_id, weight_kg, scale_weight,
      impedance_ohm, formula, code, report)
 ```
 
-Antarmuka di `domain/repository`, tanpa tipe Room. ViewModel menerima antarmuka ini, bukan DAO dan bukan `*RepositoryImpl`. UseCase tidak dibuat.
+Antarmuka di `domain/repository`, tanpa tipe Room. ViewModel profil dan riwayat menerima antarmuka ini, bukan DAO dan bukan `*RepositoryImpl`. Jangan menambah UseCase baru untuk simpan profil atau daftar riwayat. Use case sesi sudah ada di `domain/usecase`: `CalculateReportUseCase`, `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, `CloseMeasurementUseCase`, `MeasurementStateUseCase`, dan `DisplayMeasurementUseCase`.
 
 - `BodyRepository` — `save` menulis baris `body` baru; `latest` mengambil `id` terbesar.
 - `MeasurementRepository` — `save` dari fase 2 mendapat implementasi Room; `list` mengembalikan `measurement` terbaru di atas (`id` menurun). Python mengurutkan menaik; layar riwayat membaliknya di query ini.
@@ -29,7 +29,7 @@ Jenis kelamin selain 0 dan 1 ditolak di `BodyData` sebelum insert.
 
 Berkas preferensi `healthtrack_prefs` dibuat di fase ini. Tidak ada kunci wajib. Profil dan hasil tidak ditulis ke prefs.
 
-Binding baru ditambah `@Binds` di `RepositoryModule` yang sudah ada. Jangan membuat paket `com.mascill.healthtrack.di`.
+Binding baru ditambah `@Binds` di [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt). `MeasurementRepository` sudah `@BindsOptionalOf` di modul yang sama. `@Binds` implementasi Room mengisi optional itu. Jangan menyediakan instance kedua. Jangan membuat paket `com.mascill.healthtrack.di`. Use case tetap disediakan [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt).
 
 ### Layar
 

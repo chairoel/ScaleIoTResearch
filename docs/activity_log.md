@@ -1,5 +1,166 @@
 # Activity Log
 
+## 2026-10-04 02:13 WIB — Use case disediakan dari domain/di
+
+### Tujuan
+Modul `domain/di` membuat use case lewat `@Provides`, terpisah dari binding repository di `data/di`.
+
+### Perubahan
+- `domain/di/UseCaseModule.kt`: `@Provides` untuk tujuh use case sesi.
+- `domain/usecase/`: konstruktor tanpa `@Inject`, supaya tidak bentrok dengan `@Provides`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-03-profil-room.md`: letak `UseCaseModule`.
+- `HealthTrack/.cursor/rules/sm-code-style.mdc`: use case dibuat di `domain/di`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. `@BindsOptionalOf` `MeasurementRepository` tetap di `data/di/RepositoryModule`.
+
+## 2026-10-04 02:03 WIB — Binding MeasurementRepository pindah ke data/di
+
+### Tujuan
+`@BindsOptionalOf` untuk `MeasurementRepository` duduk di modul data, bersama binding repository lain.
+
+### Perubahan
+- `data/di/RepositoryModule.kt`: `@BindsOptionalOf` untuk `MeasurementRepository`.
+- `domain/di/DomainModule.kt`: dihapus, bersama paket `domain/di`.
+- `domain/repository/MeasurementRepository.kt`: KDoc menunjuk `RepositoryModule`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-03-profil-room.md`: modul Hilt hanya di `data/di`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Use case tetap memakai `@Inject`.
+
+## 2026-10-03 22:08 WIB — Use case domain memakai Hilt
+
+### Tujuan
+Use case sesi bisa diterima dari graf Hilt, dengan modul di `domain/di`, sama seperti binding di `data/di`.
+
+### Perubahan
+- `domain/usecase/`: `CalculateReportUseCase`, `DisplayMeasurementUseCase`, `MeasurementStateUseCase`, `CloseMeasurementUseCase`, `AcceptTransmissionUseCase`, `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase` memakai konstruktor `@Inject`.
+- `domain/di/DomainModule.kt`: `@BindsOptionalOf` untuk `MeasurementRepository` sampai Room mengikatnya.
+- `domain/usecase/CloseMeasurementUseCase.kt`: menyimpan hasil hanya bila optional itu terisi.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-03-profil-room.md`: letak modul dan cara fase 3 mengisi binding.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Tipe di `domain/model` dan `MeasurementSession` tidak di-inject.
+
+## 2026-10-03 22:03 WIB — Urutan tambah otot rangka v235
+
+### Tujuan
+Penjumlahan otot rangka mengikuti urutan Python, supaya angka emas tidak bergeser satu ulp.
+
+### Perubahan
+- `util/CsBiasV235.kt`: `muscle = muscle + muscleZ + kSmmConst`.
+
+### Status
+Selesai. Uji `CsBiasV235Test` lulus.
+
+## 2026-10-03 21:57 WIB — Satu use case satu invoke
+
+### Tujuan
+Satu use case hanya memuat satu fungsi publik. Use case sesi boleh saling memanggil.
+
+### Perubahan
+- `domain/model/MeasurementSession.kt`: keadaan sesi, tanpa aksi.
+- `domain/usecase/AcceptTransmissionUseCase.kt`, `AcceptGattUseCase.kt`, `ApplyBroadcastWeightUseCase.kt`: masing-masing satu `invoke`, memanggil `CloseMeasurementUseCase`.
+- `domain/usecase/CloseMeasurementUseCase.kt`: memanggil `CalculateReportUseCase` dan menyimpan hasil berkode 0.
+- `domain/usecase/MeasurementStateUseCase.kt`: teks keadaan sesi.
+- `domain/usecase/MeasurementSession.kt`: dihapus.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02` sampai `fase-06`, dan `sm-code-style.mdc`: aturan satu `invoke` dicatat.
+
+### Status
+Selesai. Uji sesi yang ada tetap meliputi siaran, GATT, dan hasil pertama yang disimpan.
+
+## 2026-10-03 21:51 WIB — Rumus v235 pindah ke util
+
+### Tujuan
+Paket `domain` tidak berisi rumus. `CsBiasV235` duduk di `util` bersama `f32` dan `fma`.
+
+### Perubahan
+- `util/CsBiasV235.kt`: `csBiasV235` dan `parseDefaultZ`.
+- `domain/formula/`: dihapus.
+- `domain/usecase/CalculateReportUseCase.kt`: memanggil rumus dari `util`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-06-frekuensi-ganda.md`, `docs/rencana-aplikasi-android.md`: `CsBiasVA019` menyusul di `util`.
+- `HealthTrack/.cursor/rules/sm-architecture.mdc` dan skill arsitektur: paket `domain/formula` dihapus dari pohon paket.
+
+### Status
+Selesai. Tipe laporan tetap di `domain/model`. Use case yang memilih rumus tetap `CalculateReportUseCase`.
+
+## 2026-10-03 19:57 WIB — Rumus v235 pindah ke domain/formula
+
+### Tujuan
+`CsBiasV235` adalah rumus komposisi. Use case yang memilih rumus tetap `CalculateReportUseCase`. Paket `model` tetap tipe.
+
+### Perubahan
+- `domain/formula/CsBiasV235.kt`: `csBiasV235` dan `parseDefaultZ`.
+- `domain/usecase/CalculateReportUseCase.kt`: memanggil rumus dari `domain.formula`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-06-frekuensi-ganda.md`: `CsBiasVA019` menyusul di paket `formula`.
+- `HealthTrack/.cursor/rules/sm-architecture.mdc` dan skill arsitektur: paket `domain/formula` dicatat.
+
+### Status
+Selesai. `f32` dan `fma` tetap di `util`.
+
+## 2026-10-03 19:55 WIB — Rumus dan pembulatan keluar dari model
+
+### Tujuan
+Paket `domain/model` hanya menyimpan tipe. Perhitungan v235 dan pembulatan layar pindah ke `domain/usecase`.
+
+### Perubahan
+- `domain/usecase/CsBiasV235.kt`: `csBiasV235` dan `parseDefaultZ`. Memakai `f32` dan `fma` dari `util`.
+- `domain/usecase/DisplayMeasurementUseCase.kt`: pembulatan layar `HALF_UP`.
+- `domain/model/BiasV235Data.kt`, `V235Report.kt`, `MeasurementDisplay.kt`: tipe saja.
+- `domain/model/CsBiasV235.kt`: dihapus.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-05-hasil-riwayat.md`, `fase-06-frekuensi-ganda.md`: rumus di `usecase`, tipe di `model`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Langkah berikut tetap fase 3.
+
+## 2026-10-03 19:51 WIB — BinaryFloat pindah ke util
+
+### Tujuan
+Pembantu `f32` dan `fma` bukan use case. Letaknya mengikuti paket `util` yang boleh dipakai setiap lapisan.
+
+### Perubahan
+- `util/BinaryFloat.kt`: `f32` dan `fma` untuk rumus laporan.
+- `domain/usecase/BinaryFloat.kt`: dihapus.
+- `domain/usecase/CsBiasV235.kt`: memakai `f32` dan `fma` dari `util`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`: letak pembantu float diselaraskan.
+
+### Status
+Selesai. `data/util/ProtocolUtils.f32` tetap milik parser.
+
+## 2026-10-03 19:34 WIB — Sesi dan pilih rumus pindah ke usecase
+
+### Tujuan
+Alur hitung dan mesin sesi keluar dari paket model, karena keduanya bukan tipe data dan bukan akses penyimpanan.
+
+### Perubahan
+- `domain/usecase/CalculateReportUseCase.kt`: memilih `v235` untuk satu ohm. Sepuluh ohm tetap ditutup.
+- `domain/usecase/MeasurementSession.kt`: mesin sesi, memakai `CalculateReportUseCase` dan `MeasurementRepository`.
+- `domain/model/MeasurementSession.kt`: dihapus.
+- `domain/model/MeasurementResult.kt`: hanya `MeasurementResult` dan `FormulaOutcome`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-02-rumus-v235-mesin-sesi.md`, `fase-03-profil-room.md`, `fase-06-frekuensi-ganda.md`: letak usecase diselaraskan.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Langkah berikut tetap fase 3.
+
+## 2026-10-03 18:48 WIB — Rumus v235 dan mesin sesi
+
+### Tujuan
+Rumus satu ohm dan mesin sesi pindah ke domain HealthTrack, supaya angka layar 68,7 kg dihitung tanpa Room atau Bluetooth.
+
+### Perubahan
+- `domain/model/CsBiasV235.kt`: `csBiasV235`, `parseDefaultZ`, dan `V235Report`.
+- `domain/model/BinaryFloat.kt`: `f32` dan `fma` untuk rumus.
+- `domain/model/BodyData.kt`, `MeasurementResult.kt`, `MeasurementDisplay.kt`, `MeasurementSession.kt`: data tubuh, hasil, pembulatan layar, dan mesin sesi satu ohm.
+- `domain/repository/MeasurementRepository.kt`: method `save`. Implementasi Room belum ada.
+- `app/src/test/java/.../domain/model/`: uji v235, pembulatan 68,7 kg, dan sesi satu ohm.
+- `docs/android-dev/00-rencana-besar.md`: fase 2 tercatat sudah di kode.
+
+### Temuan
+Nilai library `cs_bias_v235` sebelum penyempitan tetap `Double`. `Float` hanya pada operasi yang Python paksa ke binary32. `MeasurementSession` memakai frame yang sudah diurai, bukan byte.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Langkah berikut fase 3: profil dan Room.
+
 ## 2026-10-03 18:39 WIB — Domain rencana hanya model dan repository
 
 ### Tujuan

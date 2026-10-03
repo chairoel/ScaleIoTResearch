@@ -49,8 +49,8 @@ HealthTrack/app/
 | `rumus/iklan_okok.py` | `app/.../domain/protocol/ScaleAdvertisement.kt` |
 | `rumus/siaran_okok.py` | `app/.../domain/protocol/ScaleBroadcast.kt` |
 | `rumus/gatt_okok.py` | `app/.../domain/protocol/ScaleGatt.kt` |
-| `rumus/cs_bias_v235.py` | `app/.../domain/formula/CsBiasV235.kt` |
-| `rumus/cs_bias_vA019.py` | `app/.../domain/formula/CsBiasVA019.kt` |
+| `rumus/cs_bias_v235.py` | `app/.../util/CsBiasV235.kt` |
+| `rumus/cs_bias_vA019.py` | `app/.../util/CsBiasVA019.kt` |
 | `aplikasi/sesi_ukur.py` | `app/.../domain/session/MeasurementSession.kt` |
 | `aplikasi/sesi_ble.py` | `app/.../data/ble/SessionListener.kt` dan `BleSession.kt` |
 | `aplikasi/simpan.py` | `app/.../data/` Room |

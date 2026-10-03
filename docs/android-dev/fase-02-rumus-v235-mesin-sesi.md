@@ -4,18 +4,28 @@ Syarat mulai: pintu keluar [fase 1](fase-01-modul-inti-parser.md), sudah terpenu
 
 Sumber perilaku: [cs_bias_v235.py](../../rumus/cs_bias_v235.py) dan [sesi_ukur.py](../../aplikasi/sesi_ukur.py). `getVFR` di Java tidak dipindahkan. Viseral yang disimpan `parse_default_z` adalah field `vfl`.
 
-Lapisan: `domain` saja. Paket yang boleh ditambah berkasnya hanya `domain/model` dan `domain/repository`. Jangan membuat `domain/formula`, `domain/session`, atau `domain/usecase`. Tidak mengimpor `android.*`, `data`, Room, atau Compose. Tidak memakai `ProtocolUtils.f32`. Tidak menambah modul Gradle, Hilt, atau layar.
+Lapisan: `domain` untuk tipe, repositori, dan sesi. Paket yang dipakai `model`, `repository`, `usecase`, dan `di`. Rumus `CsBiasV235` serta pembantu `f32` dan `fma` ada di `util`. Jangan membuat `domain/formula` atau `domain/session`. Kelas use case tidak mengimpor `android.*`, `data`, Room, Compose, atau `dagger.hilt`. Tidak memakai `ProtocolUtils.f32`. Tidak menambah modul Gradle atau layar. [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) menyediakan use case lewat `@Provides`. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) menandai `MeasurementRepository` sebagai optional sampai implementasi Room ada.
 
 ## Yang dihasilkan
 
 Di `com.mascill.healthtrack.domain.model`:
 
-- `CsBiasV235` — `csBiasV235` dan `parseDefaultZ`.
-- Pembantu float yang setara `_f32` dan `_fma`: tiap operasi yang di Python dipaksa binary32 memakai `Float`.
 - `BodyData` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
-- `MeasurementResult` — mac, product id, berat kg, tampilan berat, impedansi, nama rumus, kode, laporan.
-- `calculateReport` — satu nilai ohm memanggil `parseDefaultZ` dan mengembalikan nama `v235`. Sepuluh nilai belum punya rumus; cabang itu ditutup di [fase 6](fase-06-frekuensi-ganda.md). Jumlah selain 1 dan 10 menolak sesi.
-- `MeasurementSession` — keadaan `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
+- `BiasV235Data`, `V235Report`, `MeasurementResult`, `MeasurementDisplay` — tipe hasil. Tanpa perhitungan.
+
+Di `com.mascill.healthtrack.util`:
+
+- `CsBiasV235` — rumus `csBiasV235` dan `parseDefaultZ`. Tiap operasi yang di Python dipaksa binary32 memakai `Float` lewat `f32` dan `fma` di paket yang sama.
+
+Di `com.mascill.healthtrack.domain.usecase`:
+
+- `CalculateReportUseCase` — satu nilai ohm memanggil `parseDefaultZ` dan mengembalikan nama `v235`. Sepuluh nilai belum punya rumus; cabang itu ditutup di [fase 6](fase-06-frekuensi-ganda.md). Jumlah selain 1 dan 10 menolak sesi.
+- `AcceptTransmissionUseCase`, `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase` — masing-masing satu `invoke`. Ketiganya memanggil `CloseMeasurementUseCase`.
+- `CloseMeasurementUseCase` — memanggil `CalculateReportUseCase`. Menyimpan hasil hanya bila kode 0.
+- `MeasurementStateUseCase` — `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
+- `DisplayMeasurementUseCase` — pembulatan layar `HALF_UP`.
+
+Keadaan sesi `MeasurementSession` ada di `domain/model`. Satu use case satu fungsi publik.
 
 Di `com.mascill.healthtrack.domain.repository`:
 
@@ -25,15 +35,15 @@ Aturan mesin, sudah terbukti di Python:
 
 1. Impedansi laporan adalah `impedanceOhm` pada siaran terkunci (`ScaleTransmission.locked`). Siaran belum kunci tidak menimpa impedansi yang sudah ada.
 2. Berat yang disimpan adalah `ScaleGatt` dengan `lockFlag == 1` dan `history == false`. Berat GATT yang sudah masuk tidak diganti siaran.
-3. `applyBroadcastWeight` menutup sesi dari siaran terkunci bila GATT belum ada. Nama method ini bukan tipe frame. Tipe framenya tetap `ScaleTransmission`.
+3. `ApplyBroadcastWeightUseCase` menutup sesi dari siaran terkunci bila GATT belum ada. Nama use case ini bukan tipe frame. Tipe framenya tetap `ScaleTransmission`.
 4. Sesi ditutup hanya bila rumus mengembalikan kode 0. Hasil pertama yang berhasil tetap, termasuk bila frame berat berikutnya datang.
 5. Angka komposisi di dalam `ScaleGatt` (`axunge`, `water`, `muscle`, dan seterusnya) tidak mengisi laporan.
 
-UseCase tidak dibuat. ViewModel belum ada. `MeasurementSession` memakai `MeasurementRepository`, bukan DAO.
+`CloseMeasurementUseCase` memakai `MeasurementRepository`, bukan DAO. `MeasurementRepositoryImpl` belum ada; kelas itu nanti hanya `save` dan `list`. Rumus tidak pindah ke implementasi repository.
 
 ## Pembulatan layar
 
-Fungsi tampilan di `domain/model` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
+Fungsi tampilan `DisplayMeasurementUseCase` di `domain/usecase` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
 
 Vektor: `parseDefaultZ(1, 29, 166, 68.7, 600)`. Kelamin 0 pada vektor yang sama: lemak 34,8.
 
@@ -63,7 +73,7 @@ Nilai mentah pada vektor laki-laki itu, sebelum pembulatan layar: `bfp` 23,07963
 
 ## Langkah
 
-1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z` ke `domain/model`.
+1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z` ke `domain/usecase`. Tipe hasilnya di `domain/model`.
 2. Salin uji `rumus/test_cs_bias_v235.py` ke `app/src/test/java`: nilai sama dengan library, kode galat berurutan, laporan Java memotong float (`bfp` 21,062211990356445 pada masukan 1 / 30 / 170,9 / 70,56 / 500,4).
 3. Port `MeasurementSession` dan `calculateReport` untuk satu ohm.
 4. Salin `aplikasi/test_sesi_ukur.py` kelas `SesiUkurTest` kecuali `test_sepuluh_impedansi`. Uji itu menunggu `vA019`.

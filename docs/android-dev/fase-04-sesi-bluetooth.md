@@ -16,10 +16,10 @@ Sesi tidak menulis ke TX. UUID itu tidak diganti.
 
 Di `app/.../data/ble/`:
 
-- `SessionListener` — meneruskan muatan iklan dan notify ke `MeasurementSession` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
+- `SessionListener` — meneruskan muatan iklan dan notify ke `AcceptTransmissionUseCase` dan `AcceptGattUseCase` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
 - `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform.
 
-`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan `MeasurementSession`. ViewModel tidak mengimpor `BluetoothGatt`.
+`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan memanggil use case sesi. Keadaan ada di `MeasurementSession`. ViewModel tidak mengimpor `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 
@@ -35,7 +35,7 @@ Alamat yang disimpan adalah MAC radio (`ScanResult.device.address`).
 6. Temukan layanan Chipsea, pasang notify pada RX, tulis descriptor CCCD, lalu nyalakan pemindaian lagi supaya impedansi terkunci tetap masuk.
 7. Tiga percobaan sambungan, batas 15 detik, lalu paling banyak dua putaran pindai. Sesi berakhir pada 120 detik atau saat hasil tersimpan.
 8. Bila waktu sambungan habis, layar memberitahu bahwa aplikasi OKOK di ponsel perlu ditutup bila timbangan sedang tersambung di sana.
-9. Iklan yang tidak bisa disambung menutup sesi lewat `applyBroadcastWeight`. Berat GATT yang sudah masuk tidak diganti.
+9. Iklan yang tidak bisa disambung menutup sesi lewat `ApplyBroadcastWeightUseCase`. Berat GATT yang sudah masuk tidak diganti.
 10. Siaran terenkripsi (`EncryptedTransmissionError`) menampilkan pesan di layar sesi dan tidak masuk rumus.
 
 Pesan ke pengguna memakai `AppError` di `presentation/common/model`.
