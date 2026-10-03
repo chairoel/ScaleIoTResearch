@@ -6,6 +6,10 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-03 16:01 WIB — RepositoryModule ada di data/di
+
+Koreksi catatan 2026-10-01 01:59. [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) ada di paket `data.di`, bersama `DataModule` dan `ScaleFrameHeaders`. Modul itu mengikat `ScaleTransmissionRepository` dan `ScaleGattRepository` ke implementasi data, `@Singleton` pada `SingletonComponent`. Paket `com.mascill.healthtrack.di` tidak ada.
+
 ## 2026-10-01 01:59 WIB — scaleHeaders disediakan DataModule
 
 Koreksi catatan 2026-10-01 01:47 dan 2026-10-01 01:49. Daftar header iklan disediakan [`DataModule.scaleHeaders`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt): `TxConst.HEADER_CA` dan `TxConst.HEADER_C0`, ditandai `@ScaleFrameHeaders`. [`RepositoryModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/di/RepositoryModule.kt) hanya mengikat `ScaleTransmissionRepository` dan `ScaleGattRepository`.

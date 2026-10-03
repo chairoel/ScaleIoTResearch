@@ -46,7 +46,7 @@ HealthTrack/app/                satu-satunya modul Gradle
       session/                  BodyData, MeasurementSession, MeasurementResult
     data/
       datasource/               JNI bridge NativeProtocol
-      di/                       ScaleFrameHeaders, DataModule
+      di/                       ScaleFrameHeaders, DataModule, RepositoryModule
       mapper/                   model mentah, hasil native, dan berat ke model domain
       model/                    RawTransmission, RawGattMeasurement, RawGattConfirmation
       repository/               ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl
@@ -55,7 +55,6 @@ HealthTrack/app/                satu-satunya modul Gradle
       util/                     byte, TxConst, GattConst, TxIdx, GIdx, RIdx
       local/                    DataStore healthtrack_prefs dan Room
       ble/                      pemindai dan GATT
-    di/                         RepositoryModule, binding repository
     presentation/               empat layar Compose
   src/main/cpp/                 implementasi native C
     CMakeLists.txt

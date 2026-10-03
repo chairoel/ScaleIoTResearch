@@ -1,5 +1,19 @@
 # Activity Log
 
+## 2026-10-03 16:01 WIB — RepositoryModule pindah ke data/di
+
+### Tujuan
+Pengikatan repository tinggal di lapisan data, satu paket dengan modul Hilt data yang lain.
+
+### Perubahan
+- `data/di/RepositoryModule.kt`: `@Binds` `ScaleTransmissionRepository` dan `ScaleGattRepository` ke implementasi data, `@Singleton` pada `SingletonComponent`.
+- `di/RepositoryModule.kt`: dihapus. Paket `com.mascill.healthtrack.di` tidak ada.
+- `docs/android-dev/00-rencana-besar.md`: pohon menaruh `RepositoryModule` di `data/di`.
+- `HealthTrack/.cursor/skills/single-module-create-repository/SKILL.md`: lokasi binding mengikuti `data/di/RepositoryModule.kt`.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus.
+
 ## 2026-10-01 01:59 WIB — scaleHeaders pindah ke DataModule
 
 ### Tujuan
