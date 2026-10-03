@@ -1,5 +1,19 @@
 # Activity Log
 
+## 2026-10-04 03:19 WIB — Rencana fase mengikuti kode yang ada
+
+### Tujuan
+Dokumen `docs/android-dev` menyebut letak rumus, use case, dan uji yang sudah ada, supaya fase 3 tidak mengulang instruksi fase 2.
+
+### Perubahan
+- `docs/android-dev/fase-02-rumus-v235-mesin-sesi.md`: `UseCaseModule`, tipe hasil, dan daftar uji. Langkah port ke `domain/usecase` dihapus.
+- `docs/android-dev/fase-01-modul-inti-parser.md`: `v235` dan sesi ditandai sudah ada di fase 2.
+- `docs/android-dev/00-rencana-besar.md`: aturan paket berlaku untuk fase 3–6.
+- `docs/android-dev/fase-03-profil-room.md`, `fase-04-sesi-bluetooth.md`, `fase-05-hasil-riwayat.md`, `fase-06-frekuensi-ganda.md`: use case sesi diambil dari `UseCaseModule`.
+
+### Status
+Selesai.
+
 ## 2026-10-04 02:13 WIB — Use case disediakan dari domain/di
 
 ### Tujuan

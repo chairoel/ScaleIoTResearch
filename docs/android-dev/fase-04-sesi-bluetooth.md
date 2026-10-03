@@ -16,10 +16,10 @@ Sesi tidak menulis ke TX. UUID itu tidak diganti.
 
 Di `app/.../data/ble/`:
 
-- `SessionListener` — meneruskan muatan iklan dan notify ke `AcceptTransmissionUseCase` dan `AcceptGattUseCase` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
+- `SessionListener` — meneruskan muatan iklan dan notify ke `AcceptTransmissionUseCase` dan `AcceptGattUseCase` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Use case itu datang dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
 - `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform.
 
-`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan memanggil use case sesi. Keadaan ada di `MeasurementSession`. ViewModel tidak mengimpor `BluetoothGatt`.
+`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan memanggil use case sesi dari `UseCaseModule`. Keadaan ada di `MeasurementSession`. Teks keadaan memakai `MeasurementStateUseCase`. ViewModel tidak mengimpor `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 

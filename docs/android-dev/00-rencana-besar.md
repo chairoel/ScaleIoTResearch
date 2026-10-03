@@ -44,7 +44,7 @@ Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timb
 
 ## Aturan yang mengikat kode baru
 
-Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 2–6. Penyesuaian yang sudah terkunci di kode:
+Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 3–6. Penyesuaian yang sudah terkunci di kode:
 
 - Lapisan: `presentation` memakai `domain`. `data` memakai `domain`. Kelas di `domain/usecase` tidak mengimpor `data`, `presentation`, `android.*`, Room, Compose, atau `dagger.hilt`. `dagger.hilt` untuk use case hanya di `domain/di`.
 - Use case disediakan `@Provides` di [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Konstruktor use case tidak memakai `@Inject`.

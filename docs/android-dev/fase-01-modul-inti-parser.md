@@ -56,4 +56,4 @@ Vektor hex dan nilai harapan disalin dari uji Python. Jangan menulis vektor baru
 
 ## Belum dikerjakan
 
-Rumus `v235`, `MeasurementSession`, Room, DataStore, Compose di luar sapaan templat, izin Bluetooth, dan `vA019`.
+Room, DataStore, Compose di luar sapaan templat, izin Bluetooth, dan `vA019`. Rumus `v235` dan `MeasurementSession` sudah ada di [fase 2](fase-02-rumus-v235-mesin-sesi.md).

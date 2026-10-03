@@ -14,7 +14,7 @@ Sumber perilaku: [cs_bias_vA019.py](../../rumus/cs_bias_vA019.py). Berkas ini me
 
 Pembantu float tetap di `util/BinaryFloat.kt`. Urutan operasi binary32 tidak diubah. Jangan membuat paket `domain/formula` atau `domain/session`. Tipe laporan tetap di `domain/model`. Rumus tetap di `util`.
 
-`CalculateReportUseCase` memilih `vA019` bila impedansi berisi sepuluh nilai. Satu nilai tetap `v235`. Jumlah lain tetap menolak sesi.
+[`CalculateReportUseCase`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) sudah ada dan disediakan `UseCaseModule`. Cabang sepuluh ohm di kelas itu, yang sekarang menolak dengan `vA019 is not available`, diganti memilih `vA019`. Satu nilai tetap `v235`. Jumlah lain tetap menolak sesi. Jangan menambah provider kedua dan jangan memasang `@Inject` pada kelas itu.
 
 Laporan frekuensi ganda disimpan di kolom JSON `measurement.report` yang sudah ada. Tabel Room tidak ditambah untuk fase ini. Layar hasil yang sudah ada menampilkan field itu; tidak ada paket `presentation` baru.
 

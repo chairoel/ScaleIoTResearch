@@ -11,7 +11,7 @@ Lapisan: `domain` untuk tipe, repositori, dan sesi. Paket yang dipakai `model`, 
 Di `com.mascill.healthtrack.domain.model`:
 
 - `BodyData` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
-- `BiasV235Data`, `V235Report`, `MeasurementResult`, `MeasurementDisplay` — tipe hasil. Tanpa perhitungan.
+- `BiasV235Data`, `BiasV235Result`, `V235Report`, `V235ReportResult`, `FormulaOutcome`, `MeasurementResult`, `MeasurementDisplay` — tipe hasil. Tanpa perhitungan. `FormulaOutcome` ada di berkas `MeasurementResult`.
 
 Di `com.mascill.healthtrack.util`:
 
@@ -25,7 +25,11 @@ Di `com.mascill.healthtrack.domain.usecase`:
 - `MeasurementStateUseCase` — `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
 - `DisplayMeasurementUseCase` — pembulatan layar `HALF_UP`.
 
-Keadaan sesi `MeasurementSession` ada di `domain/model`. Satu use case satu fungsi publik.
+Keadaan sesi `MeasurementSession` ada di `domain/model`. Satu use case satu fungsi publik. Konstruktor use case tidak memakai `@Inject`.
+
+Di `com.mascill.healthtrack.domain.di`:
+
+- [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) — `@Provides` untuk ketujuh use case di atas. `provideCloseMeasurementUseCase` menerima `Optional<MeasurementRepository>` dari [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt). Optional kosong melewatkan `save`. Jangan menambah `@Inject` pada kelas use case yang sama.
 
 Di `com.mascill.healthtrack.domain.repository`:
 
@@ -71,15 +75,17 @@ Skor ditampilkan karena rumus menghasilkannya. Daftar OKOK yang dibandingkan tid
 
 Nilai mentah pada vektor laki-laki itu, sebelum pembulatan layar: `bfp` 23,07963752746582, `smm` 26,2417049407959, `slp` 72,75165557861328, `slm` 49,980384826660156, `bwp` 54,229583740234375, `bmc` 2,7662100791931152, `pp` 18,53265953063965, `swt` 60,20000076293945, `vfl` 10, `bmr` 1502, `ma` 36, `sbc` 61. Lemak kelamin 0: 34,7588005065918.
 
-## Langkah
-
-1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z` ke `domain/usecase`. Tipe hasilnya di `domain/model`.
-2. Salin uji `rumus/test_cs_bias_v235.py` ke `app/src/test/java`: nilai sama dengan library, kode galat berurutan, laporan Java memotong float (`bfp` 21,062211990356445 pada masukan 1 / 30 / 170,9 / 70,56 / 500,4).
-3. Port `MeasurementSession` dan `calculateReport` untuk satu ohm.
-4. Salin `aplikasi/test_sesi_ukur.py` kelas `SesiUkurTest` kecuali `test_sepuluh_impedansi`. Uji itu menunggu `vA019`.
-5. Tambah uji pembulatan tabel di atas, plus lemak 34,8 untuk kelamin 0.
+## Uji yang ada
 
 Uji memakai JUnit 4 yang sudah di modul (`testImplementation(libs.junit)`), satu tugas `testDebugUnitTest` bersama uji parser. Jangan menambah runner kedua.
+
+Di `app/src/test/java`, paket `domain.model`:
+
+- `CsBiasV235Test` — nilai sama dengan library, kode galat berurutan, laporan Java memotong float (`bfp` 21,062211990356445 pada masukan 1 / 30 / 170,9 / 70,56 / 500,4).
+- `MeasurementSessionTest` dan `CalculateReportTest` — perilaku `SesiUkurTest` di `aplikasi/test_sesi_ukur.py`, kecuali `test_sepuluh_impedansi`. Sepuluh ohm menunggu `vA019`. Jumlah selain 1 dan 10 ditolak.
+- `MeasurementDisplayTest` — tabel pembulatan di atas, plus lemak 34,8 untuk kelamin 0.
+
+Rumus ada di `util/CsBiasV235.kt`, bukan di `domain/usecase`. `CalculateReportUseCase` hanya memilih rumus itu.
 
 `SimpanDanPerintahTest` adalah perintah baris Python. Perintah itu tidak dipindahkan. Perilaku simpan profil dan hasil ditutup di fase 3 lewat Room.
 
