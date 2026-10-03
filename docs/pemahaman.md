@@ -6,6 +6,16 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-03 18:39 WIB — Rekomendasi berikut: rumus v235 di domain/model
+
+Langkah berikut: port `cs_bias_v235` dan `MeasurementSession` ke paket `domain/model` yang sudah ada, dan antarmuka `MeasurementRepository` ke `domain/repository`. Syaratnya pintu keluar fase 1, yang sudah terpenuhi. Jangan membuat folder `domain/formula`, `domain/session`, atau `domain/usecase`. Jangan mulai Room, DataStore, Compose, Bluetooth, atau `vA019`. Daftar kerjanya ada di [fase-02-rumus-v235-mesin-sesi.md](android-dev/fase-02-rumus-v235-mesin-sesi.md).
+
+## 2026-10-03 18:39 WIB — Domain HealthTrack hanya model dan repository
+
+Koreksi catatan 2026-10-03 18:33 pada letak fase 2–6. Paket `domain` yang boleh dipakai hanya `model` dan `repository`, yang sudah ada di `HealthTrack/app/src/main/java/com/mascill/healthtrack/domain`.
+
+Rumus `CsBiasV235` dan `CsBiasVA019`, `BodyData`, `MeasurementResult`, serta `MeasurementSession` masuk `domain/model`. Antarmuka `BodyRepository`, `MeasurementRepository`, dan `ScaleSessionRepository` masuk `domain/repository`. ViewModel menyuntik antarmuka itu. UseCase tidak dibuat. Folder `domain/formula`, `domain/session`, dan `domain/usecase` tidak dibuat.
+
 ## 2026-10-03 18:33 WIB — Rencana eksekusi ada di docs/android-dev
 
 Letak paket yang dipakai saat menulis HealthTrack ada di [android-dev/00-rencana-besar.md](android-dev/00-rencana-besar.md). Bagian paket di [rencana aplikasi Android](rencana-aplikasi-android.md) yang menaruh parser di `domain/protocol` dan menyebut templat kosong tidak dipakai.

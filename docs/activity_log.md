@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-10-03 18:39 WIB — Domain rencana hanya model dan repository
+
+### Tujuan
+Rencana fase 2–6 tidak menambah folder di bawah `domain`. Paket yang ada hanya `model` dan `repository`.
+
+### Perubahan
+- `docs/android-dev/00-rencana-besar.md`: rumus, `BodyData`, `MeasurementResult`, dan `MeasurementSession` di `domain/model`. Antarmuka di `domain/repository`. UseCase dihapus dari rencana.
+- `docs/android-dev/fase-02-rumus-v235-mesin-sesi.md` sampai `fase-06-frekuensi-ganda.md`: berkas domain baru tetap di dua paket itu. `ScaleSessionRepository` menjadi pintu sesi Bluetooth untuk ViewModel.
+
+### Status
+Selesai. Kode aplikasi tidak diubah. Langkah berikut tetap fase 2, dengan berkas di `domain/model` dan `domain/repository`.
+
 ## 2026-10-03 18:33 WIB — Rencana android-dev diselaraskan dengan kode dan aturan
 
 ### Tujuan

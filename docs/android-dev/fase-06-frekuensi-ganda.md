@@ -6,13 +6,13 @@ Sumber perilaku: [cs_bias_vA019.py](../../rumus/cs_bias_vA019.py). Berkas ini me
 
 ## Yang dihasilkan
 
-`com.mascill.healthtrack.domain.formula.CsBiasVA019`:
+`com.mascill.healthtrack.domain.model.CsBiasVA019`, satu berkas di paket `model` yang sudah ada:
 
 - `csBiasVA019`
 - `parseMultiFrequency`
 - interpreter yang menjalankan citra program di berkas Python
 
-Pembantu float tetap yang di `domain/formula` pada fase 2. Urutan operasi binary32 tidak diubah.
+Pembantu float tetap yang di `domain/model` pada fase 2. Urutan operasi binary32 tidak diubah. Jangan membuat paket `domain/formula`.
 
 `calculateReport` memilih `vA019` bila impedansi berisi sepuluh nilai. Satu nilai tetap `v235`. Jumlah lain tetap menolak sesi.
 

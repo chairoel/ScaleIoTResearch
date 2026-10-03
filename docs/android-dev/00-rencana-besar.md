@@ -50,7 +50,8 @@ Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 2–6. Penyesuaian yan
 - Modul Hilt ada di `com.mascill.healthtrack.data.di`. Paket `com.mascill.healthtrack.di` tidak dibuat. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) dan [`DataModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt) sudah di sana. `DataStoreModule`, `DatabaseModule`, dan `DispatcherModule` menyusul di paket yang sama pada fase 3.
 - Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
 - ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
-- Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel menerima UseCase. UseCase menerima antarmuka repository domain.
+- Paket `domain` hanya `model` dan `repository`. Jangan menambah `domain/formula`, `domain/session`, atau `domain/usecase`.
+- Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel menerima antarmuka di `domain/repository`, bukan UseCase dan bukan implementasi data.
 - Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
 - SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
 
@@ -80,9 +81,9 @@ HealthTrack/app/src/test/java/  JUnit host, tanpa emulator
 Yang ditambah fase 2–6, masih di modul `app`:
 
 ```text
-domain/formula/                 CsBiasV235 pada fase 2, CsBiasVA019 pada fase 6
-domain/session/                 BodyData, MeasurementSession, MeasurementResult
-domain/usecase/                 simpan dan muat profil serta hasil, mulai fase 3
+domain/model/                   BodyData, MeasurementResult, MeasurementSession,
+                                CsBiasV235, CsBiasVA019, pembantu float
+domain/repository/              BodyRepository, MeasurementRepository, ScaleSessionRepository
 data/model/entity/              entitas Room body dan measurement
 data/datasource/local/          DAO Room dan DataStore healthtrack_prefs
 data/ble/                       BleSession dan SessionListener, fase 4
@@ -101,7 +102,7 @@ Modul Gradle kedua tidak dibuat. Rumus dan mesin sesi tidak mengimpor `android.*
 
 Operasi byte parser yang sudah pindah ada di `libscale_protocol.so` (`app/src/main/cpp/`). [`NativeProtocol`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt) di `data.datasource` memuat library itu. Simbol JNI berawalan `Java_com_mascill_healthtrack_data_datasource_NativeProtocol_`.
 
-Yang di C untuk parser: byte, berat siaran, penjepit komposisi GATT (`setAxunge` dan saudaranya), parse frame `0xCA` / `0xC0` / `0xFF`, parse GATT versi 16 dan 17, serta muatan iklan. Rumus laporan `v235` dan `vA019` belum di C. Keduanya menyusul di `domain/formula` sebagai `Float`.
+Yang di C untuk parser: byte, berat siaran, penjepit komposisi GATT (`setAxunge` dan saudaranya), parse frame `0xCA` / `0xC0` / `0xFF`, parse GATT versi 16 dan 17, serta muatan iklan. Rumus laporan `v235` dan `vA019` belum di C. Keduanya menyusul di `domain/model` sebagai `Float`.
 
 Dua jalur, dipilih `NativeProtocol.isLoaded`:
 
@@ -123,7 +124,7 @@ Layar memakai Navigation 3 saat fase 3 menambah tujuan. Versi ditambahkan ke `He
 - Peta byte: [protokol frame OKOK](../protokol-frame-okok.md).
 - Definisi selesai: [definisi-selesai.md](../definisi-selesai.md).
 - Bluetooth: `HealthTrack/.cursor/rules/bluetooth.mdc`.
-- Operasi rumus: `Float` (IEEE-754 binary32), urutan sama dengan `rumus/*.py`. Pembantu float rumus tinggal di `domain/formula`. `data/util/ProtocolUtils.f32` milik parser, bukan rumus laporan.
+- Operasi rumus: `Float` (IEEE-754 binary32), urutan sama dengan `rumus/*.py`. Pembantu float rumus tinggal di `domain/model`. `data/util/ProtocolUtils.f32` milik parser, bukan rumus laporan.
 - Angka pembanding layar: berat 68,7 kg, tinggi 166 cm, umur 29, kelamin 1, impedansi 600 ohm. Kelamin 0 pada vektor yang sama menghasilkan lemak 34,8. Pemetaan field ada di fase 2.
 - Siaran `0xC0` dengan bit 7 pada byte offset 4 ditolak lewat `EncryptedTransmissionError`. Repositori tidak memuat kunci `okok_scale_encrypted_key_`.
 - Sesi tidak menulis ke karakteristik TX.

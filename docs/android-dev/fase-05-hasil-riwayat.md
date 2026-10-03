@@ -8,7 +8,7 @@ Layar **Hasil** (`presentation/result`) dari fase 4 tetap memakai fungsi pembula
 
 Layar **Riwayat** (`presentation/history`) memakai `MeasurementRepository.list`, terbaru di atas. Satu baris mendorong `ResultRoute` dan membuka kembali layar hasil dari JSON `report` dan `impedance_ohm` yang tersimpan, termasuk hex bila ikut tersimpan. Hasil yang dibuka dari riwayat tidak memulai sesi Bluetooth.
 
-ViewModel hasil dan riwayat menerima UseCase. Keduanya tidak mengimpor Room atau `BluetoothGatt`.
+ViewModel hasil dan riwayat menyuntik `MeasurementRepository`. Keduanya tidak mengimpor Room atau `BluetoothGatt`.
 
 Teks Indonesia, koma desimal, sesuai tabel fase 2.
 

@@ -19,7 +19,7 @@ Di `app/.../data/ble/`:
 - `SessionListener` — meneruskan muatan iklan dan notify ke `MeasurementSession` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
 - `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform.
 
-`presentation/session` memegang status. ViewModel memanggil UseCase. UseCase memegang `BleSession` dan `MeasurementSession`. ViewModel tidak mengimpor `BluetoothGatt`.
+`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan `MeasurementSession`. ViewModel tidak mengimpor `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 

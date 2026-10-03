@@ -4,22 +4,22 @@ Syarat mulai: pintu keluar [fase 1](fase-01-modul-inti-parser.md), sudah terpenu
 
 Sumber perilaku: [cs_bias_v235.py](../../rumus/cs_bias_v235.py) dan [sesi_ukur.py](../../aplikasi/sesi_ukur.py). `getVFR` di Java tidak dipindahkan. Viseral yang disimpan `parse_default_z` adalah field `vfl`.
 
-Lapisan: `domain` saja. Tidak mengimpor `android.*`, `data`, Room, atau Compose. Tidak memakai `ProtocolUtils.f32`; pembantu float rumus tinggal di `domain/formula`. Tidak menambah modul Gradle, Hilt, atau layar.
+Lapisan: `domain` saja. Paket yang boleh ditambah berkasnya hanya `domain/model` dan `domain/repository`. Jangan membuat `domain/formula`, `domain/session`, atau `domain/usecase`. Tidak mengimpor `android.*`, `data`, Room, atau Compose. Tidak memakai `ProtocolUtils.f32`. Tidak menambah modul Gradle, Hilt, atau layar.
 
 ## Yang dihasilkan
 
-Di `com.mascill.healthtrack.domain.formula`:
+Di `com.mascill.healthtrack.domain.model`:
 
 - `CsBiasV235` — `csBiasV235` dan `parseDefaultZ`.
 - Pembantu float yang setara `_f32` dan `_fma`: tiap operasi yang di Python dipaksa binary32 memakai `Float`.
-
-Di `com.mascill.healthtrack.domain.model` dan `domain/session`:
-
 - `BodyData` — tinggi cm, umur, jenis kelamin. Jenis kelamin selain 0 dan 1 ditolak.
 - `MeasurementResult` — mac, product id, berat kg, tampilan berat, impedansi, nama rumus, kode, laporan.
-- `MeasurementRepository` — antarmuka domain. Satu method `save` untuk hasil. Implementasi Room menyusul di fase 3. Uji fase ini memakai penyimpan palsu di memori. Jangan menamai tipe ini `ResultStore`.
 - `calculateReport` — satu nilai ohm memanggil `parseDefaultZ` dan mengembalikan nama `v235`. Sepuluh nilai belum punya rumus; cabang itu ditutup di [fase 6](fase-06-frekuensi-ganda.md). Jumlah selain 1 dan 10 menolak sesi.
 - `MeasurementSession` — keadaan `menunggu impedansi`, `menunggu berat`, `selesai`, atau `rumus` plus kode.
+
+Di `com.mascill.healthtrack.domain.repository`:
+
+- `MeasurementRepository` — antarmuka domain. Satu method `save` untuk hasil. Implementasi Room menyusul di fase 3. Uji fase ini memakai penyimpan palsu di memori. Jangan menamai tipe ini `ResultStore`.
 
 Aturan mesin, sudah terbukti di Python:
 
@@ -29,11 +29,11 @@ Aturan mesin, sudah terbukti di Python:
 4. Sesi ditutup hanya bila rumus mengembalikan kode 0. Hasil pertama yang berhasil tetap, termasuk bila frame berat berikutnya datang.
 5. Angka komposisi di dalam `ScaleGatt` (`axunge`, `water`, `muscle`, dan seterusnya) tidak mengisi laporan.
 
-UseCase belum dibuat di fase ini. ViewModel belum ada. `MeasurementSession` memakai `MeasurementRepository` domain, bukan DAO.
+UseCase tidak dibuat. ViewModel belum ada. `MeasurementSession` memakai `MeasurementRepository`, bukan DAO.
 
 ## Pembulatan layar
 
-Fungsi tampilan di `domain` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
+Fungsi tampilan di `domain/model` (dipakai lagi oleh layar pada fase 5) membulatkan dengan `HALF_UP`. Uji membandingkan nilai yang sudah dibulatkan. Teks di layar nanti memakai koma desimal.
 
 Vektor: `parseDefaultZ(1, 29, 166, 68.7, 600)`. Kelamin 0 pada vektor yang sama: lemak 34,8.
 
@@ -63,7 +63,7 @@ Nilai mentah pada vektor laki-laki itu, sebelum pembulatan layar: `bfp` 23,07963
 
 ## Langkah
 
-1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z` ke `domain/formula`.
+1. Port `cs_bias_v235` beserta koefisien dan `parse_default_z` ke `domain/model`.
 2. Salin uji `rumus/test_cs_bias_v235.py` ke `app/src/test/java`: nilai sama dengan library, kode galat berurutan, laporan Java memotong float (`bfp` 21,062211990356445 pada masukan 1 / 30 / 170,9 / 70,56 / 500,4).
 3. Port `MeasurementSession` dan `calculateReport` untuk satu ohm.
 4. Salin `aplikasi/test_sesi_ukur.py` kelas `SesiUkurTest` kecuali `test_sepuluh_impedansi`. Uji itu menunggu `vA019`.
@@ -79,4 +79,4 @@ Uji memakai JUnit 4 yang sudah di modul (`testImplementation(libs.junit)`), satu
 
 ## Belum dikerjakan
 
-Layar, Room, DataStore, Bluetooth, UseCase, dan port `cs_bias_vA019.py`.
+Layar, Room, DataStore, Bluetooth, dan port `cs_bias_vA019.py`.

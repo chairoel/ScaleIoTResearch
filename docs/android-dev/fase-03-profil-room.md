@@ -20,12 +20,10 @@ measurement(id, created_at, mac, product_id, weight_kg, scale_weight,
      impedance_ohm, formula, code, report)
 ```
 
-Antarmuka domain, tanpa tipe Room:
+Antarmuka di `domain/repository`, tanpa tipe Room. ViewModel menerima antarmuka ini, bukan DAO dan bukan `*RepositoryImpl`. UseCase tidak dibuat.
 
 - `BodyRepository` — `save` menulis baris `body` baru; `latest` mengambil `id` terbesar.
 - `MeasurementRepository` — `save` dari fase 2 mendapat implementasi Room; `list` mengembalikan `measurement` terbaru di atas (`id` menurun). Python mengurutkan menaik; layar riwayat membaliknya di query ini.
-
-UseCase di `domain/usecase`: simpan tubuh, muat tubuh terbaru, simpan hasil, daftar hasil. ViewModel menerima UseCase, bukan DAO dan bukan `*RepositoryImpl`.
 
 Jenis kelamin selain 0 dan 1 ditolak di `BodyData` sebelum insert.
 
@@ -47,7 +45,7 @@ Tema yang ada, `ui/theme/HealthTrackTheme`, dipindah ke `presentation/theme` saa
 
 Teks Indonesia. Satu paket per fitur: `*Screen`, `*ViewModel`, `model/*UIState`. `@HiltViewModel`, `StateFlow`, `collectAsStateWithLifecycle`, `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`.
 
-1. **Profil** (`presentation/profile`). Tinggi (cm), umur, jenis kelamin. Simpan menulis baris `body` baru lewat UseCase. Layar menampilkan baris terbaru.
+1. **Profil** (`presentation/profile`). Tinggi (cm), umur, jenis kelamin. Simpan menulis baris `body` baru lewat `BodyRepository`. Layar menampilkan baris terbaru.
 2. **Sesi** (`presentation/session`). Tombol mulai. Tanpa profil, sesi tidak masuk keadaan mengukur. Bluetooth belum disambungkan; tombol hanya membuka alur yang fase 4 isi.
 3. **Riwayat** (`presentation/history`). Daftar kosong bila belum ada baris `measurement`. Membuka hasil tersimpan menyusul di fase 5.
 
