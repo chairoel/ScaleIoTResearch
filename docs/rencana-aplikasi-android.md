@@ -52,7 +52,7 @@ HealthTrack/app/
 | `rumus/cs_bias_v235.py` | `app/.../util/CsBiasV235.kt` |
 | `rumus/cs_bias_vA019.py` | `app/.../util/CsBiasVA019.kt` |
 | `aplikasi/sesi_ukur.py` | `app/.../domain/session/MeasurementSession.kt` |
-| `aplikasi/sesi_ble.py` | `app/.../data/datasource/ble/SessionListener.kt` dan `BleSession.kt` |
+| `aplikasi/sesi_ble.py` | `app/.../domain/usecase/MeasureScaleUseCase.kt` dan `app/.../data/datasource/BleDataSource.kt` (`BleDataSourceImpl`) |
 | `aplikasi/simpan.py` | `app/.../data/` Room |
 
 Peta byte ada di [protokol frame OKOK](protokol-frame-okok.md).
@@ -172,7 +172,7 @@ Pintu keluar: menyimpan profil, memuat baris terbaru, menolak jenis kelamin sela
 
 ### 4. Sesi Bluetooth
 
-`SessionListener` dan orkestrasi pindai–sambung–notify, dengan status di layar.
+`MeasureScaleUseCase` dan orkestrasi pindai–sambung–notify, dengan status di layar. Radio tetap di `BleDataSource`.
 
 Pintu keluar di timbangan yang sama dengan uji 27 Sep 2026: berat dan daftar indeks cocok dengan aplikasi OKOK. Uji ini memakai siaran tidak terenkripsi. Bila iklan tidak connectable, berat siaran terkunci tetap menghasilkan laporan. Hex siaran dan hex GATT terakhir tampil di layar hasil supaya banding bisa diulang.
 

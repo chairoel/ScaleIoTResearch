@@ -1,5 +1,102 @@
 # Activity Log
 
+## 2026-10-04 11:05 WIB — BleSession berganti nama BleDataSource
+
+### Tujuan
+Menyelaraskan nama radio dengan pola data source: satu antarmuka `BleDataSource`, satu implementasi `BleDataSourceImpl`.
+
+### Perubahan
+- `data/datasource/BleDataSource.kt`, `BleDataSourceImpl.kt`: ganti nama dari `BleSession` dan `BleSessionImpl`.
+- `data/di/DataSourceModule.kt`: `@Binds` mengikuti nama baru.
+- `data/repository/ScaleRadioRepositoryImpl.kt`: menyuntik `BleDataSource`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`, `rencana-aplikasi-android.md`: peta memakai nama baru.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 11:01 WIB — Callback radio masuk ke BleSession
+
+### Tujuan
+Menghapus `ScanSink` dan `ConnectSink`. Keduanya bukan sumber data. Yang diimplementasikan hanya `BleSessionImpl`.
+
+### Perubahan
+- `data/datasource/BleSession.kt`: `startScan` dan `connect` menerima lambda.
+- `data/datasource/BleSessionImpl.kt`: menyimpan lambda itu. `ScanSink.kt` dan `ConnectSink.kt` dihapus.
+- `data/repository/ScaleRadioRepositoryImpl.kt`: mengirim lambda, bukan objek sink.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`: peta tidak lagi menyebut dua antarmuka itu.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 10:56 WIB — Satu antarmuka satu berkas
+
+### Tujuan
+Memisahkan `ScanSink` dan `ConnectSink` dari `BleSession`, supaya satu berkas hanya memuat satu antarmuka.
+
+### Perubahan
+- `data/datasource/BleSession.kt`: hanya antarmuka `BleSession`.
+- `data/datasource/ScanSink.kt`, `ConnectSink.kt`: antarmuka yang sebelumnya berada di berkas yang sama.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`, `rencana-aplikasi-android.md`: peta mengikuti paket `data/datasource`.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 10:46 WIB — BleSession jadi antarmuka
+
+### Tujuan
+Memisahkan kontrak radio dari kelas platform, supaya pemanggil menyuntik antarmuka dan uji bisa menggantinya.
+
+### Perubahan
+- `data/datasource/ble/BleSession.kt`: antarmuka `BleSession`, plus `ScanSink` dan `ConnectSink`.
+- `data/datasource/ble/BleSessionImpl.kt`: pemindaian dan GATT yang sebelumnya ada di kelas `BleSession`.
+- `data/di/DataSourceModule.kt`: `@Binds` `BleSessionImpl` ke `BleSession`.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`, `rencana-aplikasi-android.md`: peta paket menyebut antarmuka dan implementasinya.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus. `ScaleRadioRepositoryImpl` tetap menyuntik `BleSession`.
+
+## 2026-10-04 10:36 WIB — Use case sesi keluar dari data
+
+### Tujuan
+Memindahkan penerapan frame timbangan ke domain, supaya lapisan data tidak memanggil use case.
+
+### Perubahan
+- `domain/usecase/MeasureScaleUseCase.kt`, `MeasureScale.kt`, `ScaleFrames.kt`: sesi mengukur dipanggil dari sini. `ScaleFrames` menerapkan siaran dan GATT lewat `AcceptTransmissionUseCase`, `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase`.
+- `domain/repository/ScaleRadioRepository.kt`, `data/repository/ScaleRadioRepositoryImpl.kt`: radio hanya memindai, menyambung, dan mengembalikan peristiwa.
+- `domain/model/ScaleRadioEvent.kt`, `util/ElapsedClock.kt`: peristiwa radio dan jam monoton untuk batas waktu.
+- `presentation/session/SessionViewModel.kt`: menyuntik `MeasureScaleUseCase`.
+- `data/datasource/ble/SessionListener.kt`, `data/repository/ScaleSessionRepositoryImpl.kt`, `domain/repository/ScaleSessionRepository.kt`, `data/model/SessionSign.kt`: dihapus.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`: peta paket mengikuti arah panggilan ini.
+
+### Status
+Selesai. `ScaleFramesTest`, `MeasureScaleUseCaseTest`, dan `SessionViewModelTest` lulus.
+
+## 2026-10-04 09:58 WIB — Hex byte pindah ke ProtocolUtils
+
+### Tujuan
+Menaruh pengubah byte ke hex di `data/util`, bersama pembantu byte parser yang lain.
+
+### Perubahan
+- `data/util/ProtocolUtils.kt`: `ByteArray.toHex`, huruf kecil, tanpa pemisah.
+- `data/datasource/ble/SessionListener.kt`: hex siaran dan GATT memakai fungsi itu.
+- `app/src/test/.../SessionListenerTest.kt`: pembanding hex memakai fungsi yang sama.
+
+### Status
+Selesai. `SessionListenerTest` lulus.
+
+## 2026-10-04 09:58 WIB — Tanda frame berulang pindah ke data/model
+
+### Tujuan
+Menaruh `BroadcastSign` dan `GattSign` di `data/model` karena keduanya data class.
+
+### Perubahan
+- `data/model/SessionSign.kt`: kedua tanda, `internal`.
+- `data/datasource/ble/SessionListener.kt`: membandingkan frame berulang lewat tipe itu.
+- `docs/android-dev/00-rencana-besar.md`: peta paket menyebut kedua tipe.
+
+### Status
+Selesai.
+
 ## 2026-10-04 09:50 WIB — Sesi Bluetooth pindah ke datasource
 
 ### Tujuan

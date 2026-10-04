@@ -14,12 +14,16 @@ Sesi tidak menulis ke TX. UUID itu tidak diganti.
 
 ## Yang dihasilkan
 
-Di `app/.../data/datasource/ble/`:
+Di `app/.../data/datasource/`:
 
-- `SessionListener` — meneruskan muatan iklan dan notify ke `AcceptTransmissionUseCase` dan `AcceptGattUseCase` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Use case itu datang dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
-- `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform.
+- `BleDataSource` — satu kontrak pindai dan GATT. Hasil pindai dan peristiwa sambungan masuk lewat parameter fungsi. Uji menyuntik antarmuka ini.
+- `BleDataSourceImpl` — satu implementasi. `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform. [`DataSourceModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikatnya ke `BleDataSource`.
 
-`presentation/session` memegang status. ViewModel menyuntik `ScaleSessionRepository` di `domain/repository`. Implementasinya di `data` memegang `BleSession` dan memanggil use case sesi dari `UseCaseModule`. Keadaan ada di `MeasurementSession`. Teks keadaan memakai `MeasurementStateUseCase`. ViewModel tidak mengimpor `BluetoothGatt`.
+`ScaleRadioRepository` di `domain/repository` adalah pintu radio. Implementasinya di `data` memegang `BleDataSource`, memotong muatan iklan, dan mengembalikan peristiwa. Kelas itu tidak memanggil use case.
+
+`MeasureScaleUseCase` di `domain/usecase` menjalankan sesi. Use case itu memanggil `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, dan `MeasurementStateUseCase` dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Pembanding frame berulang ada di `ScaleFrames`, satu kelas internal di paket yang sama. `ScaleFrames` tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
+
+`presentation/session` memegang status. ViewModel menyuntik `MeasureScaleUseCase`. Keadaan ada di `MeasurementSession`. Teks keadaan memakai `MeasurementStateUseCase`. ViewModel tidak mengimpor `BluetoothGatt`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 

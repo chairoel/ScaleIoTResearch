@@ -6,6 +6,36 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 11:05 WIB — Radio Bluetooth bernama BleDataSource
+
+Koreksi nama pada catatan 2026-10-04 11:01. Kontrak radio adalah [`BleDataSource`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSource.kt). Implementasinya [`BleDataSourceImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSourceImpl.kt). [`DataSourceModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikat keduanya. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) menyuntik `BleDataSource`.
+
+## 2026-10-04 11:01 WIB — Radio Bluetooth satu antarmuka satu implementasi
+
+Koreksi catatan 2026-10-04 10:56. `ScanSink` dan `ConnectSink` tidak ada. Hasil pindai dan peristiwa GATT adalah parameter fungsi pada [`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleSession.kt). Satu implementasi: [`BleSessionImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleSessionImpl.kt). [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) mengirim lambda ke `startScan` dan `connect`.
+
+## 2026-10-04 10:56 WIB — Satu antarmuka radio satu berkas
+
+Koreksi letak pada catatan 2026-10-04 10:46. Paketnya `com.mascill.healthtrack.data.datasource`, bukan `data.datasource.ble`. [`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleSession.kt), [`ScanSink`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ScanSink.kt), dan [`ConnectSink`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ConnectSink.kt) masing-masing satu berkas. [`BleSessionImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleSessionImpl.kt) tetap kelas platformnya.
+
+## 2026-10-04 10:46 WIB — Radio Bluetooth dipisah kontrak dan implementasi
+
+[`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/BleSession.kt) adalah antarmuka pindai dan GATT. [`BleSessionImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/BleSessionImpl.kt) memegang `BluetoothLeScanner` dan `BluetoothGatt`. [`DataSourceModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikat implementasi itu ke antarmuka. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) menyuntik `BleSession`.
+
+## 2026-10-04 10:36 WIB — Use case sesi dipanggil dari domain
+
+[`MeasureScaleUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScaleUseCase.kt) dijalankan oleh ViewModel sesi. Implementasinya [`MeasureScale`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScale.kt) memanggil `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, dan `MeasurementStateUseCase`. [`ScaleFrames`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt) di paket yang sama menerapkan satu siaran atau frame GATT dan tidak mengimpor `android.*`.
+
+[`ScaleRadioRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleRadioRepository.kt) adalah pintu radio. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) memegang `BleSession`, memotong muatan iklan, dan mengembalikan [`ScaleRadioEvent`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleRadioEvent.kt). Kelas data itu tidak memanggil use case. Batas 15 detik, dua putaran, dan batas sesi 120 detik ada di `MeasureScale`.
+
+## 2026-10-04 09:58 WIB — Hex byte ada di ProtocolUtils
+
+[`ByteArray.toHex`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt) ada di `data/util`, di bagian pembantu byte. Hasilnya huruf kecil tanpa pemisah. [`SessionListener`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/SessionListener.kt) memakai fungsi itu untuk hex siaran dan hex GATT.
+
+## 2026-10-04 09:58 WIB — Tanda frame berulang ada di data/model
+
+[`BroadcastSign`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/SessionSign.kt) dan `GattSign` ada di `data/model/SessionSign.kt`. Keduanya `internal`. [`SessionListener`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/SessionListener.kt) memakainya untuk mengabaikan siaran atau GATT yang sama dengan frame sebelumnya.
+
 ## 2026-10-04 09:50 WIB — Sesi Bluetooth ada di data/datasource/ble
 
 Koreksi catatan 2026-10-04 09:15 pada letak paket. [`SessionListener`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/SessionListener.kt) dan [`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/BleSession.kt) ada di `data/datasource/ble`, sejajar dengan `datasource/local`. [`ScaleSessionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleSessionRepositoryImpl.kt) di `data/repository` tetap memegang `BleSession`. `SessionListener` tetap tidak mengimpor `android.*`.

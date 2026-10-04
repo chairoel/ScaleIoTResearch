@@ -48,11 +48,11 @@ Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 3–6. Penyesuaian yan
 
 - Lapisan: `presentation` memakai `domain`. `data` memakai `domain`. Kelas di `domain/usecase` tidak mengimpor `data`, `presentation`, `android.*`, Room, Compose, atau `dagger.hilt`. `dagger.hilt` untuk use case hanya di `domain/di`.
 - Use case disediakan `@Provides` di [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Konstruktor use case tidak memakai `@Inject`.
-- Modul Hilt data ada di `com.mascill.healthtrack.data.di`. Paket `com.mascill.healthtrack.di` tidak dibuat. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) mengikat implementasi data. `MeasurementRepository` tetap `@BindsOptionalOf`, dan `@Binds` Room mengisi optional itu. [`DataModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt) menyediakan parser. `DataStoreModule`, `DatabaseModule`, dan `DispatcherModule` ada di paket yang sama.
+- Modul Hilt data ada di `com.mascill.healthtrack.data.di`. Paket `com.mascill.healthtrack.di` tidak dibuat. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) mengikat implementasi data. [`DataSourceModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikat `BleDataSource` ke `BleDataSourceImpl`. `MeasurementRepository` tetap `@BindsOptionalOf`, dan `@Binds` Room mengisi optional itu. [`DataModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataModule.kt) menyediakan parser. `DataStoreModule`, `DatabaseModule`, dan `DispatcherModule` ada di paket yang sama.
 - Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
 - ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
 - Paket `domain` berisi `model`, `repository`, `usecase`, dan `di`. Jangan menambah `domain/formula` atau `domain/session`.
-- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleSessionRepositoryImpl` memegang `BleSession` dan memanggil use case sesi.
+- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleRadioRepositoryImpl` memegang `BleDataSource` dan tidak memanggil use case. `MeasureScaleUseCase` menjalankan sesi dan memanggil use case penerimaan frame.
 - Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel profil dan riwayat menerima antarmuka di `domain/repository`. ViewModel tidak menerima `*RepositoryImpl`.
 - Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
 - SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
@@ -67,23 +67,23 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
                                 BodyData, BiasV235Data, V235Report, MeasurementResult, StoredMeasurement,
                                 MeasurementDisplay, MeasurementSession, ScaleSessionStatus
   domain/repository/            ScaleTransmissionRepository, ScaleGattRepository, BodyRepository,
-                                MeasurementRepository, ScaleSessionRepository
+                                MeasurementRepository, ScaleRadioRepository
   domain/di/                    UseCaseModule
   domain/usecase/               CalculateReportUseCase, AcceptTransmissionUseCase, AcceptGattUseCase,
                                 ApplyBroadcastWeightUseCase, CloseMeasurementUseCase,
-                                MeasurementStateUseCase, DisplayMeasurementUseCase
-  util/                         CsBiasV235, BinaryFloat (`f32`, `fma`), AppDispatcher
-  data/datasource/              NativeProtocol
+                                MeasurementStateUseCase, DisplayMeasurementUseCase,
+                                MeasureScaleUseCase, ScaleFrames
+  util/                         CsBiasV235, BinaryFloat (`f32`, `fma`), AppDispatcher, ElapsedClock
+  data/datasource/              NativeProtocol, BleDataSource, BleDataSourceImpl
     local/                      DAO Room, HealthTrackDatabase, HealthTrackPreferences
-    ble/                        SessionListener, BleSession
-  data/di/                      ScaleFrameHeaders, DataModule, RepositoryModule, DatabaseModule,
+  data/di/                      ScaleFrameHeaders, DataModule, DataSourceModule, RepositoryModule, DatabaseModule,
                                 DataStoreModule, DispatcherModule
   data/mapper/                  TransmissionMapper, GattMapper, WeightMapper, BodyMapper, MeasurementMapper
   data/model/                   RawTransmission, RawGattMeasurement, RawGattConfirmation, StoredReport
     entity/                     BodyEntity, MeasurementEntity
   data/repository/              ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl,
                                 BodyRepositoryImpl, MeasurementRepositoryImpl,
-                                ScaleSessionRepositoryImpl
+                                ScaleRadioRepositoryImpl
     transmission/               pembaca 0xCA, 0xC0, dan 0xFF
     gatt/                       GattParser serta frame versi 16 dan 17
   data/util/                    ProtocolUtils, Constants, TxConst, GattConst, TxIdx, GIdx, RIdx
