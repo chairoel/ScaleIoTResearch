@@ -6,6 +6,129 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 22:05 WIB — MeasurementSession dipisah dari MeasurementContext
+
+Koreksi catatan 2026-10-04 21:49. [`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) sekarang hanya berisi data publik untuk presentation layer. Detail internal BLE (`mac`, `productId`, `gattWeight`, `broadcastWeight`) dipindah ke [`MeasurementContext`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) yang membungkus `MeasurementSession`.
+
+Use case (`AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, `CloseMeasurementUseCase`, `MeasurementStateUseCase`) menerima dan mengembalikan `MeasurementContext`. `ScaleFrames` menyimpan `context` dan menyediakan getter `session` untuk presentation. `MeasureScale` membangun `MeasurementContext` dan mengirim snapshot `session` ke status.
+
+```6:34:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt
+data class MeasurementSession(
+    val body: BodyData,
+    val transmission: ScaleTransmission? = null,
+    val impedanceOhm: Double? = null,
+    val code: Int? = null,
+    val formula: String? = null,
+    val result: MeasurementResult? = null,
+    val storedId: Int? = null,
+    val weightKg: Double? = null,
+)
+
+data class MeasurementContext(
+    val session: MeasurementSession,
+    val mac: String = "",
+    val productId: Int = 0,
+    val gattWeight: GattResult.ScaleGatt? = null,
+    val broadcastWeight: ScaleTransmission? = null,
+)
+```
+
+## 2026-10-04 21:49 WIB — Sesi ukur dikembalikan lewat copy
+
+Koreksi catatan 2026-10-04 19:47 dan 2026-10-04 21:21. [`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) adalah `data class` yang semua propertinya `val`. `mac`, `productId`, `gattWeight`, dan `broadcastWeight` tetap `internal`. `weightKg` ikut salinan bersama `gattWeight` di [`AcceptGattUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptGattUseCase.kt), dari kilogram frame GATT terkunci yang bukan riwayat.
+
+[`AcceptTransmissionUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptTransmissionUseCase.kt), `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, dan `CloseMeasurementUseCase` mengembalikan sesi baru. Pemanggil menyimpan nilai kembali itu. [`ScaleFrames.session`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt) memegang sesi terbaru. [`MeasureScale`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScale.kt) membaca sesi dari sana.
+
+Status sesi keluar lewat `channelFlow`. Coroutine radio dan coroutine jam sama-sama memanggil `send`. Di kotlinx-coroutines 1.10, `ProducerScope` tidak menyediakan `emit`.
+
+```13:25:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptTransmissionUseCase.kt
+    suspend operator fun invoke(session: MeasurementSession, frame: ScaleTransmission): MeasurementSession {
+        val kept = session.copy(transmission = frame)
+        val ohms = frame.impedanceOhm
+        if (kept.result == null && frame.locked && ohms != null) {
+            return closeMeasurement(
+                kept.copy(
+                    impedanceOhm = ohms.toDouble(),
+                    mac = frame.mac,
+                    productId = frame.productId,
+                ),
+            )
+        }
+        return kept
+    }
+```
+
+```44:46:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScale.kt
+    override fun invoke(body: BodyData): Flow<ScaleSessionStatus> = channelFlow {
+        if (!radio.bluetoothEnabled()) {
+            send(ScaleSessionStatus(bluetoothOff = true, heightCm = body.heightCm))
+```
+
+## 2026-10-04 21:21 WIB — weightKg sesi ada di konstruktor
+
+Koreksi catatan 2026-10-04 19:47. [`MeasurementSession.weightKg`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) adalah properti konstruktor dan ikut `equals`, `hashCode`, serta `copy`. Nilainya diisi di [`AcceptGattUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/AcceptGattUseCase.kt) bersamaan dengan `gattWeight`, dari kilogram frame GATT terkunci yang bukan riwayat. Sebelum frame itu, `weightKg` tetap null.
+
+## 2026-10-04 19:47 WIB — MeasurementSession adalah data class
+
+[`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) adalah `data class`. Keadaan sesi ada di konstruktor, jadi `equals`, `hashCode`, dan `copy` membandingkan serta menyalinnya. `weightKg` dihitung dari `gattWeight` dan tidak ikut ketiga fungsi itu. Konstruktor data class tidak menerima `internal set`. `mac`, `productId`, `gattWeight`, dan `broadcastWeight` tetap `internal`. Properti lain punya setter publik. Use case tetap menulis properti pada objek yang sama.
+
+## 2026-10-04 19:30 WIB — Varian radio dan GATT bersarang
+
+Koreksi catatan 2026-10-04 17:08 pada byte domain. Di [`ScaleRadioEvent`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleRadioEvent.kt) variannya `Advertisement`, `Notification`, `NotifyReady`, `LinkLost`, `NotifyMissing`, `ConnectFailed`, dan `ScanFailed`. `Advertisement.payload` dan `Notification.value` bertipe `List<Byte>`. Parser [`ScaleTransmissionRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleTransmissionRepository.kt) dan [`ScaleGattRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleGattRepository.kt) tetap menerima `ByteArray`. [`MeasureScale`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScale.kt) memanggil `toByteArray()` sebelum [`ScaleFrames`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt).
+
+Di [`ScaleGatt.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleGatt.kt), `Confirmation` dan `ScaleGatt` adalah anggota `GattResult`. [`MeasurementSession.gattWeight`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) bertipe `GattResult.ScaleGatt`.
+
+## 2026-10-04 19:24 WIB — Kesalahan parser tetap exception
+
+Koreksi nama pada catatan 2026-09-29 16:40. [`ScaleProtocolError.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleProtocolError.kt) memuat exception, bukan satu tipe bernama `ScaleProtocolError`. `EncryptedTransmissionError` dan `UnsupportedGatt` adalah subtipe `FrameFormatError`. `IncompleteGatt` mewarisi `Exception` langsung. Hierarki ini tidak menjadi data class dan tidak menjadi sealed interface bernilai seperti [`BleScanEvent`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt). Pemanggil melempar dan menangkapnya. `catch (FrameFormatError)` di [`ScaleFrames.onAdvertisement`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt) harus tetap melewatkan `IncompleteGatt`.
+
+```3:9:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleProtocolError.kt
+open class FrameFormatError(message: String) : IllegalArgumentException(message)
+
+class EncryptedTransmissionError(message: String) : FrameFormatError(message)
+
+class UnsupportedGatt(message: String) : FrameFormatError(message)
+
+class IncompleteGatt(message: String) : Exception(message)
+```
+
+```79:86:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt
+        } catch (_: EncryptedTransmissionError) {
+            attach(address)
+            encrypted = true
+            if (!encryptedAddresses.add(address.lowercase())) {
+                return null
+            }
+            return "$address siaran terenkripsi"
+        } catch (_: FrameFormatError) {
+```
+
+## 2026-10-04 18:38 WIB — Urutan tambah otot rangka v235 memakai dua +=
+
+Koreksi bentuk kode pada catatan 2026-10-03 22:03. Di [`CsBiasV235.csBiasV235`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt), otot rangka ditambah dua kali: dulu `muscleZ`, kemudian konstanta. Satu `muscle += muscleZ + kSmmConst` tetap menjumlahkan ruas kanan lebih dulu dan menggeser hasil satu ulp pada vektor `(0, 99, 220, 25000, 15000)`.
+
+```355:357:HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasV235.kt
+        // Add muscleZ, then the constant, so each sum rounds on its own.
+        muscle += muscleZ
+        muscle += kSmmConst
+```
+
+## 2026-10-04 17:45 WIB — Project HealthTrack full suspend + Flow + injected Dispatcher
+
+Seluruh rantai data di project HealthTrack sekarang menggunakan pattern `suspend` + injected `AppDispatcher`:
+
+- **DAO** (Room): semua fungsi `suspend`. Room secara internal menjalankannya di executor-nya.
+- **Repository interface** (domain): semua fungsi `suspend`. Tidak ada `runBlocking`.
+- **Repository impl** (data): memakai `withContext(dispatcher.io)` bukan `runBlocking`.
+- **Use case**: fungsi yang memanggil repository juga `suspend` (`CloseMeasurementUseCase`, `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`).
+- **ScaleRadioRepository**: `awaitEvent()` imperatif dihapus, diganti `val events: Flow<ScaleRadioEvent>`.
+- **ScaleRadioRepositoryImpl**: inject `AppDispatcher`, scope internal pakai `dispatcher.default` bukan hardcoded `Dispatchers.Unconfined`.
+- **MeasureScale**: collect `radio.events` memakai `launch(dispatcher.default)` dalam `coroutineScope`.
+- **ViewModel**: sudah pakai `viewModelScope.launch(dispatcher.io)`, tidak perlu ubah.
+- **Satu-satunya tempat `Dispatchers.*`** di-reference langsung: `DispatcherModule` — single source of truth.
+
+Referensi pattern: project obu-mikrotrans (`CommonDispatcher` + `CommonGlobalModule`).
+
 ## 2026-10-04 17:26 WIB — Tanda frame berulang ada di ScaleFrames
 
 Koreksi catatan 2026-10-04 09:58. `BroadcastSign` dan `GattSign` adalah kelas privat di [`ScaleFrames`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt). Berkas `SessionSign.kt` dan `SessionListener` tidak ada. Hex siaran dan hex GATT dihitung di `ScaleFrames`, huruf kecil tanpa pemisah. [`ProtocolUtils.toHex`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt) tetap ada di `data/util` untuk parser.

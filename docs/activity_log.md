@@ -1,5 +1,112 @@
 # Activity Log
 
+## 2026-10-04 22:05 WIB — Pisah MeasurementSession dan MeasurementContext
+
+### Tujuan
+Memisahkan data publik untuk presentation layer (`MeasurementSession`) dari detail internal BLE (`MeasurementContext`) supaya separation of concerns lebih jelas.
+
+### Perubahan
+- `domain/model/MeasurementSession.kt`: field `mac`, `productId`, `gattWeight`, `broadcastWeight` dipindah ke data class baru `MeasurementContext` yang membungkus `MeasurementSession`.
+- `domain/usecase/AcceptTransmissionUseCase.kt`, `AcceptGattUseCase.kt`, `ApplyBroadcastWeightUseCase.kt`, `CloseMeasurementUseCase.kt`, `MeasurementStateUseCase.kt`: parameter diubah dari `MeasurementSession` ke `MeasurementContext`.
+- `domain/usecase/ScaleFrames.kt`: menyimpan `MeasurementContext`. Getter `session` tetap ada untuk presentation.
+- `domain/usecase/MeasureScale.kt`: membuat `MeasurementContext` dan memanggil `measurementState` dengan context.
+- `domain/model/MeasurementSessionTest.kt`, `domain/usecase/ScaleFramesTest.kt`: tes disesuaikan dengan `MeasurementContext`.
+
+### Status
+Selesai. Semua unit test lulus.
+
+## 2026-10-04 21:49 WIB — Sesi ukur dikembalikan lewat copy
+
+### Tujuan
+Mengganti perubahan langsung pada `MeasurementSession` dengan salinan baru, supaya keadaan sesi tetap di `val`.
+
+### Perubahan
+- `domain/model/MeasurementSession.kt`: semua properti menjadi `val`. `mac`, `productId`, `gattWeight`, dan `broadcastWeight` tetap `internal`.
+- `domain/usecase/AcceptTransmissionUseCase.kt`, `AcceptGattUseCase.kt`, `ApplyBroadcastWeightUseCase.kt`, `CloseMeasurementUseCase.kt`: mengembalikan `MeasurementSession`.
+- `domain/usecase/ScaleFrames.kt`: menyimpan sesi terbaru.
+- `domain/usecase/MeasureScale.kt`: membaca sesi dari `ScaleFrames`. Status dikirim lewat `channelFlow`.
+- Uji `MeasurementSessionTest` dan `ScaleFramesTest`: mengikuti sesi yang dikembalikan.
+
+### Status
+Selesai. Uji `MeasurementSessionTest`, `CalculateReportTest`, `ScaleFramesTest`, dan `MeasureScaleUseCaseTest` lulus.
+
+## 2026-10-04 21:21 WIB — weightKg masuk konstruktor sesi
+
+### Tujuan
+Menyatukan `weightKg` dengan keadaan lain di konstruktor `MeasurementSession`.
+
+### Perubahan
+- `domain/model/MeasurementSession.kt`: `weightKg` menjadi `var` konstruktor. Getter dari `gattWeight` dihapus.
+- `domain/usecase/AcceptGattUseCase.kt`: `weightKg` diisi dari frame saat `gattWeight` disimpan.
+
+### Status
+Selesai. Uji `MeasurementSessionTest` dan `ScaleFramesTest` lulus.
+
+## 2026-10-04 19:47 WIB — MeasurementSession menjadi data class
+
+### Tujuan
+Menjadikan keadaan sesi bagian dari `equals`, `hashCode`, dan `copy`.
+
+### Perubahan
+- `domain/model/MeasurementSession.kt`: `data class`. Keadaan sesi pindah ke konstruktor. `weightKg` tetap properti hitungan. `internal set` dihapus karena konstruktor data class menolaknya. `mac`, `productId`, `gattWeight`, dan `broadcastWeight` tetap `internal`.
+
+### Status
+Selesai. Uji `MeasurementSessionTest` dan `ScaleFramesTest` lulus.
+
+## 2026-10-04 19:30 WIB — Varian model mengikuti BleEvent
+
+### Tujuan
+Menaruh varian peristiwa radio dan hasil GATT di dalam sealed interface, dengan bentuk yang sama seperti `BleEvent`.
+
+### Perubahan
+- `domain/model/ScaleRadioEvent.kt`: varian bersarang. `Advertisement.payload` dan `Notification.value` bertipe `List<Byte>`. `ScanFailed` adalah `object`.
+- `domain/model/ScaleGatt.kt`: `GattResult.Confirmation` dan `GattResult.ScaleGatt`.
+- `domain/model/MeasurementSession.kt`: `gattWeight` bertipe `GattResult.ScaleGatt`.
+- Pemakai di repository, mapper, use case, dan tes mengikuti nama bersarang. `MeasureScale` mengubah `List<Byte>` menjadi `ByteArray` sebelum parser.
+
+### Status
+Selesai. Uji parser GATT, `MeasurementSession`, dan `ScaleFrames` lulus. `MeasureScaleUseCaseTest.nonConnectableBroadcastStoresWeight` gagal karena `emit` Flow dari coroutine anak di `MeasureScale`; frame siaran itu sendiri sudah tersimpan.
+
+## 2026-10-04 18:38 WIB — Peringatan IDE di CsBiasV235
+
+### Tujuan
+Menghilangkan peringatan "Replaceable with operator-assignment" dan "Variable is same as 'weightKgF' and can be inlined" tanpa menggeser hasil rumus.
+
+### Perubahan
+- `util/CsBiasV235.kt`: pemakaian `weightKg` diganti `weightKgF`. Penjumlahan otot rangka menjadi dua `+=` berurutan.
+
+### Temuan
+`muscle += muscleZ` lalu `muscle += kSmmConst` sama dengan `(muscle + muscleZ) + kSmmConst`. Satu pernyataan `muscle += muscleZ + kSmmConst` menjumlahkan ruas kanan lebih dulu.
+
+### Status
+Selesai. Uji `CsBiasV235Test` lulus.
+
+## 2026-10-04 17:45 WIB — Migrasi penuh ke Flow dan Dispatcher
+
+### Tujuan
+Menghilangkan seluruh `runBlocking` dan hardcoded `Dispatchers.*` di luar DI module. Menjadikan seluruh rantai DAO → Repository → UseCase → ViewModel menggunakan `suspend` + injected `AppDispatcher`, dan mengganti `awaitEvent()` imperatif di `ScaleRadioRepository` dengan `Flow<ScaleRadioEvent>`.
+
+### Perubahan
+- `data/datasource/local/dao/BodyDao.kt`: semua fungsi jadi `suspend`.
+- `data/datasource/local/dao/MeasurementDao.kt`: semua fungsi jadi `suspend`.
+- `domain/repository/BodyRepository.kt`: `save()` dan `latest()` jadi `suspend`.
+- `domain/repository/MeasurementRepository.kt`: `save()` dan `list()` jadi `suspend`.
+- `data/repository/BodyRepositoryImpl.kt`: hapus `runBlocking`, ganti `withContext(dispatcher.io)`.
+- `data/repository/MeasurementRepositoryImpl.kt`: hapus `runBlocking`, ganti `withContext(dispatcher.io)`.
+- `domain/repository/ScaleRadioRepository.kt`: hapus `awaitEvent(): ScaleRadioEvent`, tambah `val events: Flow<ScaleRadioEvent>`.
+- `data/repository/ScaleRadioRepositoryImpl.kt`: inject `AppDispatcher`, ganti `CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)` dengan `CoroutineScope(SupervisorJob() + dispatcher.default)`, expose `events` sebagai `receiveAsFlow()`.
+- `domain/usecase/CloseMeasurementUseCase.kt`: `invoke()` jadi `suspend`.
+- `domain/usecase/AcceptTransmissionUseCase.kt`: `invoke()` jadi `suspend`.
+- `domain/usecase/AcceptGattUseCase.kt`: `invoke()` jadi `suspend`.
+- `domain/usecase/ApplyBroadcastWeightUseCase.kt`: `invoke()` jadi `suspend`.
+- `domain/usecase/ScaleFrames.kt`: `onAdvertisement()`, `onGatt()`, `closeFromBroadcast()` jadi `suspend`.
+- `domain/usecase/MeasureScale.kt`: `handle()` dan `onAdvertisement()` jadi `suspend`; `runSession()` memakai `coroutineScope` + `launch(dispatcher.default)` untuk collect `radio.events`; inject `AppDispatcher`.
+- `domain/di/UseCaseModule.kt`: `provideMeasureScaleUseCase()` terima `AppDispatcher`.
+- Tests: semua fake/mock `BodyRepository`, `MeasurementRepository`, `ScaleRadioRepository` diperbarui ke `suspend` dan `Flow`. Test yang memanggil use case dibungkus `runTest`.
+
+### Status
+Selesai. Tidak ada `runBlocking`, `awaitEvent`, atau hardcoded `Dispatchers.*` di luar `DispatcherModule`.
+
 ## 2026-10-04 17:27 WIB — KDoc dan nama di BinaryFloat
 
 ### Tujuan
