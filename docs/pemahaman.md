@@ -6,6 +6,20 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 09:15 WIB — Rekomendasi berikut: uji timbangan pintu keluar fase 4
+
+Langkah berikut: ukur di timbangan yang sama dengan uji 27 Sep 2026. Profil banding itu tinggi 166 cm, umur 29, kelamin 1. Pada siaran tidak terenkripsi, berat dan daftar indeks di layar hasil harus cocok dengan aplikasi OKOK. Hex siaran dan hex GATT terakhir harus tampil di layar itu. Bila iklan tidak connectable, berat siaran terkunci tetap menghasilkan laporan. Syaratnya kode fase 4, yang sudah ada. Jangan mulai fase 5. Jangan mem-port `cs_bias_vA019`.
+
+## 2026-10-04 09:15 WIB — Sesi Bluetooth ada di data/ble
+
+[`SessionListener`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/ble/SessionListener.kt) tidak mengimpor `android.*`. Muatan iklan dan notify masuk lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`, lalu ke `AcceptTransmissionUseCase`, `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase`. [`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/ble/BleSession.kt) memegang `BluetoothLeScanner` dan `BluetoothGatt`. `connectGatt` memakai `autoConnect` false. Pemindaian berhenti sebelum `connectGatt`, lalu hidup lagi setelah notify RX `0000fff1-0000-1000-8000-00805f9b34fb` aktif. Sesi tidak menulis TX `0000fff2-0000-1000-8000-00805f9b34fb`.
+
+[`ScaleSessionRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleSessionRepository.kt) adalah antarmuka domain. [`ScaleSessionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleSessionRepositoryImpl.kt) memegang `BleSession`. ViewModel sesi menyuntik antarmuka itu. Tiga percobaan sambungan, batas 15 detik, paling banyak dua putaran pindai. Sesi berakhir pada 120 detik atau saat hasil tersimpan. Alamat yang disimpan adalah MAC radio.
+
+[`MeasurementSession.storedId`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) diisi dari nilai kembali `MeasurementRepository.save`. [`GattParser.reset`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/gatt/GattParser.kt) dipanggil di awal sesi. Izin runtime diminta di layar sesi: API 28–30 memakai `BLUETOOTH`, `BLUETOOTH_ADMIN`, dan `ACCESS_FINE_LOCATION`; API 31+ memakai `BLUETOOTH_SCAN` dengan `neverForLocation` dan `BLUETOOTH_CONNECT`. Layar tetap menyala selama mengukur. Foreground service tidak dipakai.
+
+Layar hasil memakai `DisplayMeasurementUseCase`. Hex siaran dan hex GATT dibawa `ResultRoute`, bukan kolom tabel `measurement`. Riwayat belum membuka hasil lama.
+
 ## 2026-10-04 04:07 WIB — Rekomendasi berikut: fase 4 sesi Bluetooth
 
 Langkah berikut: fase 4 di [fase-04-sesi-bluetooth.md](android-dev/fase-04-sesi-bluetooth.md). Tambah `BleSession` dan `SessionListener` di `data/ble`, serta `ScaleSessionRepository` di `domain/repository`. Layar sesi memakai use case dari [`UseCaseModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) dan baru mengukur bila [`BodyRepository.latest`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/BodyRepository.kt) ada. Syaratnya pintu keluar fase 3, yang sudah terpenuhi. Jangan mem-port `cs_bias_vA019`. Jangan membuka hasil lama dari riwayat; itu fase 5.

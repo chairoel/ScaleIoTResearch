@@ -2,7 +2,7 @@
 
 Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase. Tiap fase punya berkas sendiri di folder ini.
 
-Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, dan tiga tab sudah ada. Bluetooth dan `vA019` belum.
+Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, dan sesi Bluetooth sudah ada. Pintu keluar timbangan fase 4 dan `vA019` belum.
 
 ## Keadaan modul
 
@@ -36,7 +36,7 @@ flowchart LR
 | 1 | [fase-01-modul-inti-parser.md](fase-01-modul-inti-parser.md) | Sudah di kode | Uji iklan, siaran, dan GATT lulus di JUnit host |
 | 2 | [fase-02-rumus-v235-mesin-sesi.md](fase-02-rumus-v235-mesin-sesi.md) | Sudah di kode | v235 dan mesin sesi satu ohm lulus; angka layar 68,7 kg cocok |
 | 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Sudah di kode | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
-| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Belum | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
+| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Kode ada; uji timbangan belum | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
 | 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Belum | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
 | 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Belum | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
 
@@ -52,7 +52,7 @@ Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 3–6. Penyesuaian yan
 - Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
 - ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
 - Paket `domain` berisi `model`, `repository`, `usecase`, dan `di`. Jangan menambah `domain/formula` atau `domain/session`.
-- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `*RepositoryImpl` hanya menyimpan dan membaca.
+- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleSessionRepositoryImpl` memegang `BleSession` dan memanggil use case sesi.
 - Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel profil dan riwayat menerima antarmuka di `domain/repository`. ViewModel tidak menerima `*RepositoryImpl`.
 - Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
 - SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
@@ -65,9 +65,9 @@ Yang ada sekarang:
 HealthTrack/app/src/main/java/com/mascill/healthtrack/
   domain/model/                 ScaleTransmission, ScaleGatt, GattConfirmation, kesalahan format,
                                 BodyData, BiasV235Data, V235Report, MeasurementResult, StoredMeasurement,
-                                MeasurementDisplay, MeasurementSession
+                                MeasurementDisplay, MeasurementSession, ScaleSessionStatus
   domain/repository/            ScaleTransmissionRepository, ScaleGattRepository, BodyRepository,
-                                MeasurementRepository
+                                MeasurementRepository, ScaleSessionRepository
   domain/di/                    UseCaseModule
   domain/usecase/               CalculateReportUseCase, AcceptTransmissionUseCase, AcceptGattUseCase,
                                 ApplyBroadcastWeightUseCase, CloseMeasurementUseCase,
@@ -80,16 +80,18 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   data/mapper/                  TransmissionMapper, GattMapper, WeightMapper, BodyMapper, MeasurementMapper
   data/model/                   RawTransmission, RawGattMeasurement, RawGattConfirmation, StoredReport
     entity/                     BodyEntity, MeasurementEntity
+  data/ble/                     SessionListener, BleSession
   data/repository/              ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl,
-                                BodyRepositoryImpl, MeasurementRepositoryImpl
+                                BodyRepositoryImpl, MeasurementRepositoryImpl,
+                                ScaleSessionRepositoryImpl
     transmission/               pembaca 0xCA, 0xC0, dan 0xFF
     gatt/                       GattParser serta frame versi 16 dan 17
   data/util/                    ProtocolUtils, Constants, TxConst, GattConst, TxIdx, GIdx, RIdx
   presentation/navigation/      AppNavHost, Routes, NavExtensions
   presentation/profile/         fase 3
-  presentation/session/         kunci mulai tanpa profil; Bluetooth menyusul fase 4
-  presentation/history/         daftar kosong sampai ada baris measurement
-  presentation/result/          ResultRoute terdaftar; isi layar menyusul fase 4–5
+  presentation/session/         izin, status, berat bergerak; mulai hanya bila profil ada
+  presentation/history/         daftar hasil; membuka baris menyusul fase 5
+  presentation/result/          berat, indeks dari DisplayMeasurementUseCase, hex siaran dan GATT
   presentation/common/          AppError, LoadingIndicator
   presentation/theme/           HealthTrackTheme
   App.kt
@@ -98,15 +100,11 @@ HealthTrack/app/src/main/cpp/   libscale_protocol.so
 HealthTrack/app/src/test/java/  JUnit host, tanpa emulator
 ```
 
-Yang ditambah fase 4–6, masih di modul `app`:
+Yang ditambah fase 5–6, masih di modul `app`:
 
 ```text
 util/                           CsBiasVA019
-domain/repository/              ScaleSessionRepository
-data/ble/                       BleSession dan SessionListener, fase 4
-presentation/session/           sambungan Bluetooth, fase 4
 presentation/history/           buka hasil tersimpan, fase 5
-presentation/result/            daftar indeks, fase 4–5
 ```
 
 Modul Gradle kedua tidak dibuat. Rumus dan mesin sesi tidak mengimpor `android.*`. Uji mereka ada di `src/test/java` dan jalan lewat `./gradlew :app:testDebugUnitTest`.

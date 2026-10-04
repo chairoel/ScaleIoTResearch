@@ -1,5 +1,22 @@
 # Activity Log
 
+## 2026-10-04 09:15 WIB — Fase 4 sesi Bluetooth
+
+### Tujuan
+Menyambungkan satu sesi ukur ke timbangan lewat iklan dan GATT, lalu menampilkan berat dan indeks yang sudah dibulatkan.
+
+### Perubahan
+- `data/ble/SessionListener.kt`, `BleSession.kt`: pendengar tanpa `android.*`, pemindaian, dan `connectGatt` dengan `autoConnect` false. TX tidak ditulis.
+- `domain/repository/ScaleSessionRepository.kt`, `data/repository/ScaleSessionRepositoryImpl.kt`: orkestrasi tiga percobaan, batas 15 detik, dua putaran, dan batas sesi 120 detik.
+- `domain/model/MeasurementSession.kt`, `CloseMeasurementUseCase`: `storedId` dari `save`. `GattParser.reset` di awal sesi.
+- `presentation/session/`, `presentation/result/`, `presentation/navigation/`: izin, status, layar hasil, dan `ResultRoute` membawa tinggi serta hex.
+- `AndroidManifest.xml`: izin Bluetooth API 28–30 dan API 31+.
+- `app/src/test/.../SessionListenerTest.kt`, `SessionViewModelTest.kt`, `ResultViewModelTest.kt`: perilaku `PendengarSesiTest` dan angka 2,77 serta 1502,0.
+- `docs/android-dev/00-rencana-besar.md`: fase 4 ditandai kode ada, uji timbangan belum.
+
+### Status
+Selesai di kode. `./gradlew :app:testDebugUnitTest` lulus. Pintu keluar timbangan nyata belum diuji. Riwayat yang membuka hasil lama belum disambungkan.
+
 ## 2026-10-04 04:07 WIB — Fase 3 profil dan Room
 
 ### Tujuan
