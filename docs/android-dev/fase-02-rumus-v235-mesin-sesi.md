@@ -4,7 +4,7 @@ Syarat mulai: pintu keluar [fase 1](fase-01-modul-inti-parser.md), sudah terpenu
 
 Sumber perilaku: [cs_bias_v235.py](../../rumus/cs_bias_v235.py) dan [sesi_ukur.py](../../aplikasi/sesi_ukur.py). `getVFR` di Java tidak dipindahkan. Viseral yang disimpan `parse_default_z` adalah field `vfl`.
 
-Lapisan: `domain` untuk tipe, repositori, dan sesi. Paket yang dipakai `model`, `repository`, `usecase`, dan `di`. Rumus `CsBiasV235` serta pembantu `f32` dan `fma` ada di `util`. Jangan membuat `domain/formula` atau `domain/session`. Kelas use case tidak mengimpor `android.*`, `data`, Room, Compose, atau `dagger.hilt`. Tidak memakai `ProtocolUtils.f32`. Tidak menambah modul Gradle atau layar. [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) menyediakan use case lewat `@Provides`. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) menandai `MeasurementRepository` sebagai optional sampai implementasi Room ada.
+Lapisan: `domain` untuk tipe, repositori, dan sesi. Paket yang dipakai `model`, `repository`, `usecase`, dan `di`. Rumus `CsBiasV235` serta pembantu `f32` dan `fma` ada di `util`. Jangan membuat `domain/formula` atau `domain/session`. Kelas use case tidak mengimpor `android.*`, `data`, Room, Compose, atau `dagger.hilt`. Tidak memakai `ProtocolUtils.f32`. Tidak menambah modul Gradle atau layar. [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) menyediakan use case lewat `@Provides`. [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt) mengikat `MeasurementRepositoryImpl` dan tetap menandai `MeasurementRepository` sebagai `@BindsOptionalOf`. Optional kosong melewatkan `save`.
 
 ## Yang dihasilkan
 
@@ -15,7 +15,7 @@ Di `com.mascill.healthtrack.domain.model`:
 
 Di `com.mascill.healthtrack.util`:
 
-- `CsBiasV235` — rumus `csBiasV235` dan `parseDefaultZ`. Tiap operasi yang di Python dipaksa binary32 memakai `Float` lewat `f32` dan `fma` di paket yang sama.
+- `CsBiasV235` — rumus `csBiasV235` dan `parseDefaultZ`. Operasi yang di Python dipaksa binary32 memakai `f32` (`toFloat().toDouble()`). Perkalian-tambah memakai `fma`: hasil kali di `BigDecimal`, lalu satu `toDouble()`. `Math.fma` tidak dipakai.
 
 Di `com.mascill.healthtrack.domain.usecase`:
 
@@ -29,11 +29,11 @@ Keadaan sesi `MeasurementSession` ada di `domain/model`. Satu use case satu fung
 
 Di `com.mascill.healthtrack.domain.di`:
 
-- [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) — `@Provides` untuk ketujuh use case di atas. `provideCloseMeasurementUseCase` menerima `Optional<MeasurementRepository>` dari [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt). Optional kosong melewatkan `save`. Jangan menambah `@Inject` pada kelas use case yang sama.
+- [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) — `@Provides` untuk use case di atas. `MeasureScaleUseCase` ditambah di [fase 4](fase-04-sesi-bluetooth.md) pada modul yang sama. `provideCloseMeasurementUseCase` menerima `Optional<MeasurementRepository>` dari [`RepositoryModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/RepositoryModule.kt). Optional kosong melewatkan `save`. `@Binds` Room mengisi optional itu. Jangan menambah `@Inject` pada kelas use case yang sama.
 
 Di `com.mascill.healthtrack.domain.repository`:
 
-- `MeasurementRepository` — antarmuka domain. Satu method `save` untuk hasil. Implementasi Room menyusul di fase 3. Uji fase ini memakai penyimpan palsu di memori. Jangan menamai tipe ini `ResultStore`.
+- `MeasurementRepository` — antarmuka domain. `save` mengembalikan id baris. `list` mengembalikan id menurun. Implementasinya [`MeasurementRepositoryImpl`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/MeasurementRepositoryImpl.kt). Uji mesin sesi memakai penyimpan palsu di memori. Jangan menamai tipe ini `ResultStore`.
 
 Aturan mesin, sudah terbukti di Python:
 
@@ -43,7 +43,7 @@ Aturan mesin, sudah terbukti di Python:
 4. Sesi ditutup hanya bila rumus mengembalikan kode 0. Hasil pertama yang berhasil tetap, termasuk bila frame berat berikutnya datang.
 5. Angka komposisi di dalam `ScaleGatt` (`axunge`, `water`, `muscle`, dan seterusnya) tidak mengisi laporan.
 
-`CloseMeasurementUseCase` memakai `MeasurementRepository`, bukan DAO. `MeasurementRepositoryImpl` belum ada; kelas itu nanti hanya `save` dan `list`. Rumus tidak pindah ke implementasi repository.
+`CloseMeasurementUseCase` memakai `MeasurementRepository`, bukan DAO. `MeasurementRepositoryImpl` hanya `save` dan `list`. Rumus tidak pindah ke implementasi repository.
 
 ## Pembulatan layar
 
@@ -93,6 +93,6 @@ Rumus ada di `util/CsBiasV235.kt`, bukan di `domain/usecase`. `CalculateReportUs
 
 `./gradlew :app:testDebugUnitTest` lulus, termasuk v235 dan sesi satu ohm. Vektor 68,7 kg / 166 cm / 29 / kelamin 1 / 600 ohm menghasilkan angka tabel pada jumlah desimal yang sama.
 
-## Belum dikerjakan
+## Di luar fase ini
 
-Layar, Room, DataStore, Bluetooth, dan port `cs_bias_vA019.py`.
+Layar, Room, DataStore, dan Bluetooth ada di fase 3–5. Port `cs_bias_vA019.py` masih [fase 6](fase-06-frekuensi-ganda.md).

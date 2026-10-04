@@ -12,7 +12,7 @@ Sumber perilaku: [cs_bias_vA019.py](../../rumus/cs_bias_vA019.py). Berkas ini me
 - `parseMultiFrequency`
 - interpreter yang menjalankan citra program di berkas Python
 
-Pembantu float tetap di `util/BinaryFloat.kt`. Urutan operasi binary32 tidak diubah. Jangan membuat paket `domain/formula` atau `domain/session`. Tipe laporan tetap di `domain/model`. Rumus tetap di `util`.
+Pembantu float tetap di `util/BinaryFloat.kt`. `f32` adalah `toFloat().toDouble()`. `fma` membulatkan `a * b + c` sekali lewat `BigDecimal` lalu `toDouble()`, karena `Math.fma` hanya ada di API 33. Urutan operasi binary32 tidak diubah. Jangan membuat paket `domain/formula` atau `domain/session`. Tipe laporan tetap di `domain/model`. Rumus tetap di `util`.
 
 [`CalculateReportUseCase`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) sudah ada dan disediakan `UseCaseModule`. Cabang sepuluh ohm di kelas itu, yang sekarang menolak dengan `vA019 is not available`, diganti memilih `vA019`. Satu nilai tetap `v235`. Jumlah lain tetap menolak sesi. Jangan menambah provider kedua dan jangan memasang `@Inject` pada kelas itu.
 

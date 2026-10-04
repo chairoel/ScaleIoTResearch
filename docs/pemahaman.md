@@ -6,6 +6,46 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 17:26 WIB — Tanda frame berulang ada di ScaleFrames
+
+Koreksi catatan 2026-10-04 09:58. `BroadcastSign` dan `GattSign` adalah kelas privat di [`ScaleFrames`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt). Berkas `SessionSign.kt` dan `SessionListener` tidak ada. Hex siaran dan hex GATT dihitung di `ScaleFrames`, huruf kecil tanpa pemisah. [`ProtocolUtils.toHex`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/ProtocolUtils.kt) tetap ada di `data/util` untuk parser.
+
+## 2026-10-04 17:19 WIB — fma tidak memanggil Math.fma
+
+[`fma`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/BinaryFloat.kt) membulatkan `a * b + c` sekali lewat `BigDecimal`, lalu `toDouble()`. `Math.fma` baru ada di API 33 dan `minSdk` adalah 28, jadi pemanggilan itu tidak dipakai. Hasil untuk bilangan hingga sama dengan fused multiply-add. `f32` tetap `toFloat().toDouble()`.
+
+## 2026-10-04 17:08 WIB — Byte peristiwa BLE adalah List
+
+Koreksi catatan 2026-10-04 16:45. [`BleManufacturerBlock.remainder`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), `BleScanEvent.Advertisement.record`, dan `BleConnectEvent.Notification.value` bertipe `List<Byte>`. `@Suppress("ArrayInDataClass")` tidak dipakai. `==` membandingkan isi byte. Parser di [`ScaleTransmissionRepository`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleTransmissionRepository.kt) tetap menerima `ByteArray`. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) memanggil `toByteArray()` sebelum parser. Radio menyalin buffer dengan `toList()` di [`BleDataSourceImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSourceImpl.kt).
+
+## 2026-10-04 16:45 WIB — Peringatan array data class ditekan
+
+Koreksi catatan 2026-10-04 16:42. [`BleManufacturerBlock`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), `BleScanEvent.Advertisement`, dan `BleConnectEvent.Notification` tidak menimpa `equals` atau `hashCode`. `@Suppress("ArrayInDataClass")` menekan peringatan IDE. `==` pada `ByteArray` kembali membandingkan referensi array. Sesi membaca isi byte lewat properti, bukan lewat `==`.
+
+## 2026-10-04 16:42 WIB — equals peristiwa BLE membandingkan isi byte
+
+Koreksi catatan 2026-10-04 16:16. `==` pada [`BleManufacturerBlock`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), `BleScanEvent.Advertisement`, dan `BleConnectEvent.Notification` membandingkan isi `ByteArray` lewat `contentEquals`, bukan referensi array. `hashCode` memakai `contentHashCode`. Dua array `null` pada `record` dianggap sama.
+
+## 2026-10-04 16:24 WIB — Blok pabrik BLE tipe sendiri
+
+Koreksi letak pada catatan 2026-10-04 15:50. Blok pabrik bukan `BleScanEvent.Advertisement.ManufacturerBlock`. Tipenya [`BleManufacturerBlock`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), `data class` di berkas yang sama. [`BleScanEvent.Advertisement`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt) menyimpan `List<BleManufacturerBlock>`.
+
+## 2026-10-04 16:16 WIB — Iklan BLE adalah data class
+
+[`BleScanEvent.Advertisement`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), `ManufacturerBlock`, dan `BleConnectEvent.Notification` adalah `data class`. Sesi tidak membandingkan objek itu. `==` pada field `ByteArray` membandingkan referensi array, bukan isi byte. Isi byte dibaca lewat `remainder` dan `record` di [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt).
+
+## 2026-10-04 15:50 WIB — Varian peristiwa BLE bersarang
+
+Koreksi nama pada catatan 2026-10-04 14:39. Di [`BleEvent.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt), hasil pindai adalah `BleScanEvent.Advertisement` dan kegagalan pemindai adalah `BleScanEvent.Failed`. Blok pabrik adalah `BleScanEvent.Advertisement.ManufacturerBlock`. Peristiwa GATT adalah anggota `BleConnectEvent`: `Notification`, `NotifyReady`, `LinkLost`, `NotifyMissing`, dan `Failed`. Tidak ada tipe tingkat atas `BleAdvertisement` atau `BleScanFailed`.
+
+## 2026-10-04 14:39 WIB — Peristiwa radio ada di data/model
+
+Koreksi letak pada catatan 2026-10-04 14:30. `BleAdvertisement`, `BleScanEvent`, `BleConnectEvent`, dan tipe turunannya ada di [`BleEvent.kt`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt). [`BleDataSource`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSource.kt) hanya antarmuka. `startScan` mengembalikan `Flow<BleScanEvent>`. `connect` mengembalikan `Flow<BleConnectEvent>`.
+
+## 2026-10-04 14:30 WIB — Radio Bluetooth memakai Flow
+
+[`BleDataSource.startScan`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSource.kt) dan `connect` mengembalikan `Flow`. Null bila radio mati atau izin tidak ada. Satu hasil pindai adalah `BleAdvertisement`: semua blok pabrik plus rekam mentah. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) memilih blok timbangan pertama, atau rekam mentah bila tidak ada yang cocok, lalu mengirim `ScaleRadioEvent`. Membatalkan flow menghentikan pindai atau GATT itu. `stopScan` tetap sinkron sebelum `connect`, supaya pemindaian dan `connectGatt` tidak jalan bersama. Pintu domain `ScaleRadioRepository` tidak berubah.
+
 ## 2026-10-04 11:05 WIB — Radio Bluetooth bernama BleDataSource
 
 Koreksi nama pada catatan 2026-10-04 11:01. Kontrak radio adalah [`BleDataSource`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSource.kt). Implementasinya [`BleDataSourceImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSourceImpl.kt). [`DataSourceModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikat keduanya. [`ScaleRadioRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) menyuntik `BleDataSource`.

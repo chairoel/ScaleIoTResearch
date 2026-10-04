@@ -1,5 +1,138 @@
 # Activity Log
 
+## 2026-10-04 17:27 WIB — KDoc dan nama di BinaryFloat
+
+### Tujuan
+KDoc `f32` dan `fma` menjelaskan tiap fungsi. Angka nol dan hasil antara punya nama, supaya cabang NaN, tak hingga, dan tanda nol terbaca.
+
+### Perubahan
+- `util/BinaryFloat.kt`: KDoc terpisah. Parameter `fma` menjadi `factor`, `multiplicand`, dan `addend`. Nol adalah `ZERO`.
+
+### Status
+Selesai. `:app:testDebugUnitTest` untuk `BinaryFloatTest` dan `CsBiasV235Test` lulus.
+
+## 2026-10-04 17:26 WIB — Rencana Android diselaraskan dengan kode
+
+### Tujuan
+`docs/android-dev` masih menulis pintu radio, `fma`, dan hex riwayat seperti rancangan yang sudah berubah.
+
+### Perubahan
+- `docs/android-dev/00-rencana-besar.md`: peta paket, `MeasureScale`, `fma` lewat `BigDecimal`, dan byte radio `List<Byte>`.
+- `docs/android-dev/fase-01` sampai `fase-06`: letak yang sudah ada di kode, pintu `ScaleRadioRepository`, `ResultRoute`, dan `fma`.
+
+### Status
+Selesai.
+
+## 2026-10-04 17:19 WIB — fma tanpa Math.fma
+
+### Tujuan
+`Math.fma` hanya ada di API 33, sementara `minSdk` adalah 28. Rumus komposisi tubuh tetap memakai satu pembulatan `a * b + c` di API yang lebih rendah, tanpa menekan peringatan.
+
+### Perubahan
+- `util/BinaryFloat.kt`: `fma` menghitung hasil lewat `BigDecimal`, lalu satu kali ke `Double`.
+- `util/BinaryFloatTest.kt`: kasus yang hasilnya beda dari perkalian dan penjumlahan terpisah, plus masukan non-hingga.
+
+### Status
+Selesai. `:app:compileDebugKotlin` dan `:app:testDebugUnitTest` untuk `BinaryFloatTest` serta `CsBiasV235Test` lulus.
+
+## 2026-10-04 17:08 WIB — Byte peristiwa BLE menjadi List
+
+### Tujuan
+Mengganti `ByteArray` pada peristiwa BLE dengan `List<Byte>` supaya `data class` tidak menyimpan array.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `remainder`, `record`, dan `value` menjadi `List<Byte>`. `@Suppress("ArrayInDataClass")` dihapus.
+- `data/datasource/BleDataSourceImpl.kt`: menyalin byte radio dengan `toList()`.
+- `data/repository/ScaleRadioRepositoryImpl.kt`: mengubah daftar itu kembali ke `ByteArray` sebelum parser.
+
+### Status
+Selesai. `:app:compileDebugKotlin` dan `:app:testDebugUnitTest` lulus.
+
+## 2026-10-04 16:45 WIB — Peringatan array data class ditekan
+
+### Tujuan
+Menghapus `equals` dan `hashCode` pada peristiwa BLE tanpa mengembalikan peringatan `ByteArray` di `data class`.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `equals` dan `hashCode` dihapus. `BleManufacturerBlock`, `BleScanEvent.Advertisement`, dan `BleConnectEvent.Notification` memakai `@Suppress("ArrayInDataClass")`.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 16:42 WIB — equals peristiwa BLE membandingkan isi byte
+
+### Tujuan
+Menghilangkan peringatan `ByteArray` pada `data class` dengan `equals` dan `hashCode` yang membandingkan isi array.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `BleManufacturerBlock`, `BleScanEvent.Advertisement`, dan `BleConnectEvent.Notification` menimpa `equals` dan `hashCode`.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 16:24 WIB — Blok pabrik BLE menjadi tipe sendiri
+
+### Tujuan
+Mengeluarkan blok pabrik dari dalam `Advertisement` supaya deklarasinya terpisah, seperti payload pada sealed interface.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `BleManufacturerBlock` di tingkat berkas. `BleScanEvent.Advertisement` menyimpan `List<BleManufacturerBlock>`.
+- `data/datasource/BleDataSourceImpl.kt`: membuat `BleManufacturerBlock`.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 16:16 WIB — Iklan BLE menjadi data class
+
+### Tujuan
+Memakai `data class` untuk varian peristiwa yang membawa data.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `BleScanEvent.Advertisement`, `ManufacturerBlock`, dan `BleConnectEvent.Notification` menjadi `data class`.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 15:50 WIB — Peristiwa BLE menjadi sealed interface bersarang
+
+### Tujuan
+Merapikan `BleEvent` supaya varian pindai dan GATT berada di dalam sealed interface masing-masing.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `BleScanEvent.Advertisement`, `BleScanEvent.Failed`, dan varian `BleConnectEvent` bersarang. `ManufacturerBlock` ada di dalam `Advertisement`.
+- `data/datasource/BleDataSource.kt`, `BleDataSourceImpl.kt`, `data/repository/ScaleRadioRepositoryImpl.kt`: pemakaian mengikuti nama bersarang.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 14:39 WIB — Peristiwa radio pindah ke data/model
+
+### Tujuan
+Memisahkan tipe peristiwa BLE dari antarmuka `BleDataSource`.
+
+### Perubahan
+- `data/model/BleEvent.kt`: `BleScanEvent`, `BleConnectEvent`, dan tipe turunannya.
+- `data/datasource/BleDataSource.kt`: hanya antarmuka.
+- `data/datasource/BleDataSourceImpl.kt`, `data/repository/ScaleRadioRepositoryImpl.kt`: impor dari `data.model`.
+- `docs/android-dev/00-rencana-besar.md`: peta `data/model` menyebut kedua peristiwa itu.
+
+### Status
+Selesai. `:app:compileDebugKotlin` lulus.
+
+## 2026-10-04 14:30 WIB — BleDataSource memakai Flow
+
+### Tujuan
+Mengganti callback pindai dan GATT pada `BleDataSource` dengan Flow.
+
+### Perubahan
+- `data/datasource/BleDataSource.kt`: `startScan` dan `connect` mengembalikan Flow. Peristiwa ada di `BleScanEvent` dan `BleConnectEvent`.
+- `data/datasource/BleDataSourceImpl.kt`: saluran tak terbatas. Membatalkan flow menghentikan pindai atau GATT itu.
+- `data/repository/ScaleRadioRepositoryImpl.kt`: mengumpulkan flow itu ke saluran sesi.
+- `docs/android-dev/fase-04-sesi-bluetooth.md`: kontrak radio memakai Flow.
+
+### Status
+Selesai. `:app:compileDebugKotlin` dan `:app:testDebugUnitTest` lulus.
+
 ## 2026-10-04 11:05 WIB — BleSession berganti nama BleDataSource
 
 ### Tujuan

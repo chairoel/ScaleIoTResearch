@@ -4,18 +4,20 @@ Syarat mulai: pintu keluar [fase 4](fase-04-sesi-bluetooth.md). Tahap pertama un
 
 ## Yang dihasilkan
 
-Layar **Hasil** (`presentation/result`) dari fase 4 tetap memakai `DisplayMeasurementUseCase` dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Fase ini tidak menghitung ulang angka di Compose.
+Layar **Hasil** (`presentation/result`) memakai `DisplayMeasurementUseCase` dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Angka tidak dihitung ulang di Compose.
 
-Layar **Riwayat** (`presentation/history`) memakai `MeasurementRepository.list`, terbaru di atas. Satu baris mendorong `ResultRoute` dan membuka kembali layar hasil dari JSON `report` dan `impedance_ohm` yang tersimpan, termasuk hex bila ikut tersimpan. Hasil yang dibuka dari riwayat tidak memulai sesi Bluetooth.
+Sesi yang baru selesai membuka [`ResultRoute`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/navigation/Routes.kt) lewat `FinishedSession`: `measurementId`, `heightCm`, `broadcastHex`, dan `gattHex`.
 
-ViewModel hasil dan riwayat menyuntik `MeasurementRepository`. Keduanya tidak mengimpor Room atau `BluetoothGatt`.
+Layar **Riwayat** (`presentation/history`) memakai `MeasurementRepository.list`, terbaru di atas. Satu baris mendorong `ResultRoute(measurementId)` saja. [`ResultViewModel`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/result/ResultViewModel.kt) membaca baris itu dari `list` dan membulatkan lewat `DisplayMeasurementUseCase`. Tinggi untuk BMI, bila argumen rute 0, adalah `BodyRepository.latest`. Tabel `measurement` tidak menyimpan tinggi. Tulang dan metabolisme datang dari JSON `report`. Hex kosong ditampilkan `tidak ada`. Hasil yang dibuka dari riwayat tidak memulai sesi Bluetooth.
+
+`ResultViewModel` menyuntik `MeasurementRepository`, `BodyRepository`, dan `DisplayMeasurementUseCase`. `HistoryViewModel` menyuntik `MeasurementRepository`. Keduanya tidak mengimpor Room atau `BluetoothGatt`.
 
 Teks Indonesia, koma desimal, sesuai tabel fase 2.
 
 ## Langkah
 
-1. Isi `ResultRoute` dari `MeasurementResult` yang baru saja ditutup dan dari baris `measurement` yang dibaca kembali.
-2. Sambungkan baris riwayat ke `ResultRoute` lewat `backStack.navigateTo`.
+1. `ResultRoute` dari sesi yang baru selesai membawa id, tinggi, dan hex. Baris `measurement` yang dibaca kembali memakai id saja.
+2. Baris riwayat membuka `ResultRoute` lewat `backStack.navigateTo`.
 3. Tutup aplikasi, buka lagi, buka hasil yang sama dari riwayat.
 
 ## Pintu keluar

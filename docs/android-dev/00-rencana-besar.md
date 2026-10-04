@@ -52,8 +52,8 @@ Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 3–6. Penyesuaian yan
 - Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
 - ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
 - Paket `domain` berisi `model`, `repository`, `usecase`, dan `di`. Jangan menambah `domain/formula` atau `domain/session`.
-- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleRadioRepositoryImpl` memegang `BleDataSource` dan tidak memanggil use case. `MeasureScaleUseCase` menjalankan sesi dan memanggil use case penerimaan frame.
-- Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel profil dan riwayat menerima antarmuka di `domain/repository`. ViewModel tidak menerima `*RepositoryImpl`.
+- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession` dan peristiwa `ScaleRadioEvent`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleRadioRepositoryImpl` mengumpulkan `Flow` dari `BleDataSource` menjadi `ScaleRadioEvent` dan tidak memanggil use case. `MeasureScale` mengimplementasi `MeasureScaleUseCase` dan menerapkan frame lewat `ScaleFrames`.
+- Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel profil, hasil, dan riwayat menerima antarmuka di `domain/repository`. ViewModel sesi menerima `MeasureScaleUseCase`. ViewModel tidak menerima `*RepositoryImpl`.
 - Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
 - SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
 
@@ -63,41 +63,45 @@ Yang ada sekarang:
 
 ```text
 HealthTrack/app/src/main/java/com/mascill/healthtrack/
-  domain/model/                 ScaleTransmission, ScaleGatt, GattConfirmation, kesalahan format,
-                                BodyData, BiasV235Data, V235Report, MeasurementResult, StoredMeasurement,
-                                MeasurementDisplay, MeasurementSession, ScaleSessionStatus
+  domain/model/                 ScaleTransmission, ScaleGatt, GattConfirmation, ScaleProtocolError,
+                                BodyData, BiasV235Data, V235Report, MeasurementResult, FormulaOutcome,
+                                StoredMeasurement, MeasurementDisplay, MeasurementSession, ScaleSessionStatus,
+                                ScaleRadioEvent dan turunannya
   domain/repository/            ScaleTransmissionRepository, ScaleGattRepository, BodyRepository,
                                 MeasurementRepository, ScaleRadioRepository
   domain/di/                    UseCaseModule
   domain/usecase/               CalculateReportUseCase, AcceptTransmissionUseCase, AcceptGattUseCase,
                                 ApplyBroadcastWeightUseCase, CloseMeasurementUseCase,
                                 MeasurementStateUseCase, DisplayMeasurementUseCase,
-                                MeasureScaleUseCase, ScaleFrames
-  util/                         CsBiasV235, BinaryFloat (`f32`, `fma`), AppDispatcher, ElapsedClock
+                                MeasureScaleUseCase, MeasureScale, ScaleFrames
+  util/                         CsBiasV235, BinaryFloat (`f32`, `fma` lewat BigDecimal), AppDispatcher, ElapsedClock
   data/datasource/              NativeProtocol, BleDataSource, BleDataSourceImpl
     local/                      DAO Room, HealthTrackDatabase, HealthTrackPreferences
   data/di/                      ScaleFrameHeaders, DataModule, DataSourceModule, RepositoryModule, DatabaseModule,
                                 DataStoreModule, DispatcherModule
   data/mapper/                  TransmissionMapper, GattMapper, WeightMapper, BodyMapper, MeasurementMapper
-  data/model/                   RawTransmission, RawGattMeasurement, RawGattConfirmation, StoredReport
+  data/model/                   RawTransmission, RawWeight, RawImpedance, RawGattMeasurement, RawBody,
+                                RawGattConfirmation, StoredReport,
+                                BleManufacturerBlock, BleScanEvent, BleConnectEvent
     entity/                     BodyEntity, MeasurementEntity
   data/repository/              ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl,
                                 BodyRepositoryImpl, MeasurementRepositoryImpl,
                                 ScaleRadioRepositoryImpl
     transmission/               pembaca 0xCA, 0xC0, dan 0xFF
-    gatt/                       GattParser serta frame versi 16 dan 17
-  data/util/                    ProtocolUtils, Constants, TxConst, GattConst, TxIdx, GIdx, RIdx
+    gatt/                       GattParser, GattFrames, GattBytes, GattNative
+  data/util/                    ProtocolUtils, Constants, TxConst, GattConst, TxIdx, GIdx, RIdx, UtcTimestamp
   presentation/navigation/      AppNavHost, Routes, NavExtensions
   presentation/profile/         fase 3
-  presentation/session/         izin, status, berat bergerak; mulai hanya bila profil ada
-  presentation/history/         daftar hasil; baris membuka ResultRoute
+  presentation/session/         BluetoothAccess, FinishedSession, izin, status, berat bergerak
+  presentation/history/         daftar hasil; baris membuka ResultRoute(measurementId)
   presentation/result/          berat, indeks dari DisplayMeasurementUseCase, hex siaran dan GATT
   presentation/common/          AppError, LoadingIndicator
   presentation/theme/           HealthTrackTheme
   App.kt
   MainActivity.kt
 HealthTrack/app/src/main/cpp/   libscale_protocol.so
-HealthTrack/app/src/test/java/  JUnit host, tanpa emulator
+HealthTrack/app/src/test/java/  JUnit host, tanpa emulator: parser, v235, mesin sesi, ScaleFrames,
+                                MeasureScale, Room, BinaryFloat, ViewModel sesi, hasil, dan riwayat
 ```
 
 Yang ditambah fase 6, masih di modul `app`:
@@ -134,7 +138,8 @@ Layar memakai Navigation 3. Versi Navigation 3 `1.2.0` ada di `HealthTrack/gradl
 - Peta byte: [protokol frame OKOK](../protokol-frame-okok.md).
 - Definisi selesai: [definisi-selesai.md](../definisi-selesai.md).
 - Bluetooth: `HealthTrack/.cursor/rules/bluetooth.mdc`.
-- Operasi rumus mengikuti urutan `rumus/*.py`. `CsBiasV235`, `f32`, dan `fma` ada di `util`. Operasi yang di Python dipaksa binary32 memakai `Float`. Nilai library `cs_bias_v235` sebelum penyempitan tetap `Double`. `data/util/ProtocolUtils.f32` milik parser, bukan rumus laporan.
+- Operasi rumus mengikuti urutan `rumus/*.py`. `CsBiasV235`, `f32`, dan `fma` ada di `util`. Operasi yang di Python dipaksa binary32 memakai `Float` lewat `f32` (`toFloat().toDouble()`). `fma` membulatkan `a * b + c` sekali: hasil kali disimpan di `BigDecimal`, lalu `toDouble()`. `Math.fma` tidak dipakai karena hanya ada di API 33 dan `minSdk` adalah 28. Nilai library `cs_bias_v235` sebelum penyempitan tetap `Double`. `data/util/ProtocolUtils.f32` milik parser, bukan rumus laporan.
+- Byte radio di `data/model`: `BleManufacturerBlock.remainder`, `BleScanEvent.Advertisement.record`, dan `BleConnectEvent.Notification.value` bertipe `List<Byte>`. Parser domain tetap menerima `ByteArray`. `ScaleRadioRepositoryImpl` memanggil `toByteArray()` sebelum parser. `ScaleAdvertisement.payload` dan `ScaleNotification.value` bertipe `ByteArray`.
 - Angka pembanding layar: berat 68,7 kg, tinggi 166 cm, umur 29, kelamin 1, impedansi 600 ohm. Kelamin 0 pada vektor yang sama menghasilkan lemak 34,8. Pemetaan field ada di fase 2.
 - Siaran `0xC0` dengan bit 7 pada byte offset 4 ditolak lewat `EncryptedTransmissionError`. Repositori tidak memuat kunci `okok_scale_encrypted_key_`.
 - Sesi tidak menulis ke karakteristik TX.

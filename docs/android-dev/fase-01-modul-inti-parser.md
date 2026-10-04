@@ -54,6 +54,6 @@ Vektor hex dan nilai harapan disalin dari uji Python. Jangan menulis vektor baru
 
 `./gradlew :app:testDebugUnitTest` lulus untuk berkas uji di atas. Siaran terenkripsi melempar `EncryptedTransmissionError`.
 
-## Belum dikerjakan
+## Di luar fase ini
 
-Room, DataStore, Compose di luar sapaan templat, izin Bluetooth, dan `vA019`. Rumus `v235` dan `MeasurementSession` sudah ada di [fase 2](fase-02-rumus-v235-mesin-sesi.md).
+Rumus `v235` dan `MeasurementSession` ada di [fase 2](fase-02-rumus-v235-mesin-sesi.md). Profil, Room, dan DataStore ada di [fase 3](fase-03-profil-room.md). Radio Bluetooth ada di [fase 4](fase-04-sesi-bluetooth.md). Riwayat yang membuka hasil ada di [fase 5](fase-05-hasil-riwayat.md). `vA019` masih [fase 6](fase-06-frekuensi-ganda.md).

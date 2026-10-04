@@ -16,14 +16,16 @@ Sesi tidak menulis ke TX. UUID itu tidak diganti.
 
 Di `app/.../data/datasource/`:
 
-- `BleDataSource` — satu kontrak pindai dan GATT. Hasil pindai dan peristiwa sambungan masuk lewat parameter fungsi. Uji menyuntik antarmuka ini.
-- `BleDataSourceImpl` — satu implementasi. `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform. [`DataSourceModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikatnya ke `BleDataSource`.
+- [`BleDataSource`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSource.kt) — satu kontrak pindai dan GATT. `startScan` mengembalikan `Flow<BleScanEvent>`. `connect` mengembalikan `Flow<BleConnectEvent>`. Null bila radio atau izin menolak. Uji host sesi menyuntik `ScaleRadioRepository`, bukan kelas platform ini.
+- [`BleDataSourceImpl`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/BleDataSourceImpl.kt) — satu implementasi. `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform. [`DataSourceModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataSourceModule.kt) mengikatnya ke `BleDataSource`.
 
-`ScaleRadioRepository` di `domain/repository` adalah pintu radio. Implementasinya di `data` memegang `BleDataSource`, memotong muatan iklan, dan mengembalikan peristiwa. Kelas itu tidak memanggil use case.
+Peristiwa radio ada di [`BleEvent.kt`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/BleEvent.kt). `BleManufacturerBlock.remainder`, `BleScanEvent.Advertisement.record`, dan `BleConnectEvent.Notification.value` bertipe `List<Byte>`.
 
-`MeasureScaleUseCase` di `domain/usecase` menjalankan sesi. Use case itu memanggil `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, dan `MeasurementStateUseCase` dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Pembanding frame berulang ada di `ScaleFrames`, satu kelas internal di paket yang sama. `ScaleFrames` tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
+[`ScaleRadioRepository`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/ScaleRadioRepository.kt) di `domain/repository` adalah pintu radio. Metodenya `begin`, `startScan` (Boolean), `stopScan`, `connect` (epoch), `disconnect`, `awaitEvent`, dan `end`. Pintu ini tidak mengembalikan `Flow`. [`ScaleRadioRepositoryImpl`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleRadioRepositoryImpl.kt) mengumpulkan flow `BleDataSource`, memilih blok timbangan, dan mengirim [`ScaleRadioEvent`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/ScaleRadioEvent.kt). `remainder` dan `value` diubah dengan `toByteArray()` sebelum parser. `ScaleAdvertisement.payload` dan `ScaleNotification.value` bertipe `ByteArray`. Kelas itu tidak memanggil use case.
 
-`presentation/session` memegang status. ViewModel menyuntik `MeasureScaleUseCase`. Keadaan ada di `MeasurementSession`. Teks keadaan memakai `MeasurementStateUseCase`. ViewModel tidak mengimpor `BluetoothGatt`.
+[`MeasureScaleUseCase`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScaleUseCase.kt) adalah antarmuka: `invoke` mengembalikan `Flow<ScaleSessionStatus>`. Implementasinya [`MeasureScale`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScale.kt). Kelas itu menunggu `awaitEvent`, lalu [`ScaleFrames`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/ScaleFrames.kt) memanggil `AcceptTransmissionUseCase`, `AcceptGattUseCase`, dan `ApplyBroadcastWeightUseCase`. Teks keadaan memakai `MeasurementStateUseCase`. Batas 15 detik, tiga percobaan, dua putaran, dan batas sesi 120 detik ada di `MeasureScale`. [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) menyediakan `MeasureScale` sebagai `MeasureScaleUseCase`. `ScaleFrames` dibuat di dalam `MeasureScale`, satu instance per sesi, dan tidak mengimpor `android.*`. Tanda frame berulang, `BroadcastSign` dan `GattSign`, adalah kelas privat di berkas itu. Hex siaran dan hex GATT dihitung di situ, huruf kecil tanpa pemisah.
+
+`presentation/session` memegang status. ViewModel menyuntik `MeasureScaleUseCase`. Keadaan ukur ada di `MeasurementSession`. Cuplikan yang tampil ada di `ScaleSessionStatus`. ViewModel tidak mengimpor `BluetoothGatt`. Sesi yang selesai mengirim `FinishedSession` dan membuka `ResultRoute`.
 
 `menerima_sambungan` di Python membaca `kCBAdvDataIsConnectable` milik CoreBluetooth. Di Android tandanya `ScanResult.isConnectable()`. Pengurai `platform_data` macOS tidak dipindahkan.
 
@@ -48,19 +50,19 @@ Mode sumber `Alway_Conn` untuk ponsel Xiaomi yang `DEVICE`-nya diawali `HM` tida
 
 ## Izin
 
-- API 28–30: `BLUETOOTH`, `BLUETOOTH_ADMIN`, dan `ACCESS_FINE_LOCATION` saat memindai.
-- API 31+: `BLUETOOTH_SCAN` dan `BLUETOOTH_CONNECT`.
-- Izin runtime diminta di layar sesi, sebelum pindai.
+- API 28–30: `BLUETOOTH`, `BLUETOOTH_ADMIN`, dan `ACCESS_FINE_LOCATION` saat memindai. Ketiganya `maxSdkVersion` 30.
+- API 31+: `BLUETOOTH_SCAN` dengan `neverForLocation`, dan `BLUETOOTH_CONNECT`.
+- Daftar runtime ada di [`BluetoothAccess`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/session/BluetoothAccess.kt). Izin diminta di layar sesi, sebelum pindai.
 
 ## Layar sesi
 
 Status: `menunggu impedansi`, `menunggu berat`, `selesai`, atau kode rumus. Berat yang bergerak ikut tampil. Pesan siaran terenkripsi dan pesan waktu sambungan habis tampil di sini.
 
-Layar hasil (`presentation/result`, `ResultRoute`) pada fase ini menampilkan berat, daftar indeks dari fungsi pembulatan [fase 2](fase-02-rumus-v235-mesin-sesi.md), hex siaran terakhir, dan hex GATT terakhir. Tanpa daftar itu, banding di timbangan tidak bisa ditutup. Angka tidak dihitung ulang di Compose. Riwayat yang membuka hasil lama menyusul di fase 5.
+Layar hasil (`presentation/result`, `ResultRoute`) menampilkan berat, daftar indeks dari fungsi pembulatan [fase 2](fase-02-rumus-v235-mesin-sesi.md), hex siaran terakhir, dan hex GATT terakhir. Tanpa daftar itu, banding di timbangan tidak bisa ditutup. Angka tidak dihitung ulang di Compose. Sesi yang baru selesai mengisi tinggi dan hex pada rute itu. Riwayat di [fase 5](fase-05-hasil-riwayat.md) membuka baris yang sama dengan `measurementId` saja; hex kosong tampil `tidak ada`.
 
 ## Uji host sebelum timbangan
 
-Salin dari `PendengarSesiTest` di `aplikasi/test_sesi_ble.py`:
+Uji host ada di `ScaleFramesTest` dan `MeasureScaleUseCaseTest`, disalin dari `PendengarSesiTest` di `aplikasi/test_sesi_ble.py`:
 
 - iklan lalu GATT menutup sesi
 - perangkat lain diabaikan
@@ -74,6 +76,6 @@ Salin dari `PendengarSesiTest` di `aplikasi/test_sesi_ble.py`:
 
 Di timbangan yang sama dengan uji 27 Sep 2026, pada siaran tidak terenkripsi: berat dan daftar indeks cocok dengan aplikasi OKOK. Bila iklan tidak connectable, berat siaran terkunci tetap menghasilkan laporan. Hex siaran dan hex GATT terakhir tampil di layar hasil. Profil uji banding itu tinggi 166 cm, umur 29, kelamin 1, bila sesi yang dibandingkan adalah sesi 68,7 kg.
 
-## Belum dikerjakan
+## Di luar fase ini
 
-Riwayat yang membuka hasil lama, dan `vA019`.
+Riwayat yang membuka hasil lama ada di [fase 5](fase-05-hasil-riwayat.md). `vA019` masih [fase 6](fase-06-frekuensi-ganda.md). Pintu keluar timbangan di atas belum dicatat lulus.

@@ -10,7 +10,7 @@ Aturan paket: `HealthTrack/.cursor/rules/sm-architecture.mdc`, `sm-data-layer.md
 
 ### Room dan DataStore
 
-Entitas di `data/model/entity`. DAO dan DataStore di `data/datasource/local`. Database di `data/di/DatabaseModule`. DataStore di `data/di/DataStoreModule`. `AppDispatcher` di `util`, disediakan `data/di/DispatcherModule`.
+Entitas di `data/datasource/local/entity`. DAO di `data/datasource/local/dao`. [`HealthTrackDatabase`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/local/database/HealthTrackDatabase.kt) di `data/datasource/local/database`, berkas `healthtrack.db`, disediakan [`DatabaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DatabaseModule.kt). DataStore `healthtrack_prefs` disediakan [`DataStoreModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DataStoreModule.kt). `created_at` diisi [`utcTimestamp`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/util/UtcTimestamp.kt). `AppDispatcher` di `util`, disediakan `data/di/DispatcherModule`.
 
 Dua tabel. `impedance_ohm` dan `report` adalah teks JSON, sama seperti `json.dumps` di Python. Serialization memakai `kotlinx.serialization`.
 
@@ -20,7 +20,7 @@ measurement(id, created_at, mac, product_id, weight_kg, scale_weight,
      impedance_ohm, formula, code, report)
 ```
 
-Antarmuka di `domain/repository`, tanpa tipe Room. ViewModel profil dan riwayat menerima antarmuka ini, bukan DAO dan bukan `*RepositoryImpl`. Jangan menambah UseCase baru untuk simpan profil atau daftar riwayat. Use case sesi sudah ada dan disediakan [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt): `CalculateReportUseCase`, `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, `CloseMeasurementUseCase`, `MeasurementStateUseCase`, dan `DisplayMeasurementUseCase`. Layar yang memakai use case itu menerimanya dari Hilt. Jangan membuat instance sendiri dan jangan menambah `@Inject` pada kelas use case.
+Antarmuka di `domain/repository`, tanpa tipe Room. ViewModel profil dan riwayat menerima antarmuka ini, bukan DAO dan bukan `*RepositoryImpl`. Jangan menambah UseCase baru untuk simpan profil atau daftar riwayat. Use case sesi sudah ada dan disediakan [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt): `CalculateReportUseCase`, `AcceptTransmissionUseCase`, `AcceptGattUseCase`, `ApplyBroadcastWeightUseCase`, `CloseMeasurementUseCase`, `MeasurementStateUseCase`, `DisplayMeasurementUseCase`, dan `MeasureScaleUseCase`. Layar yang memakai use case itu menerimanya dari Hilt. Jangan membuat instance sendiri dan jangan menambah `@Inject` pada kelas use case.
 
 - `BodyRepository` — `save` menulis baris `body` baru; `latest` mengambil `id` terbesar.
 - `MeasurementRepository` — `save` dari fase 2 mendapat implementasi Room; `list` mengembalikan `measurement` terbaru di atas (`id` menurun). Python mengurutkan menaik; layar riwayat membaliknya di query ini.
@@ -35,19 +35,19 @@ Binding baru ditambah `@Binds` di [`RepositoryModule`](../../HealthTrack/app/src
 
 Navigasi Compose dengan Navigation 3 di `presentation/navigation/`:
 
-- `Routes.kt` — `NavKey`: `ProfileRoute`, `SessionRoute`, `HistoryRoute`. `ResultRoute` boleh sudah terdaftar; isinya dilengkapi di fase 5.
+- `Routes.kt` — `NavKey`: `ProfileRoute`, `SessionRoute`, `HistoryRoute`, dan `ResultRoute`. Argumen hasil ada di [fase 5](fase-05-hasil-riwayat.md).
 - `AppNavHost.kt` — `NavDisplay`, `rememberNavBackStack`. Bukan `NavHost` dan bukan `androidx.navigation:navigation-compose`.
 - `NavExtensions.kt` — `navigateTo`, `navigateBack`, `navigateToTopLevel`.
 
 Tiga tujuan fase ini adalah tab. `navigateToTopLevel` berpindah tab. Hasil nanti didorong dengan `navigateTo`, bukan tab.
 
-Tema yang ada, `ui/theme/HealthTrackTheme`, dipindah ke `presentation/theme` saat `MainActivity` memasang `AppNavHost`. Jangan membuat tema kedua. Composable tetap `HealthTrackTheme`.
+Tema ada di `presentation/theme`. `MainActivity` memasang `AppNavHost`. Jangan membuat tema kedua. Composable tetap `HealthTrackTheme`.
 
 Teks Indonesia. Satu paket per fitur: `*Screen`, `*ViewModel`, `model/*UIState`. `@HiltViewModel`, `StateFlow`, `collectAsStateWithLifecycle`, `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`.
 
 1. **Profil** (`presentation/profile`). Tinggi (cm), umur, jenis kelamin. Simpan menulis baris `body` baru lewat `BodyRepository`. Layar menampilkan baris terbaru.
-2. **Sesi** (`presentation/session`). Tombol mulai. Tanpa profil, sesi tidak masuk keadaan mengukur. Bluetooth belum disambungkan; tombol hanya membuka alur yang fase 4 isi.
-3. **Riwayat** (`presentation/history`). Daftar kosong bila belum ada baris `measurement`. Membuka hasil tersimpan menyusul di fase 5.
+2. **Sesi** (`presentation/session`). Tombol mulai. Tanpa profil, sesi tidak masuk keadaan mengukur. Radio Bluetooth ada di [fase 4](fase-04-sesi-bluetooth.md). Layar yang ada sekarang menjalankan `MeasureScaleUseCase` setelah izin diberikan.
+3. **Riwayat** (`presentation/history`). Daftar kosong bila belum ada baris `measurement`. Baris membuka hasil tersimpan; isi layar hasil ada di [fase 5](fase-05-hasil-riwayat.md).
 
 ## Langkah
 
@@ -60,6 +60,6 @@ Teks Indonesia. Satu paket per fitur: `*Screen`, `*ViewModel`, `model/*UIState`.
 
 Menyimpan profil, memuat baris terbaru, menolak jenis kelamin selain 0 dan 1, dan sesi tidak mulai tanpa profil.
 
-## Belum dikerjakan
+## Di luar fase ini
 
-Pemindaian, GATT, daftar indeks, dan `vA019`.
+Pemindaian, GATT, dan daftar indeks ada di [fase 4](fase-04-sesi-bluetooth.md) dan [fase 5](fase-05-hasil-riwayat.md). `vA019` masih [fase 6](fase-06-frekuensi-ganda.md).
