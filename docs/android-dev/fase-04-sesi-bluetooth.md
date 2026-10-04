@@ -14,7 +14,7 @@ Sesi tidak menulis ke TX. UUID itu tidak diganti.
 
 ## Yang dihasilkan
 
-Di `app/.../data/ble/`:
+Di `app/.../data/datasource/ble/`:
 
 - `SessionListener` — meneruskan muatan iklan dan notify ke `AcceptTransmissionUseCase` dan `AcceptGattUseCase` lewat `ScaleTransmissionRepository` dan `ScaleGattRepository`. Use case itu datang dari [`UseCaseModule`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt). Tidak mengimpor `android.*`, supaya uji host dari `aplikasi/test_sesi_ble.py` bisa jalan di `:app:testDebugUnitTest`.
 - `BleSession` — `BluetoothLeScanner` dan `BluetoothGatt`. Ini yang boleh mengimpor API platform.

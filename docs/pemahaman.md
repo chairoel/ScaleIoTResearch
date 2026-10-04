@@ -6,6 +6,20 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 09:50 WIB — Sesi Bluetooth ada di data/datasource/ble
+
+Koreksi catatan 2026-10-04 09:15 pada letak paket. [`SessionListener`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/SessionListener.kt) dan [`BleSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/ble/BleSession.kt) ada di `data/datasource/ble`, sejajar dengan `datasource/local`. [`ScaleSessionRepositoryImpl`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/repository/ScaleSessionRepositoryImpl.kt) di `data/repository` tetap memegang `BleSession`. `SessionListener` tetap tidak mengimpor `android.*`.
+
+## 2026-10-04 09:36 WIB — Rekomendasi berikut: uji tutup aplikasi pintu keluar fase 5
+
+Langkah berikut: satu pengukuran, tutup aplikasi, buka lagi, buka baris yang sama dari riwayat. Tulang 2,77 dan metabolisme 1502,0 harus sama dengan saat sesi selesai bila yang tersimpan adalah vektor 68,7 kg. Syaratnya kode fase 5, yang sudah ada. Hex pada jalur riwayat tampil `tidak ada` karena bukan kolom `measurement`. Pintu keluar timbangan fase 4 tetap terbuka. Jangan mulai fase 6. Jangan mem-port `cs_bias_vA019`.
+
+## 2026-10-04 09:36 WIB — Riwayat membuka hasil lewat ResultRoute
+
+Baris di [`HistoryScreen`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/history/HistoryScreen.kt) mendorong [`ResultRoute`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/navigation/Routes.kt) hanya dengan `measurementId`. [`ResultViewModel`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/presentation/result/ResultViewModel.kt) membaca baris itu dari `MeasurementRepository.list` dan membulatkan lewat `DisplayMeasurementUseCase`. Angka tidak dihitung di Compose. Membuka rute ini tidak memulai `BleSession`.
+
+Tinggi untuk BMI, bila argumen rute 0, adalah `BodyRepository.latest`. Tabel `measurement` tidak menyimpan tinggi. Tulang dan metabolisme datang dari JSON `report`, jadi tidak ikut berubah bila profil tubuh diganti sesudah sesi. Hex siaran dan hex GATT tetap hanya di argumen `ResultRoute` sesi yang baru selesai, bukan kolom tabel.
+
 ## 2026-10-04 09:15 WIB — Rekomendasi berikut: uji timbangan pintu keluar fase 4
 
 Langkah berikut: ukur di timbangan yang sama dengan uji 27 Sep 2026. Profil banding itu tinggi 166 cm, umur 29, kelamin 1. Pada siaran tidak terenkripsi, berat dan daftar indeks di layar hasil harus cocok dengan aplikasi OKOK. Hex siaran dan hex GATT terakhir harus tampil di layar itu. Bila iklan tidak connectable, berat siaran terkunci tetap menghasilkan laporan. Syaratnya kode fase 4, yang sudah ada. Jangan mulai fase 5. Jangan mem-port `cs_bias_vA019`.

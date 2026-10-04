@@ -1,5 +1,34 @@
 # Activity Log
 
+## 2026-10-04 09:50 WIB — Sesi Bluetooth pindah ke datasource
+
+### Tujuan
+Menempatkan pemindai dan sambungan GATT di `data/datasource`, sejajar dengan Room dan DataStore.
+
+### Perubahan
+- `data/datasource/ble/SessionListener.kt`, `BleSession.kt`: pindah dari `data/ble`. Paketnya `com.mascill.healthtrack.data.datasource.ble`.
+- `data/repository/ScaleSessionRepositoryImpl.kt`: impor mengikuti paket baru. Repositori tetap memegang `BleSession`.
+- `app/src/test/.../data/datasource/ble/SessionListenerTest.kt`: uji ikut pindah.
+- `docs/android-dev/00-rencana-besar.md`, `fase-04-sesi-bluetooth.md`, `docs/rencana-aplikasi-android.md`: letak paket mengikuti kode.
+
+### Status
+Selesai. `SessionListenerTest` dan `SessionViewModelTest` lulus.
+
+## 2026-10-04 09:36 WIB — Fase 5 hasil dan riwayat
+
+### Tujuan
+Membuka kembali hasil tersimpan dari riwayat, tanpa sesi Bluetooth dan tanpa menghitung ulang angka di Compose.
+
+### Perubahan
+- `presentation/history/HistoryScreen.kt`: baris riwayat menekan `onOpenMeasurement`.
+- `presentation/navigation/AppNavHost.kt`, `Routes.kt`: baris itu mendorong `ResultRoute` lewat `backStack.navigateTo`, hanya dengan `measurementId`.
+- `presentation/result/ResultViewModel.kt`: tinggi 0 memakai profil tubuh terbaru; hex kosong tampil `tidak ada`.
+- `app/src/test/.../ResultViewModelTest.kt`, `HistoryViewModelTest.kt`: buka ulang vektor 68,7 kg memakai laporan tersimpan; daftar riwayat mengikuti urutan repositori.
+- `docs/android-dev/00-rencana-besar.md`: fase 5 ditandai sudah di kode.
+
+### Status
+Selesai di kode. `./gradlew :app:testDebugUnitTest` lulus. Tutup-buka aplikasi di ponsel belum diuji. Pintu keluar timbangan fase 4 juga belum.
+
 ## 2026-10-04 09:15 WIB — Fase 4 sesi Bluetooth
 
 ### Tujuan

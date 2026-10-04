@@ -52,7 +52,7 @@ HealthTrack/app/
 | `rumus/cs_bias_v235.py` | `app/.../util/CsBiasV235.kt` |
 | `rumus/cs_bias_vA019.py` | `app/.../util/CsBiasVA019.kt` |
 | `aplikasi/sesi_ukur.py` | `app/.../domain/session/MeasurementSession.kt` |
-| `aplikasi/sesi_ble.py` | `app/.../data/ble/SessionListener.kt` dan `BleSession.kt` |
+| `aplikasi/sesi_ble.py` | `app/.../data/datasource/ble/SessionListener.kt` dan `BleSession.kt` |
 | `aplikasi/simpan.py` | `app/.../data/` Room |
 
 Peta byte ada di [protokol frame OKOK](protokol-frame-okok.md).

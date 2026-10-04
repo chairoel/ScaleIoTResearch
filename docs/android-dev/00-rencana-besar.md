@@ -2,7 +2,7 @@
 
 Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase. Tiap fase punya berkas sendiri di folder ini.
 
-Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, dan sesi Bluetooth sudah ada. Pintu keluar timbangan fase 4 dan `vA019` belum.
+Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, sesi Bluetooth, dan riwayat yang membuka hasil sudah ada. Pintu keluar timbangan fase 4 dan `vA019` belum.
 
 ## Keadaan modul
 
@@ -37,7 +37,7 @@ flowchart LR
 | 2 | [fase-02-rumus-v235-mesin-sesi.md](fase-02-rumus-v235-mesin-sesi.md) | Sudah di kode | v235 dan mesin sesi satu ohm lulus; angka layar 68,7 kg cocok |
 | 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Sudah di kode | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
 | 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Kode ada; uji timbangan belum | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
-| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Belum | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
+| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Sudah di kode | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
 | 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Belum | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
 
 Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timbangan yang mengirim sepuluh ohm.
@@ -75,12 +75,12 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   util/                         CsBiasV235, BinaryFloat (`f32`, `fma`), AppDispatcher
   data/datasource/              NativeProtocol
     local/                      DAO Room, HealthTrackDatabase, HealthTrackPreferences
+    ble/                        SessionListener, BleSession
   data/di/                      ScaleFrameHeaders, DataModule, RepositoryModule, DatabaseModule,
                                 DataStoreModule, DispatcherModule
   data/mapper/                  TransmissionMapper, GattMapper, WeightMapper, BodyMapper, MeasurementMapper
   data/model/                   RawTransmission, RawGattMeasurement, RawGattConfirmation, StoredReport
     entity/                     BodyEntity, MeasurementEntity
-  data/ble/                     SessionListener, BleSession
   data/repository/              ScaleTransmissionRepositoryImpl, ScaleGattRepositoryImpl,
                                 BodyRepositoryImpl, MeasurementRepositoryImpl,
                                 ScaleSessionRepositoryImpl
@@ -90,7 +90,7 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   presentation/navigation/      AppNavHost, Routes, NavExtensions
   presentation/profile/         fase 3
   presentation/session/         izin, status, berat bergerak; mulai hanya bila profil ada
-  presentation/history/         daftar hasil; membuka baris menyusul fase 5
+  presentation/history/         daftar hasil; baris membuka ResultRoute
   presentation/result/          berat, indeks dari DisplayMeasurementUseCase, hex siaran dan GATT
   presentation/common/          AppError, LoadingIndicator
   presentation/theme/           HealthTrackTheme
@@ -100,11 +100,10 @@ HealthTrack/app/src/main/cpp/   libscale_protocol.so
 HealthTrack/app/src/test/java/  JUnit host, tanpa emulator
 ```
 
-Yang ditambah fase 5–6, masih di modul `app`:
+Yang ditambah fase 6, masih di modul `app`:
 
 ```text
 util/                           CsBiasVA019
-presentation/history/           buka hasil tersimpan, fase 5
 ```
 
 Modul Gradle kedua tidak dibuat. Rumus dan mesin sesi tidak mengimpor `android.*`. Uji mereka ada di `src/test/java` dan jalan lewat `./gradlew :app:testDebugUnitTest`.
