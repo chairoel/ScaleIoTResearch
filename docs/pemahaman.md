@@ -6,6 +6,22 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-04 04:07 WIB — Rekomendasi berikut: fase 4 sesi Bluetooth
+
+Langkah berikut: fase 4 di [fase-04-sesi-bluetooth.md](android-dev/fase-04-sesi-bluetooth.md). Tambah `BleSession` dan `SessionListener` di `data/ble`, serta `ScaleSessionRepository` di `domain/repository`. Layar sesi memakai use case dari [`UseCaseModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) dan baru mengukur bila [`BodyRepository.latest`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/BodyRepository.kt) ada. Syaratnya pintu keluar fase 3, yang sudah terpenuhi. Jangan mem-port `cs_bias_vA019`. Jangan membuka hasil lama dari riwayat; itu fase 5.
+
+## 2026-10-04 04:07 WIB — Profil dan hasil tersimpan di Room
+
+Database `healthtrack.db` dibuat di [`DatabaseModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/di/DatabaseModule.kt). Tabelnya `body` dan `measurement`. Kolom `impedance_ohm` dan `report` adalah teks JSON. Nama field laporan sama dengan [`V235Report`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/V235Report.kt): `bfp`, `slm`, `slp`, `bwp`, `bmc`, `vfl`, `pp`, `smm`, `swt`, `mc`, `wc`, `fc`, `bmr`, `ma`, `sbc`. `created_at` adalah waktu UTC dalam ISO-8601.
+
+[`BodyRepository.save`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/BodyRepository.kt) menyisipkan baris baru. `latest` membaca `id` terbesar. [`MeasurementRepository.save`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/repository/MeasurementRepository.kt) tetap sinkron. `list` mengembalikan `id` menurun. [`BodyData`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/BodyData.kt) menolak jenis kelamin selain 0 dan 1 sebelum insert.
+
+DataStore `healthtrack_prefs` tidak punya kunci wajib. Profil dan hasil tidak ditulis ke prefs.
+
+Tab Navigation 3: `ProfileRoute`, `SessionRoute`, `HistoryRoute`. `ResultRoute` membawa `measurementId`; isi layar hasil masih placeholder. Composable tema tetap `HealthTrackTheme`, paketnya `presentation/theme`.
+
+`SessionViewModel.onStartClick` tidak masuk keadaan mengukur bila `BodyRepository.latest` kosong. Bluetooth belum disambungkan.
+
 ## 2026-10-04 02:13 WIB — Use case disediakan UseCaseModule
 
 Koreksi catatan 2026-10-03 22:08 pada cara inject use case. Tujuh use case di `domain/usecase` tidak memakai `@Inject`. [`UseCaseModule`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/di/UseCaseModule.kt) membuatnya dengan `@Provides`. `@Inject` pada kelas yang sama bentrok dengan provider itu.

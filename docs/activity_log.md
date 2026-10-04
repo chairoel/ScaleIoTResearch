@@ -1,5 +1,23 @@
 # Activity Log
 
+## 2026-10-04 04:07 WIB — Fase 3 profil dan Room
+
+### Tujuan
+Menyimpan profil tubuh dan hasil ukur di perangkat, lalu menahan mulai sesi bila profil belum ada.
+
+### Perubahan
+- `HealthTrack/gradle/libs.versions.toml`, `HealthTrack/build.gradle.kts`, `HealthTrack/app/build.gradle.kts`: Room 2.8.5, DataStore 1.2.1, Navigation 3 1.2.0, dan plugin serialization.
+- `data/model/entity/`, `data/datasource/local/`, `data/di/DatabaseModule.kt`, `DataStoreModule.kt`, `DispatcherModule.kt`: tabel `body` dan `measurement`, prefs `healthtrack_prefs`, `AppDispatcher`.
+- `domain/repository/BodyRepository.kt`, `MeasurementRepository.kt`: simpan profil, muat baris terbaru, daftar hasil terbaru di atas.
+- `data/repository/BodyRepositoryImpl.kt`, `MeasurementRepositoryImpl.kt`: `RepositoryModule` mengikat keduanya. Optional `MeasurementRepository` terisi, jadi `CloseMeasurementUseCase` menyimpan hasil.
+- `presentation/profile/`, `presentation/session/`, `presentation/history/`, `presentation/navigation/`: tab profil, sesi, dan riwayat. `ResultRoute` terdaftar.
+- `presentation/theme/`: `HealthTrackTheme` pindah dari `ui/theme`.
+- `app/src/test/.../HealthTrackStorageTest.kt`, `SessionViewModelTest.kt`: profil, jenis kelamin 2, JSON laporan, dan kunci sesi.
+- `docs/android-dev/00-rencana-besar.md`: fase 3 ditandai sudah di kode.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Pemindaian Bluetooth dan layar hasil belum diisi.
+
 ## 2026-10-04 03:19 WIB — Rencana fase mengikuti kode yang ada
 
 ### Tujuan
