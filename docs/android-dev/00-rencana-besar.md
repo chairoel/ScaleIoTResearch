@@ -52,7 +52,7 @@ Aturan di `HealthTrack/.cursor/rules/` dipakai untuk fase 3–6. Penyesuaian yan
 - Nama kelas, fungsi, dan properti Kotlin berbahasa Inggris. Teks layar berbahasa Indonesia.
 - ViewModel memakai `@HiltViewModel`, `StateFlow`, dan `collectAsStateWithLifecycle`. Layar mengambil ViewModel lewat `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel`. Navigation 3 (`NavDisplay`, `NavKey`), bukan `NavHost`.
 - Paket `domain` berisi `model`, `repository`, `usecase`, dan `di`. Jangan menambah `domain/formula` atau `domain/session`.
-- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession` dan peristiwa `ScaleRadioEvent`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleRadioRepositoryImpl` mengumpulkan `Flow` dari `BleDataSource` menjadi `ScaleRadioEvent` dan tidak memanggil use case. `MeasureScale` mengimplementasi `MeasureScaleUseCase` dan menerapkan frame lewat `ScaleFrames`.
+- Paket `model` hanya tipe, termasuk keadaan `MeasurementSession` dan peristiwa `ScaleRadioEvent`. Rumus `CsBiasV235` ada di `util`, bersama `f32` dan `fma`. Satu use case memuat satu fungsi publik, `invoke`. Use case boleh memanggil use case lain. `BodyRepositoryImpl` dan `MeasurementRepositoryImpl` hanya menyimpan dan membaca. `ScaleRadioRepositoryImpl` mengumpulkan `Flow` dari `BleDataSource` menjadi `ScaleRadioEvent` dan tidak memanggil use case. `MeasureScaleUseCase` menerapkan frame lewat `ScaleFrames`.
 - Satu fitur satu paket `presentation/[feature]/` berisi `*Screen`, `*ViewModel`, `model/*UIState`, dan `component/` bila perlu. ViewModel profil, hasil, dan riwayat menerima antarmuka di `domain/repository`. ViewModel sesi menerima `MeasureScaleUseCase`. ViewModel tidak menerima `*RepositoryImpl`.
 - Kesalahan yang tampil ke pengguna memakai `AppError` di `presentation/common/model`, mulai fase yang pertama kali menampilkan pesan itu.
 - SDK supabase tidak masuk `domain` atau `presentation`. Tahap ini tidak memasangnya sama sekali.
@@ -73,7 +73,7 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   domain/usecase/               CalculateReportUseCase, AcceptTransmissionUseCase, AcceptGattUseCase,
                                 ApplyBroadcastWeightUseCase, CloseMeasurementUseCase,
                                 MeasurementStateUseCase, DisplayMeasurementUseCase,
-                                MeasureScaleUseCase, MeasureScale, ScaleFrames
+                                MeasureScaleUseCase, ScaleFrames
   util/                         CsBiasV235, BinaryFloat (`f32`, `fma` lewat BigDecimal), AppDispatcher, ElapsedClock
   data/datasource/              NativeProtocol, BleDataSource, BleDataSourceImpl
     local/                      DAO Room, HealthTrackDatabase, HealthTrackPreferences
@@ -101,7 +101,7 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   MainActivity.kt
 HealthTrack/app/src/main/cpp/   libscale_protocol.so
 HealthTrack/app/src/test/java/  JUnit host, tanpa emulator: parser, v235, mesin sesi, ScaleFrames,
-                                MeasureScale, Room, BinaryFloat, ViewModel sesi, hasil, dan riwayat
+                                MeasureScaleUseCase, Room, BinaryFloat, ViewModel sesi, hasil, dan riwayat
 ```
 
 Yang ditambah fase 6, masih di modul `app`:

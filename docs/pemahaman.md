@@ -6,6 +6,28 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-05 05:06 WIB — MeasureScaleUseCase adalah kelas konkret
+
+Koreksi catatan yang menyebut `MeasureScale`. Tipe itu tidak ada. [`MeasureScaleUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScaleUseCase.kt) adalah kelas konkret. ViewModel sesi menerima kelas itu. Batas abstraksi tetap di antarmuka repository. Kelas ini membangun `MeasurementContext` dan mengirim snapshot sesi ke status.
+
+```36:50:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScaleUseCase.kt
+class MeasureScaleUseCase(
+    private val radio: ScaleRadioRepository,
+    private val transmissions: ScaleTransmissionRepository,
+    private val gattFrames: ScaleGattRepository,
+    private val acceptTransmission: AcceptTransmissionUseCase,
+    private val acceptGatt: AcceptGattUseCase,
+    private val applyBroadcastWeight: ApplyBroadcastWeightUseCase,
+    private val measurementState: MeasurementStateUseCase,
+    private val clock: ElapsedClock,
+    private val dispatcher: AppDispatcher,
+) {
+    /**
+     * Emits status for [body] until the session ends or the collection is cancelled.
+     */
+    operator fun invoke(body: BodyData): Flow<ScaleSessionStatus> = channelFlow {
+```
+
 ## 2026-10-04 22:05 WIB — MeasurementSession dipisah dari MeasurementContext
 
 Koreksi catatan 2026-10-04 21:49. [`MeasurementSession`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) sekarang hanya berisi data publik untuk presentation layer. Detail internal BLE (`mac`, `productId`, `gattWeight`, `broadcastWeight`) dipindah ke [`MeasurementContext`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementSession.kt) yang membungkus `MeasurementSession`.

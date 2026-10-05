@@ -1,5 +1,21 @@
 # Activity Log
 
+## 2026-10-05 05:06 WIB — MeasureScaleUseCase jadi kelas konkret
+
+### Tujuan
+Menyamakan sesi ukur dengan use case lain: satu kelas, tanpa antarmuka terpisah.
+
+### Perubahan
+- `domain/usecase/MeasureScaleUseCase.kt`: kelas konkret yang menjalankan sesi Bluetooth.
+- `domain/usecase/MeasureScale.kt`: dihapus.
+- `domain/di/UseCaseModule.kt`: menyediakan `MeasureScaleUseCase` langsung.
+- `domain/usecase/MeasureScaleUseCaseTest.kt`: konstruktor mengikuti nama kelas.
+- `presentation/session/SessionViewModelTest.kt`: memakai kelas nyata dan radio palsu.
+- `docs/android-dev/fase-04-sesi-bluetooth.md`, `docs/android-dev/00-rencana-besar.md`: peta menunjuk ke kelas konkret.
+
+### Status
+Selesai. `SessionViewModelTest` dan `MeasureScaleUseCaseTest` lulus.
+
 ## 2026-10-04 22:05 WIB — Pisah MeasurementSession dan MeasurementContext
 
 ### Tujuan
