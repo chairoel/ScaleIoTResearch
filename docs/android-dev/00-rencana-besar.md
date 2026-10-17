@@ -2,7 +2,7 @@
 
 Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase. Tiap fase punya berkas sendiri di folder ini.
 
-Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, sesi Bluetooth, dan riwayat yang membuka hasil sudah ada. Pintu keluar timbangan fase 4 dan `vA019` belum.
+Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, sesi Bluetooth, dan riwayat yang membuka hasil sudah ada. Banding timbangan 68,95 kg cocok dengan v235 pada umur yang sama. Tutup-buka aplikasi fase 5 lulus. `vA019` belum.
 
 ## Keadaan modul
 
@@ -36,8 +36,8 @@ flowchart LR
 | 1 | [fase-01-modul-inti-parser.md](fase-01-modul-inti-parser.md) | Sudah di kode | Uji iklan, siaran, dan GATT lulus di JUnit host |
 | 2 | [fase-02-rumus-v235-mesin-sesi.md](fase-02-rumus-v235-mesin-sesi.md) | Sudah di kode | v235 dan mesin sesi satu ohm lulus; angka layar 68,7 kg cocok |
 | 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Sudah di kode | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
-| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Kode ada; uji timbangan belum | Berat dan indeks cocok dengan OKOK di timbangan yang sama |
-| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Sudah di kode | Satu hasil tersimpan, muncul di riwayat, tetap ada setelah aplikasi ditutup |
+| 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Kode ada; banding 68,95 kg cocok dengan v235 | Selisih lima baris OKOK adalah umur 30 lawan 29 |
+| 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Pintu keluar lulus | Tutup aplikasi, buka lagi, angka riwayat sama dengan saat sesi selesai |
 | 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Belum | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
 
 Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timbangan yang mengirim sepuluh ohm.

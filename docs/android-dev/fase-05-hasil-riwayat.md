@@ -24,6 +24,8 @@ Teks Indonesia, koma desimal, sesuai tabel fase 2.
 
 Satu pengukuran tersimpan, muncul di riwayat, dan tetap ada setelah aplikasi ditutup. Angka yang terbuka lagi sama dengan angka saat sesi selesai, termasuk tulang 2,77 dan metabolisme 1502,0 pada vektor 68,7 kg bila sesi itu yang tersimpan.
 
+Uji tutup-buka pada 18 Okt 2026 lulus: setelah aplikasi ditutup dan dibuka lagi, angka di riwayat sama dengan saat sesi selesai.
+
 ## Belum dikerjakan
 
 `vA019` dan modul produk di luar satu sesi ukur.

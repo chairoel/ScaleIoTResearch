@@ -6,6 +6,36 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-18 00:15 WIB — Rekomendasi berikut: port vA019
+
+Langkah berikut: fase 6 di [fase-06-frekuensi-ganda.md](android-dev/fase-06-frekuensi-ganda.md). Port `cs_bias_vA019` ke `util/CsBiasVA019`, lalu ganti cabang sepuluh ohm di [`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) supaya memilih `vA019`. Satu ohm tetap `v235`. Syaratnya pintu keluar fase 5, yang lulus pada uji tutup-buka 18 Okt 2026. Jangan menambah tabel Room. Jangan mengubah urutan float v235.
+
+## 2026-10-18 00:15 WIB — Pintu keluar fase 5 lulus
+
+Uji tutup aplikasi lulus. Setelah aplikasi ditutup dan dibuka lagi, angka di riwayat sama dengan angka saat sesi selesai. Baris `measurement` tetap laporan yang ditulis saat kode rumus 0.
+
+## 2026-10-18 00:05 WIB — Pasangan 68,95 kg hanya umur 29 dan 30
+
+Koreksi catatan 2026-10-18 00:03 pada impedansi. Pada berat 68,95 kg, lima baris OKOK dan lima baris aplikasi ini hanya cocok di satu profil di rentang jenis kelamin 0–1, umur 18–79, tinggi 150–190 cm, dan impedansi bulat 400–900 ohm: laki-laki, tinggi 166 cm, impedansi 600 ohm. OKOK umur 29. Aplikasi ini umur 30.
+
+## 2026-10-18 00:03 WIB — Selisih OKOK pada 68,95 kg adalah umur 29 lawan 30
+
+Pada berat 68,95 kg, tinggi 166 cm, laki-laki, impedansi sekitar 600 ohm, lima baris yang beda dengan OKOK International persis keluaran v235 umur 29 (OKOK) dan umur 30 (aplikasi ini). Baris lain tampil sama karena selisih mentahnya lebih kecil dari langkah pembulatan.
+
+OKOK menyimpan tanggal lahir dan memakai umur utuh yang sudah terlewati. HealthTrack menyimpan umur yang diketik. Satu tahun di rumus laki-laki menggeser metabolisme sekitar 4 kkal: koefisien umur baris BMR laki-laki adalah `-43376`, lalu dibagi 10000.
+
+```33:34:rumus/cs_bias_v235.py
+    (75432, 99474, -34382, -3090, -2882821),
+    (75037, 131523, -43376, -3486, -3117751),
+```
+
+```115:116:rumus/cs_bias_v235.py
+    total = _fma(float(c2), float(age & 0xFF), total)
+    return (total + from_z + float(c4)) / 10000.0
+```
+
+Massa otot mentah 50,078 menjadi 50,1 pada umur 29, dan 50,037 menjadi 50,0 pada umur 30. Tulang, protein, dan berat tanpa lemak mengikuti massa otot dan lemak yang bergeser itu. Rumus tidak perlu diubah. Banding layar memakai umur utuh yang sama dengan hitungan tanggal lahir OKOK.
+
 ## 2026-10-05 05:06 WIB — MeasureScaleUseCase adalah kelas konkret
 
 Koreksi catatan yang menyebut `MeasureScale`. Tipe itu tidak ada. [`MeasureScaleUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/MeasureScaleUseCase.kt) adalah kelas konkret. ViewModel sesi menerima kelas itu. Batas abstraksi tetap di antarmuka repository. Kelas ini membangun `MeasurementContext` dan mengirim snapshot sesi ke status.

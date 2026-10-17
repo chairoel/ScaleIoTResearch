@@ -78,4 +78,4 @@ Di timbangan yang sama dengan uji 27 Sep 2026, pada siaran tidak terenkripsi: be
 
 ## Di luar fase ini
 
-Riwayat yang membuka hasil lama ada di [fase 5](fase-05-hasil-riwayat.md). `vA019` masih [fase 6](fase-06-frekuensi-ganda.md). Pintu keluar timbangan di atas belum dicatat lulus.
+Riwayat yang membuka hasil lama ada di [fase 5](fase-05-hasil-riwayat.md). `vA019` masih [fase 6](fase-06-frekuensi-ganda.md). Banding 18 Okt 2026 pada 68,95 kg, tinggi 166 cm, laki-laki, 600 ohm cocok dengan v235. OKOK memakai umur 29 dari tanggal lahir. Aplikasi ini memakai umur 30 yang diketik.

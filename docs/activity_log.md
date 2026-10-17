@@ -1,5 +1,50 @@
 # Activity Log
 
+## 2026-10-18 00:15 WIB — Pintu keluar fase 5 lulus
+
+### Tujuan
+Mencatat uji tutup-buka aplikasi yang sudah lulus.
+
+### Temuan
+Setelah aplikasi ditutup dan dibuka lagi, angka di riwayat sama dengan saat sesi selesai.
+
+### Perubahan
+- `docs/android-dev/00-rencana-besar.md`: fase 5 lulus. Banding fase 4 dicatat sebagai cocok dengan v235 pada umur yang sama.
+- `docs/android-dev/fase-04-sesi-bluetooth.md`: banding 68,95 kg.
+- `docs/android-dev/fase-05-hasil-riwayat.md`: uji tutup-buka lulus.
+- `docs/pemahaman.md`: fakta lulus, dan rekomendasi berikut port `vA019`.
+
+### Status
+Selesai. Kode aplikasi tidak diubah. Langkah berikut adalah fase 6.
+
+## 2026-10-18 00:05 WIB — Profil 68,95 kg hanya satu pasangan
+
+### Tujuan
+Memastikan tidak ada profil lain yang menghasilkan lima baris yang sama.
+
+### Temuan
+Di jenis kelamin 0–1, umur 18–79, tinggi 150–190 cm, dan impedansi bulat 400–900 ohm, hanya laki-laki, 166 cm, 600 ohm. OKOK umur 29. Aplikasi ini umur 30.
+
+### Perubahan
+- `docs/pemahaman.md`: koreksi impedansi menjadi tepat 600 ohm.
+
+### Status
+Selesai.
+
+## 2026-10-18 00:03 WIB — Selisih lima baris OKOK pada 68,95 kg
+
+### Tujuan
+Menjelaskan lima baris yang beda dengan OKOK International pada berat 68,95 kg.
+
+### Temuan
+Lima baris itu sama dengan v235 umur 29 (OKOK) dan umur 30 (aplikasi ini), pada tinggi 166 cm, laki-laki, impedansi sekitar 600 ohm. Baris lain tampil sama. OKOK menghitung umur utuh dari tanggal lahir. HealthTrack memakai umur yang diketik.
+
+### Perubahan
+- `docs/pemahaman.md`: catatan selisih umur 29 lawan 30.
+
+### Status
+Selesai. Rumus tidak diubah.
+
 ## 2026-10-05 05:06 WIB — MeasureScaleUseCase jadi kelas konkret
 
 ### Tujuan
