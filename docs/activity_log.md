@@ -1,5 +1,25 @@
 # Activity Log
 
+## 2026-10-18 00:36 WIB — Simpan tinggi dan umur di tiap hasil ukur
+
+### Tujuan
+Membuat tiap baris pengukuran menyimpan tinggi dan umur yang dipakai rumus, supaya riwayat tidak mengikuti profil yang diubah kemudian.
+
+### Perubahan
+- `domain/model/MeasurementResult.kt`: `heightCm` dan `age`.
+- `data/datasource/local/entity/MeasurementEntity.kt`: kolom `height_cm` dan `age`.
+- `data/datasource/local/database/HealthTrackDatabase.kt`: versi 2.
+- `data/datasource/local/database/HealthTrackMigrations.kt`: migrasi 1 ke 2 menambah kedua kolom tanpa menghapus baris lama.
+- `data/di/DatabaseModule.kt`: migrasi dipasang.
+- `data/mapper/MeasurementMapper.kt`: menulis dan membaca kedua nilai.
+- `domain/usecase/CloseMeasurementUseCase.kt`: menyalin tinggi dan umur dari profil sesi.
+- `presentation/result/ResultViewModel.kt`: BMI memakai tinggi tersimpan. Layar menampilkan tinggi dan umur.
+- `presentation/history/HistoryScreen.kt`: baris menampilkan tinggi dan umur.
+- `docs/android-dev/fase-05-hasil-riwayat.md`: tabel `measurement` menyimpan tinggi dan umur.
+
+### Status
+Selesai. `ResultViewModelTest`, `HistoryViewModelTest`, dan `HealthTrackStorageTest` lulus. Baris lama tetap kosong pada kedua kolom.
+
 ## 2026-10-18 00:15 WIB — Pintu keluar fase 5 lulus
 
 ### Tujuan

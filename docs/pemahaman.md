@@ -6,6 +6,27 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-18 00:36 WIB — Tiap hasil ukur menyimpan tinggi dan umur
+
+Koreksi catatan 2026-10-04 09:36. Tabel `measurement` sekarang punya kolom `height_cm` dan `age`. Keduanya diisi dari profil yang dipakai saat laporan disimpan. [`CloseMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt) menulisnya ke [`MeasurementResult`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementResult.kt).
+
+```40:51:HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt
+        val finished = MeasurementResult(
+            mac = context.mac,
+            productId = context.productId,
+            weightKg = weightKg,
+            scaleWeight = scaleText,
+            impedanceOhm = listOf(ohms),
+            formula = outcome.formula,
+            code = outcome.code,
+            report = report,
+            heightCm = context.session.body.heightCm,
+            age = context.session.body.age,
+        )
+```
+
+BMI dari riwayat memakai tinggi yang tersimpan. Baris riwayat dan layar hasil menampilkan tinggi serta umur itu. Baris yang ada sebelum migrasi `1` ke `2` membiarkan kedua kolom kosong, dan BMI-nya tetap memakai profil terbaru. Migrasi tidak menghapus baris lama.
+
 ## 2026-10-18 00:15 WIB — Rekomendasi berikut: port vA019
 
 Langkah berikut: fase 6 di [fase-06-frekuensi-ganda.md](android-dev/fase-06-frekuensi-ganda.md). Port `cs_bias_vA019` ke `util/CsBiasVA019`, lalu ganti cabang sepuluh ohm di [`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) supaya memilih `vA019`. Satu ohm tetap `v235`. Syaratnya pintu keluar fase 5, yang lulus pada uji tutup-buka 18 Okt 2026. Jangan menambah tabel Room. Jangan mengubah urutan float v235.
