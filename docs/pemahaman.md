@@ -6,6 +6,35 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-18 22:35 WIB — Daftar yang belum selesai ada di berkas sendiri
+
+Untuk timbangan satu ohm yang sudah diuji, satu sesi ukur HealthTrack sudah selesai. Daftar yang masih terbuka ada di [yang-belum-selesai.md](yang-belum-selesai.md).
+
+Yang menunggu perangkat lain: sesi pembanding sepuluh ohm. GATT-nya berheader `0xCB`, jenis impedansi `7`. HealthTrack hanya membaca GATT `0xCA`. Daftar baris OKOK untuk sepuluh ohm belum dikunci. Ketiadaan timbangan itu bukan kegagalan.
+
+Yang belum dibangun, di luar satu sesi ukur: dapur, minum, olahraga, wearable, tali, puasa, VIP, dan akun server Chipsea. Iklan, analitik, dan PDF tetap di luar. Siaran `0xC0` terenkripsi, [`libprotocol.so`](../ScaleHealtSource/split_config.arm64_v8a/lib/arm64-v8a/libprotocol.so), dan [`getVFR`](../ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java) sengaja tidak masuk rilis timbangan ini.
+
+```7:9:ScaleHealtSource/jadx-protocol/sources/com/xshq/sdk/Protocol.java
+    static {
+        System.loadLibrary("protocol");
+    }
+```
+
+```1386:1389:ScaleHealtSource/jadx-protocol/sources/com/chipsea/code/algorithm/CsAlgoBuilder.java
+        if (getType() == Type.DualFrequency || getType() == Type.MultiFrequency) {
+            sbc = getSbc();
+        } else {
+            float scoreWithAge = getScoreWithAge(this.H, this.Wt, this.Sex, this.Age, getBFR(), getSLM(), getVFR());
+```
+
+Rekomendasi 2026-10-18 01:29 WIB tetap berlaku bila timbangan sepuluh ohm ada. Tidak ada rekomendasi baru.
+
+## 2026-10-18 22:01 WIB — Pemeriksaan ulang: sesi pembanding sepuluh ohm masih kosong
+
+Bagian "Data sesi" pada pesan tugas ini kosong. Repo tidak memuat sesi yang lebih lengkap. Yang ada tetap contoh uji host 500, 480, 30, 450, 460, 510, 490, 28, 440, 470 ohm, dan itu bukan sesi timbangan. Banding 68,95 kg tetap satu ohm `v235`.
+
+Enam data yang masih kurang: berat, tinggi, jenis kelamin, umur utuh OKOK, sepuluh ohm berurutan dari timbangan, dan baris yang OKOK tampilkan. Tanggal ukur, tanggal lahir, hex siaran, dan hex GATT juga kosong. `parseMultiFrequency` tidak dijalankan. Daftar baris OKOK untuk sepuluh ohm belum dikunci. Ketiadaan timbangan bukan kegagalan. Rekomendasi 2026-10-18 01:29 WIB tetap berlaku.
+
 ## 2026-10-18 20:30 WIB — Sesi pembanding sepuluh ohm belum ada
 
 Sesi timbangan yang mengirim sepuluh ohm belum ada di repo dan tidak ada di pesan tugas ini. Tidak ada hex siaran, hex GATT, berat, tinggi, jenis kelamin, umur atau tanggal lahir, foto, atau daftar angka OKOK untuk frekuensi ganda.

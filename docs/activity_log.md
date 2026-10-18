@@ -1,5 +1,34 @@
 # Activity Log
 
+## 2026-10-18 22:35 WIB — Daftar yang belum selesai
+
+### Tujuan
+Mencatat sisa pekerjaan setelah satu sesi ukur pada timbangan satu ohm selesai, dalam satu berkas yang bisa dibaca terpisah dari riwayat.
+
+### Temuan
+Timbangan yang sudah diuji selesai pada jalur `v235`. Yang masih terbuka: sesi pembanding sepuluh ohm bila perangkat itu ada, modul di luar satu sesi ukur, dan jalur timbangan lain yang sengaja belum masuk rilis ini. Ketiadaan timbangan sepuluh ohm bukan kegagalan.
+
+### Perubahan
+- `docs/yang-belum-selesai.md`: daftar lengkap yang sudah selesai pada timbangan ini dan yang masih terbuka.
+- `docs/pemahaman.md`: catatan yang menunjuk berkas itu.
+
+### Status
+Selesai. Kode aplikasi tidak diubah. Rekomendasi yang berlaku tetap banding sepuluh ohm bila timbangannya ada (2026-10-18 01:29 WIB).
+
+## 2026-10-18 22:01 WIB — Pemeriksaan ulang sesi sepuluh ohm
+
+### Tujuan
+Mengunci daftar baris OKOK untuk timbangan sepuluh ohm, pada profil yang sama dengan angka yang OKOK tampilkan.
+
+### Temuan
+Bagian "Data sesi" pada pesan tugas ini kosong, dan repo tidak memuat sesi yang lebih lengkap. Contoh uji host (500, 480, 30, 450, 460, 510, 490, 28, 440, 470 ohm) bukan sesi timbangan. Daftar baris belum dikunci. Yang kurang: berat, tinggi, kelamin, umur utuh OKOK, sepuluh ohm berurutan dari timbangan, dan baris yang OKOK tampilkan. Tanggal ukur, tanggal lahir, hex siaran, dan hex GATT juga kosong.
+
+### Perubahan
+- `docs/pemahaman.md`: catatan bahwa pemeriksaan ulang ini masih tidak menemukan sesi pembanding.
+
+### Status
+Selesai. Kode tidak diubah. Rekomendasi yang berlaku tetap banding sepuluh ohm bila timbangannya ada (2026-10-18 01:29 WIB).
+
 ## 2026-10-18 20:30 WIB — Cari sesi pembanding sepuluh ohm
 
 ### Tujuan
