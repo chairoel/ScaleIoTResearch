@@ -2,7 +2,7 @@
 
 Tahap pertama adalah satu sesi ukur OKOK di [HealthTrack](../../HealthTrack). Isi produk, keputusan, dan pintu keluar ada di [rencana aplikasi Android](../rencana-aplikasi-android.md). Dokumen ini memecah urutan itu menjadi enam fase. Tiap fase punya berkas sendiri di folder ini.
 
-Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, sesi Bluetooth, dan riwayat yang membuka hasil sudah ada. Banding timbangan 68,95 kg cocok dengan v235 pada umur yang sama. Tutup-buka aplikasi fase 5 lulus. `vA019` belum.
+Letak paket di folder ini yang dipakai saat menulis kode. Bagian paket di rencana aplikasi masih menyebut `domain/protocol` dan templat kosong; itu tidak lagi sesuai kode. Parser fase 1, rumus `v235`, profil, Room, tiga tab, sesi Bluetooth, dan riwayat yang membuka hasil sudah ada. Banding timbangan 68,95 kg cocok dengan v235 pada umur yang sama. Tutup-buka aplikasi fase 5 lulus. Uji host fase 6 lulus: sepuluh ohm memilih `vA019`. Uji di timbangan sepuluh ohm menyusul bila perangkat itu ada.
 
 ## Keadaan modul
 
@@ -38,7 +38,7 @@ flowchart LR
 | 3 | [fase-03-profil-room.md](fase-03-profil-room.md) | Sudah di kode | Profil tersimpan, baris terbaru termuat, sesi terkunci tanpa profil |
 | 4 | [fase-04-sesi-bluetooth.md](fase-04-sesi-bluetooth.md) | Kode ada; banding 68,95 kg cocok dengan v235 | Selisih lima baris OKOK adalah umur 30 lawan 29 |
 | 5 | [fase-05-hasil-riwayat.md](fase-05-hasil-riwayat.md) | Pintu keluar lulus | Tutup aplikasi, buka lagi, angka riwayat sama dengan saat sesi selesai |
-| 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Belum | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
+| 6 | [fase-06-frekuensi-ganda.md](fase-06-frekuensi-ganda.md) | Uji host lulus | Sepuluh ohm memilih `vA019` dan uji Python-nya lulus |
 
 Fase 5 menutup tahap pertama untuk timbangan satu frekuensi. Fase 6 menutup timbangan yang mengirim sepuluh ohm.
 
@@ -74,7 +74,7 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
                                 ApplyBroadcastWeightUseCase, CloseMeasurementUseCase,
                                 MeasurementStateUseCase, DisplayMeasurementUseCase,
                                 MeasureScaleUseCase, ScaleFrames
-  util/                         CsBiasV235, BinaryFloat (`f32`, `fma` lewat BigDecimal), AppDispatcher, ElapsedClock
+  util/                         CsBiasV235, CsBiasVA019, BinaryFloat (`f32`, `fma` lewat BigDecimal), AppDispatcher, ElapsedClock
   data/datasource/              NativeProtocol, BleDataSource, BleDataSourceImpl
     local/                      DAO Room, HealthTrackDatabase, HealthTrackPreferences
   data/di/                      ScaleFrameHeaders, DataModule, DataSourceModule, RepositoryModule, DatabaseModule,
@@ -100,7 +100,7 @@ HealthTrack/app/src/main/java/com/mascill/healthtrack/
   App.kt
   MainActivity.kt
 HealthTrack/app/src/main/cpp/   libscale_protocol.so
-HealthTrack/app/src/test/java/  JUnit host, tanpa emulator: parser, v235, mesin sesi, ScaleFrames,
+HealthTrack/app/src/test/java/  JUnit host, tanpa emulator: parser, v235, vA019, mesin sesi, ScaleFrames,
                                 MeasureScaleUseCase, Room, BinaryFloat, ViewModel sesi, hasil, dan riwayat
 ```
 
@@ -116,7 +116,7 @@ Modul Gradle kedua tidak dibuat. Rumus dan mesin sesi tidak mengimpor `android.*
 
 Operasi byte parser yang sudah pindah ada di `libscale_protocol.so` (`app/src/main/cpp/`). [`NativeProtocol`](../../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/datasource/NativeProtocol.kt) di `data.datasource` memuat library itu. Simbol JNI berawalan `Java_com_mascill_healthtrack_data_datasource_NativeProtocol_`.
 
-Yang di C untuk parser: byte, berat siaran, penjepit komposisi GATT (`setAxunge` dan saudaranya), parse frame `0xCA` / `0xC0` / `0xFF`, parse GATT versi 16 dan 17, serta muatan iklan. Rumus laporan tidak di C. `v235` ada di `util` (`CsBiasV235`). `vA019` belum dipindahkan.
+Yang di C untuk parser: byte, berat siaran, penjepit komposisi GATT (`setAxunge` dan saudaranya), parse frame `0xCA` / `0xC0` / `0xFF`, parse GATT versi 16 dan 17, serta muatan iklan. Rumus laporan tidak di C. `v235` ada di `util` (`CsBiasV235`). `vA019` ada di `util` (`CsBiasVA019`). Citra programnya disalin dari `rumus/cs_bias_vA019.py`. `libchipsea_bias_vA019.so` tidak dipanggil.
 
 Dua jalur, dipilih `NativeProtocol.isLoaded`:
 

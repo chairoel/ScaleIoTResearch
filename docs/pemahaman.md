@@ -6,6 +6,24 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-18 15:18 WIB — HealthTrack punya repo GitHub sendiri
+
+Kode aplikasi Android ada di [chairoel/healt-track](https://github.com/chairoel/healt-track), branch `main`. Root repo itu adalah isi folder `HealthTrack` (`app/`, Gradle, `.cursor/`), bukan monorepo ScaleIoT. Riwayatnya dipotong dari prefix `HealthTrack`. Commit `a01bc9e` menambah rumus vA019 dan `.gitignore`.
+
+Repo ScaleIoT lokal tetap menyimpan folder `HealthTrack` di branch `development` dan tidak punya remote. `local.properties` tidak masuk GitHub. Berkas `.gitignore` di folder itu tidak terlacak di ScaleIoT karena gitignore global mengabaikan nama `.gitignore`.
+
+## 2026-10-18 01:29 WIB — Rekomendasi berikut: banding sepuluh ohm bila timbangannya ada
+
+Langkah berikut: sesi pembanding pada timbangan yang mengirim sepuluh ohm, bila perangkat itu ada, untuk mengunci daftar baris OKOK. Syaratnya uji host `vA019` yang sudah lulus. Jangan menambah baris segmental, `icw`, `ecw`, atau layar baru sebelum sesi itu. Jangan mengubah parser siaran, GATT, atau `MeasurementSession.impedanceOhm`. Jangan mem-port dapur, minum, olahraga, wearable, tali, puasa, VIP, iklan, analitik, PDF, atau akun server.
+
+## 2026-10-18 01:29 WIB — Sepuluh ohm memilih vA019 di util
+
+[`CsBiasVA019`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/CsBiasVA019.kt) menjalankan citra program yang sama dengan `rumus/cs_bias_vA019.py`. Blob base64 zlib disalin. Library asli tidak dipanggil. Perkalian-tambah memakai `fma` di [`BinaryFloat`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/util/BinaryFloat.kt). Float32 memakai `f32` di berkas yang sama.
+
+[`CalculateReportUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CalculateReportUseCase.kt) memilih `v235` untuk satu ohm dan `vA019` untuk sepuluh ohm. Jumlah lain ditolak. Laporan yang disimpan tetap [`V235Report`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/V235Report.kt) pada field `bfp`, `slm`, `slp`, `bwp`, `bmc`, `vfl`, `pp`, `smm`, `swt`, `mc`, `wc`, `fc`, `bmr`, `ma`, dan `sbc`. JSON `measurement.report` tetap [`StoredReport`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/data/model/StoredReport.kt). Tidak ada kolom Room baru.
+
+Sesi Bluetooth tetap satu ohm. `MeasurementSession.impedanceOhm` tetap `Double?`. [`CloseMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt) menyimpan hasil hanya bila kode rumus 0. Uji sepuluh ohm memanggil `CalculateReportUseCase` langsung.
+
 ## 2026-10-18 00:36 WIB — Tiap hasil ukur menyimpan tinggi dan umur
 
 Koreksi catatan 2026-10-04 09:36. Tabel `measurement` sekarang punya kolom `height_cm` dan `age`. Keduanya diisi dari profil yang dipakai saat laporan disimpan. [`CloseMeasurementUseCase`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/usecase/CloseMeasurementUseCase.kt) menulisnya ke [`MeasurementResult`](../HealthTrack/app/src/main/java/com/mascill/healthtrack/domain/model/MeasurementResult.kt).

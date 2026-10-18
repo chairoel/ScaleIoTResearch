@@ -1,5 +1,35 @@
 # Activity Log
 
+## 2026-10-18 15:18 WIB — Terbitkan repo HealthTrack
+
+### Tujuan
+Memisahkan proyek Android HealthTrack ke repository GitHub sendiri, tanpa membawa ScaleIoT, APK, atau hasil bongkaran.
+
+### Perubahan
+- [chairoel/healt-track](https://github.com/chairoel/healt-track): branch `main` berisi isi folder `HealthTrack` sebagai root. Riwayatnya 19 commit yang menyentuh folder itu, ditambah commit `a01bc9e` untuk rumus vA019 dan `.gitignore`.
+- `local.properties` tidak ikut.
+
+### Temuan
+Gitignore global mengabaikan setiap berkas bernama `.gitignore`, jadi `HealthTrack/.gitignore` tidak pernah masuk riwayat ScaleIoT. Berkas itu baru terlacak di repo GitHub.
+
+### Status
+Selesai. Repo ScaleIoT lokal tetap di branch `development` dan belum punya remote. Perubahan vA019 di working tree ScaleIoT masih belum di-commit di repo ini.
+
+## 2026-10-18 01:29 WIB — Port rumus frekuensi ganda vA019
+
+### Tujuan
+Membawa `cs_bias_vA019` ke aplikasi supaya sepuluh ohm memilih `vA019`, dengan pintu keluar uji host.
+
+### Perubahan
+- `util/CsBiasVA019.kt`: `csBiasVA019`, `parseMultiFrequency`, dan interpreter citra program dari `rumus/cs_bias_vA019.py`.
+- `domain/usecase/CalculateReportUseCase.kt`: sepuluh ohm memanggil `vA019`. Satu ohm tetap `v235`.
+- `app/src/test/java/com/mascill/healthtrack/util/CsBiasVA019Test.kt`: nilai library, kode galat, regresi mode nol, dan pemotongan float Java.
+- `domain/model/MeasurementSessionTest.kt`: sepuluh ohm contoh mengembalikan nama `vA019`, kode 0, dan laporan yang sama dengan `parseMultiFrequency`.
+- `docs/android-dev/00-rencana-besar.md`: keadaan fase 6 menjadi uji host lulus.
+
+### Status
+Selesai. `./gradlew :app:testDebugUnitTest` lulus. Sesi Bluetooth tetap satu ohm. Layar dan tabel Room tidak ditambah.
+
 ## 2026-10-18 00:36 WIB — Simpan tinggi dan umur di tiap hasil ukur
 
 ### Tujuan
