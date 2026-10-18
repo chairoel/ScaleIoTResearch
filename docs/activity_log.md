@@ -1,5 +1,30 @@
 # Activity Log
 
+## 2026-10-18 20:30 WIB — Cari sesi pembanding sepuluh ohm
+
+### Tujuan
+Mengunci daftar baris OKOK untuk timbangan sepuluh ohm, dengan cara yang sama seperti banding 68,95 kg pada v235.
+
+### Temuan
+Sesi itu tidak ada. Repo dan pesan tugas tidak memuat hex siaran, hex GATT, sepuluh ohm dari timbangan, profil tubuh, atau daftar angka OKOK. Contoh uji host (500, 480, 30, 450, 460, 510, 490, 28, 440, 470 ohm) bukan sesi timbangan. Daftar baris belum dikunci. Yang kurang: berat, tinggi, kelamin, umur utuh OKOK, sepuluh ohm berurutan (tangan kanan, tangan kiri, batang, kaki kanan, kaki kiri, lalu frekuensi kedua dengan urutan yang sama), dan baris yang OKOK tampilkan.
+
+### Perubahan
+- `docs/pemahaman.md`: catatan bahwa sesi pembanding sepuluh ohm belum ada.
+
+### Status
+Selesai. Kode tidak diubah. Rekomendasi yang berlaku tetap banding sepuluh ohm bila timbangannya ada (2026-10-18 01:29 WIB).
+
+## 2026-10-18 18:41 WIB — Samakan HealthTrack dengan GitHub
+
+### Tujuan
+Memastikan [chairoel/healt-track](https://github.com/chairoel/healt-track) `main` memuat kode `HealthTrack` pada commit `e6fbfa0`.
+
+### Temuan
+Pohon berkas aplikasi pada `e6fbfa0` sama dengan `a01bc9e` di GitHub. Satu-satunya selisih adalah `.gitignore`: berkas itu ada di GitHub dan isinya sama dengan salinan di disk, tetapi tidak masuk commit ScaleIoT karena gitignore global mengabaikan nama `.gitignore`. Tidak ada commit baru yang di-push.
+
+### Status
+Selesai. `main` tetap di `a01bc9e`.
+
 ## 2026-10-18 15:18 WIB — Terbitkan repo HealthTrack
 
 ### Tujuan

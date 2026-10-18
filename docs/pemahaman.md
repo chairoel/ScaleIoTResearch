@@ -6,6 +6,18 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-18 20:30 WIB — Sesi pembanding sepuluh ohm belum ada
+
+Sesi timbangan yang mengirim sepuluh ohm belum ada di repo dan tidak ada di pesan tugas ini. Tidak ada hex siaran, hex GATT, berat, tinggi, jenis kelamin, umur atau tanggal lahir, foto, atau daftar angka OKOK untuk frekuensi ganda.
+
+Sepuluh ohm yang ada hanya contoh uji host: 500, 480, 30, 450, 460, 510, 490, 28, 440, 470. Itu bukan sesi timbangan. Banding 68,95 kg tetap satu ohm `v235`. Daftar baris OKOK untuk sepuluh ohm belum dikunci. `parseMultiFrequency` tidak dijalankan karena profil dan sepuluh ohm dari timbangan belum ada.
+
+Yang masih kurang sebelum daftar baris bisa dikunci: berat, tinggi, kelamin, umur utuh OKOK (umur yang sudah terlewati dari tanggal lahir), sepuluh ohm berurutan (tangan kanan, tangan kiri, batang, kaki kanan, kaki kiri, lalu frekuensi kedua dengan urutan yang sama), serta baris yang OKOK tampilkan. Ketiadaan timbangan bukan kegagalan. Rekomendasi 2026-10-18 01:29 WIB tetap berlaku.
+
+## 2026-10-18 18:41 WIB — Kode HealthTrack di e6fbfa0 sudah sama dengan GitHub
+
+Koreksi catatan 2026-10-18 15:18 pada keadaan kode. Pohon aplikasi di commit ScaleIoT `e6fbfa0` sama dengan [chairoel/healt-track](https://github.com/chairoel/healt-track) `main` pada `a01bc9e`. `.gitignore` ada di GitHub dan isinya sama dengan berkas di disk. Commit ScaleIoT tidak menyimpan berkas itu karena gitignore global mengabaikan nama `.gitignore`.
+
 ## 2026-10-18 15:18 WIB — HealthTrack punya repo GitHub sendiri
 
 Kode aplikasi Android ada di [chairoel/healt-track](https://github.com/chairoel/healt-track), branch `main`. Root repo itu adalah isi folder `HealthTrack` (`app/`, Gradle, `.cursor/`), bukan monorepo ScaleIoT. Riwayatnya dipotong dari prefix `HealthTrack`. Commit `a01bc9e` menambah rumus vA019 dan `.gitignore`.
