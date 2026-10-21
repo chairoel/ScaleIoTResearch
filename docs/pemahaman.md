@@ -6,6 +6,12 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-22 01:52 WIB — Rekomendasi berikut: gunakan dua repo hasil pemisahan
+
+Repository `https://github.com/chairoel/ScaleIoTResearch` sekarang menyimpan branch default `development` dari folder lokal setara `ScaleIoTResearch`. Repository aplikasi tetap `https://github.com/chairoel/HealthTrack` dengan branch default `main`.
+
+Gunakan dua folder setara itu sebagai sumber kerja berikutnya: perubahan aplikasi masuk ke HealthTrack, sedangkan reverse engineering, rumus, dan dokumentasi masuk ke ScaleIoTResearch. Repo ScaleIoT lama boleh diarsipkan setelah konfigurasi IDE atau otomasi yang masih menunjuk path lama dipindahkan. Jangan melanjutkan perubahan baru di repo lama karena akan membuat tiga riwayat menyimpang.
+
 ## 2026-10-22 01:48 WIB — Rekomendasi berikut: amankan remote ScaleIoTResearch
 
 Dua repository kerja kini tersedia sebagai folder setara di `/Users/chairulamri/Documents/Irul/MyProject`: `HealthTrack` untuk aplikasi Android dan `ScaleIoTResearch` untuk `.cursor/`, `aplikasi/`, `docs/`, `rumus/`, serta `requirements.txt`. ScaleIoTResearch berasal dari branch `development` yang disaring dengan menghapus path `HealthTrack/` dari seluruh riwayat. Hasil awalnya memiliki 46 commit dan HEAD `3962492b446541c1200f6e66570687f55e0a5d10`; repository itu tidak memiliki remote karena `git filter-repo` sengaja melepas remote sumber.

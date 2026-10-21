@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-10-22 01:52 WIB — Publikasikan ScaleIoTResearch
+
+### Tujuan
+Mengamankan repository hasil pemisahan non-HealthTrack pada GitHub.
+
+### Perubahan
+- `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoTResearch`: remote `origin` ditambahkan dengan URL `https://github.com/chairoel/ScaleIoTResearch.git`.
+- Branch `development` dipush dan dikonfigurasi untuk mengikuti `origin/development`.
+
+### Status
+Selesai. GitHub menetapkan `development` sebagai default branch dan commit lokal maupun remote sama-sama menunjuk `582a27b37b4fa13e8422743ce61ef9d09b10c72d` sebelum catatan publikasi ini ditambahkan.
+
 ## 2026-10-22 01:48 WIB — Pisahkan workspace menjadi dua repository setara
 
 ### Tujuan
