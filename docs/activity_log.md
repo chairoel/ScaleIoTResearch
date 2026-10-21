@@ -1,5 +1,22 @@
 # Activity Log
 
+## 2026-10-22 01:48 WIB — Pisahkan workspace menjadi dua repository setara
+
+### Tujuan
+Membentuk repository aplikasi HealthTrack dan repository riset ScaleIoT sebagai dua folder setara, dengan riwayat masing-masing tetap relevan.
+
+### Temuan
+Riwayat sumber memiliki 48 commit setelah dokumentasi ekstraksi HealthTrack diamankan. Penyaringan terbalik menghapus dua commit yang hanya berisi HealthTrack dan mempertahankan bagian non-HealthTrack dari commit campuran.
+
+### Perubahan
+- `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoTResearch`: clone branch `development` dibuat lalu seluruh path `HealthTrack/` dihapus dari semua commit dengan `git filter-repo --invert-paths`.
+- `/Users/chairulamri/Documents/Irul/MyProject/HealthTrack`: clone setara dibuat dari `https://github.com/chairoel/HealthTrack.git`.
+- `git-filter-repo` 2.47.0 dipasang melalui Homebrew untuk melakukan penyaringan riwayat.
+- Repo sumber `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoT` tetap disimpan sebagai salinan keselamatan; tidak ada file sumber yang dihapus.
+
+### Status
+Selesai. ScaleIoTResearch memiliki 46 commit dan tidak memiliki path `HealthTrack/` pada working tree maupun riwayat. HealthTrack memiliki 20 commit, bersih, dan mengikuti `origin/main`.
+
 ## 2026-10-22 01:40 WIB — Pisahkan riwayat HealthTrack ke repo sendiri
 
 ### Tujuan
