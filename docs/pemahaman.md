@@ -6,6 +6,12 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-22 01:40 WIB — Rekomendasi berikut: tetapkan repo HealthTrack sebagai sumber aplikasi
+
+Repository `https://github.com/chairoel/HealthTrack` sekarang menyimpan proyek Android HealthTrack langsung di root branch `main`. Riwayatnya berasal dari 20 commit `HealthTrack/` di ScaleIoT melalui `git subtree split`; commit terbaru lokal dan GitHub adalah `c3b9061d08c350024c759074ea6cfd6789452b81`.
+
+Langkah engineering repository berikutnya adalah menjadikan repo HealthTrack sebagai satu-satunya sumber perubahan aplikasi. Sebelum pengembangan aplikasi dilanjutkan, hentikan pelacakan ganda atas file yang sama di ScaleIoT: pilih mengeluarkan `HealthTrack/` dari repo induk atau menggantinya dengan submodule yang menunjuk repo baru. Jangan membuat commit aplikasi baru secara terpisah pada kedua riwayat karena keduanya akan menyimpang.
+
 ## 2026-10-18 22:35 WIB — Daftar yang belum selesai ada di berkas sendiri
 
 Untuk timbangan satu ohm yang sudah diuji, satu sesi ukur HealthTrack sudah selesai. Daftar yang masih terbuka ada di [yang-belum-selesai.md](yang-belum-selesai.md).

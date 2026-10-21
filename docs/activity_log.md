@@ -1,5 +1,22 @@
 # Activity Log
 
+## 2026-10-22 01:40 WIB — Pisahkan riwayat HealthTrack ke repo sendiri
+
+### Tujuan
+Mengamankan aplikasi Android HealthTrack pada repository GitHub tersendiri tanpa membuat ulang riwayat commit secara manual.
+
+### Temuan
+Folder `HealthTrack/` memiliki 20 commit relevan di riwayat ScaleIoT. Repository `https://github.com/chairoel/HealthTrack` masih kosong sebelum migrasi.
+
+### Perubahan
+- Riwayat `HealthTrack/` diekstrak dengan `git subtree split` menjadi branch lokal `healthtrack-main`; prefix direktori dihapus sehingga proyek Android berada langsung di root riwayat baru.
+- Branch hasil ekstraksi dipush sebagai `main` ke `https://github.com/chairoel/HealthTrack`.
+- `HealthTrack/.git`: repository lokal disambungkan ke `origin/main` tanpa mengubah working tree aplikasi.
+- `docs/pemahaman.md`: fakta repository baru dan rekomendasi batas kepemilikan source dicatat.
+
+### Status
+Selesai. `main` lokal dan `origin/main` sama-sama menunjuk commit `c3b9061d08c350024c759074ea6cfd6789452b81`, memuat 20 commit, dan working tree HealthTrack bersih.
+
 ## 2026-10-18 22:35 WIB — Daftar yang belum selesai
 
 ### Tujuan
