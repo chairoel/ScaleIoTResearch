@@ -1,5 +1,18 @@
 # Activity Log
 
+## 2026-10-22 02:06 WIB — Pulihkan path workspace lama
+
+### Tujuan
+Mempertahankan identitas workspace Cursor lama sambil tetap menempatkan tiga repository di bawah satu folder induk.
+
+### Perubahan
+- Folder induk `ScaleIoTWorkspace` diganti kembali menjadi `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoT`.
+- Repo sumber lama di dalamnya diganti nama dari `ScaleIoT` menjadi `ScaleIoTArchive`.
+- Repository kerja kini berada di `ScaleIoT/HealthTrack` dan `ScaleIoT/ScaleIoTResearch`.
+
+### Status
+Selesai. Ketiga working tree bersih, hubungan remote repository kerja tetap utuh, dan path workspace Cursor lama tersedia kembali.
+
 ## 2026-10-22 01:58 WIB — Satukan repository dalam folder workspace
 
 ### Tujuan

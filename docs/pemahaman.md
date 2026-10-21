@@ -6,6 +6,12 @@ Setiap judul bagian memuat waktu pencatatan dalam WIB, format `YYYY-MM-DD HH:mm 
 
 Catatan baru yang menyebut class, method, atau simbol lain dari kode hasil bongkaran menyertakan tautan berkas dan cuplikan. Catatan lama tidak diubah untuk itu. Lokasi berkas untuk nama yang sudah tertulis ada di catatan terbaru dan di `protokol-frame-okok.md`.
 
+## 2026-10-22 02:06 WIB — Koreksi lokasi workspace tiga repository
+
+Lokasi terbaru yang berlaku adalah `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoT`. Folder itu menjadi induk `HealthTrack`, `ScaleIoTResearch`, dan `ScaleIoTArchive`. Catatan 2026-10-22 01:58 WIB yang menyatakan folder induk bernama `ScaleIoTWorkspace` sudah tidak berlaku.
+
+Nama dan path induk `ScaleIoT` dipertahankan agar cocok dengan identitas workspace Cursor lama. Rekomendasi 2026-10-22 01:52 WIB tetap berlaku: perubahan baru hanya masuk ke HealthTrack atau ScaleIoTResearch; ScaleIoTArchive bukan sumber pengembangan.
+
 ## 2026-10-22 01:58 WIB — Lokasi workspace tiga repository
 
 Folder induk ketiga repository adalah `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoTWorkspace`. Repository aktif berada di `ScaleIoTWorkspace/HealthTrack` dan `ScaleIoTWorkspace/ScaleIoTResearch`; salinan sumber sebelum pemisahan berada di `ScaleIoTWorkspace/ScaleIoT`.
