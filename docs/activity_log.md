@@ -1,5 +1,18 @@
 # Activity Log
 
+## 2026-10-22 01:58 WIB — Satukan repository dalam folder workspace
+
+### Tujuan
+Menempatkan repository HealthTrack, ScaleIoTResearch, dan salinan sumber ScaleIoT di bawah satu folder induk tanpa mengubah riwayat Git masing-masing.
+
+### Perubahan
+- Folder induk `/Users/chairulamri/Documents/Irul/MyProject/ScaleIoTWorkspace` digunakan sebagai wadah ketiga repository.
+- Repository kerja dipindahkan menjadi `ScaleIoTWorkspace/HealthTrack` dan `ScaleIoTWorkspace/ScaleIoTResearch`.
+- Salinan sumber lama dipindahkan menjadi `ScaleIoTWorkspace/ScaleIoT`.
+
+### Status
+Selesai setelah ketiga working tree dan hubungan remote diverifikasi dari lokasi baru. Workspace Cursor perlu dibuka ulang dari path `ScaleIoTWorkspace`.
+
 ## 2026-10-22 01:52 WIB — Publikasikan ScaleIoTResearch
 
 ### Tujuan
